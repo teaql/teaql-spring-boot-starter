@@ -463,7 +463,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   private void advanceGroupBy(
       UserContext userContext, AggregationResult result, SearchRequest<T> request) {
     Map<String, SearchRequest> propagateDimensions = request.getPropagateDimensions();
-    List<SimpleNamedExpression> allDimensions = request.getAggregations().getComplexDimensions();
+    List<SimpleNamedExpression> allDimensions = request.getAggregations().getDimensions();
     propagateDimensions.forEach(
         (property, dimensionRequest) -> {
           SimpleNamedExpression toBeEnhancedDimension = findCurrentDimension(allDimensions, property);
@@ -476,6 +476,11 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
           //动态属性查询(ID关联)
           t.addSimpleDynamicProperty(property, new PropertyReference(ID));
+
+          Map<String, SearchRequest> subPropagateDimensions = dimensionRequest.getPropagateDimensions();
+          subPropagateDimensions.forEach((k, v) -> {
+            t.groupBy(k, v);
+          });
 
           //更多的dimension关联
           List<SimpleNamedExpression> dimensions = dimensionRequest.getAggregations().getDimensions();
@@ -508,7 +513,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     Map<Object, Map<SimpleNamedExpression, Object>> refinedDimensions = CollStreamUtil.toMap(dimensionResult.getData(), e -> e.getDynamicProperty(toBeRefinedDimension.name()), e -> {
       Map<SimpleNamedExpression, Object> refinedDimension = new HashMap<>();
       for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
-        if (simpleDynamicProperty.name().equals(toBeRefinedDimension)) {
+        if (simpleDynamicProperty.name().equals(toBeRefinedDimension.name())) {
           continue;
         }
         refinedDimension.put(simpleDynamicProperty, e.getDynamicProperty(simpleDynamicProperty.name()));
@@ -520,7 +525,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
     for (AggregationItem datum : data) {
       Map<SimpleNamedExpression, Object> dimensions = datum.getDimensions();
-      Object currentValue = dimensions.remove(toBeRefinedDimension);
+      Object currentValue = remove(dimensions, toBeRefinedDimension);
       if (currentValue == null){
         continue;
       }
@@ -542,6 +547,21 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }));
 
     advanceGroupBy(userContext, result, dimensionRequest);
+  }
+
+  private Object remove(Map<SimpleNamedExpression, Object> dimensions, SimpleNamedExpression toBeRefinedDimension) {
+    Set<Map.Entry<SimpleNamedExpression, Object>> entries = dimensions.entrySet();
+    Iterator<Map.Entry<SimpleNamedExpression, Object>> iterator = entries.iterator();
+    while(iterator.hasNext()){
+      Map.Entry<SimpleNamedExpression, Object> next = iterator.next();
+      SimpleNamedExpression key = next.getKey();
+      Object value = next.getValue();
+      if (key.name().equals(toBeRefinedDimension.name())){
+        iterator.remove();
+        return value;
+      }
+    }
+    return null;
   }
 
   private Object merge(SimpleNamedExpression aggregation, Object p0, Object p1) {
@@ -998,56 +1018,11 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     if (ObjectUtil.isEmpty(searchCriteria)) {
       return SearchCriteria.TRUE;
     }
-    if (searchCriteria instanceof SubQuerySearchCriteria) {
-      String propertyName = ((SubQuerySearchCriteria) searchCriteria).getPropertyName();
-      SearchRequest dependsOn = ((SubQuerySearchCriteria) searchCriteria).getDependsOn();
-      String dependsOnPropertyName =
-          ((SubQuerySearchCriteria) searchCriteria).getDependsOnPropertyName();
-      return prepareSubQuerySql(
-          userContext, idTable, propertyName, dependsOnPropertyName, dependsOn, parameters);
-    }
     return ExpressionHelper.toSql(userContext, searchCriteria, idTable, parameters, this);
   }
 
-  private String prepareSubQuerySql(
-      UserContext pUserContext,
-      String idTable,
-      String propertyName,
-      String dependsOnPropertyName,
-      SearchRequest dependsOn,
-      Map<String, Object> parameters) {
-    String type = dependsOn.getTypeName();
-    Repository repository = pUserContext.resolveRepository(type);
 
-    if (dependsOn.tryUseSubQuery() && isRequestInDatasource(pUserContext, repository)) {
-      SQLRepository subRepository = (SQLRepository) repository;
-      TempRequest tempRequest = new TempRequest(dependsOn.returnType(), dependsOn.getTypeName());
-      //只选择依赖的属性以及条件
-      tempRequest.selectProperty(dependsOnPropertyName);
-      tempRequest.appendSearchCriteria(dependsOn.getSearchCriteria());
-      String subQuery = subRepository.buildDataSQL(pUserContext, tempRequest, parameters);
-      if (ObjectUtil.isEmpty(subQuery)){
-        return SearchCriteria.FALSE;
-      }
-      IN in = new IN(new PropertyReference(propertyName), new RawSql(subQuery));
-      return ExpressionHelper.toSql(pUserContext, in, idTable, parameters, this);
-    }
-
-    // fall back
-    SmartList<Entity> referred = repository.executeForList(pUserContext, dependsOn);
-    Set dependsOnValues = new HashSet<>();
-    for (Entity entity : referred) {
-      Object propertyValue = entity.getProperty(dependsOnPropertyName);
-      if (!ObjectUtil.isEmpty(propertyValue)) {
-        dependsOnValues.add(propertyValue);
-      }
-    }
-    Parameter parameter = new Parameter(propertyName, dependsOnValues);
-    IN in = new IN(new PropertyReference(propertyName), parameter);
-    return ExpressionHelper.toSql(pUserContext, in, idTable, parameters, this);
-  }
-
-  private boolean isRequestInDatasource(UserContext pUserContext, Repository repository) {
+  public boolean isRequestInDatasource(UserContext pUserContext, Repository repository) {
     if (repository instanceof SQLRepository) {
       return ((SQLRepository) repository).jdbcTemplate.getJdbcTemplate().getDataSource()
           == this.jdbcTemplate.getJdbcTemplate().getDataSource();

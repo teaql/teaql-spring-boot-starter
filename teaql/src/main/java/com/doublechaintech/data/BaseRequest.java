@@ -214,6 +214,29 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     getAggregations().getAggregates().add(aggregate);
   }
 
+  public void aggregate(String property, SearchRequest subRequest){
+    this.propagateAggregations.put(property, subRequest);
+  }
+
+
+  public void groupBy(String propertyName){
+    groupBy(propertyName, propertyName);
+  }
+
+  public void groupBy(String retName, String propertyName){
+    groupBy(retName, propertyName, AggrFunction.SELF);
+  }
+
+  public void groupBy(String retName, String propertyName, AggrFunction function){
+    this.aggregations.getSimpleDimensions().add(new SimpleNamedExpression(retName, new AggrExpression(function, new PropertyReference(propertyName))));
+  }
+
+
+  public void groupBy(String propertyName, SearchRequest subRequest){
+    this.aggregations.getComplexDimensions().add(new SimpleNamedExpression(propertyName, new PropertyReference(propertyName)));
+    this.propagateDimensions.put(propertyName, subRequest);
+  }
+
   public void addAggregate(String retName, String propertyName, AggrFunction function){
     addAggregate(new SimpleNamedExpression(retName, new AggrExpression(function, new PropertyReference(propertyName))));
   }
