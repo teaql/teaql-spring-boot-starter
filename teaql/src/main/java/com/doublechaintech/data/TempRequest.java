@@ -20,14 +20,13 @@ public class TempRequest extends BaseRequest {
     aggregations = pRequest.getAggregations();
     propagateAggregations = pRequest.getPropagateAggregations();
     propagateDimensions = pRequest.getPropagateDimensions();
+    dynamicAggregateAttributes = pRequest.getDynamicAggregateAttributes();
   }
-
 
   public TempRequest(Class returnType, String typeName) {
     super(returnType);
     type = typeName;
   }
-
 
   @Override
   public String getTypeName() {
@@ -39,9 +38,9 @@ public class TempRequest extends BaseRequest {
     if (searchCriteria == null) {
       return this;
     }
-    if(this.searchCriteria == null){
+    if (this.searchCriteria == null) {
       this.searchCriteria = searchCriteria;
-    }else{
+    } else {
       this.searchCriteria = SearchCriteria.and(this.searchCriteria, searchCriteria);
     }
     return this;

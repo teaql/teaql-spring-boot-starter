@@ -9,7 +9,6 @@ import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.*;
 import com.doublechaintech.data.*;
 import com.doublechaintech.data.criteria.IN;
-import com.doublechaintech.data.criteria.RawSql;
 import com.doublechaintech.data.meta.EntityDescriptor;
 import com.doublechaintech.data.meta.PropertyDescriptor;
 import com.doublechaintech.data.meta.Relation;
@@ -20,7 +19,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -50,7 +48,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       List<PropertyDescriptor> properties = descriptor.getProperties();
       for (PropertyDescriptor property : properties) {
         allProperties.add(property);
-        if (property instanceof Relation && !shouldHandle((Relation) property)){
+        if (property instanceof Relation && !shouldHandle((Relation) property)) {
           continue;
         }
         List<SQLColumn> sqlColumns = getSqlColumns(property);
@@ -414,7 +412,43 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     SmartList<T> smartList = new SmartList<>(results);
     enhanceRelations(userContext, smartList, request);
     enhanceWithAggregation(userContext, request, smartList);
+    addDynamicAggregations(userContext, request, smartList);
     return smartList;
+  }
+
+  private void addDynamicAggregations(
+      UserContext userContext, SearchRequest<T> request, SmartList<T> results) {
+    List<SimpleAggregation> dynamicAggregateAttributes = request.getDynamicAggregateAttributes();
+    if (ObjectUtil.isEmpty(dynamicAggregateAttributes)) {
+      return;
+    }
+
+    Map<Long, T> idEntityMap = results.mapById();
+    Set<Long> ids = idEntityMap.keySet();
+    for (SimpleAggregation dynamicAggregateAttribute : dynamicAggregateAttributes) {
+      SearchRequest aggregateRequest = dynamicAggregateAttribute.getAggregateRequest();
+      String property = aggregateRequest.getPartitionProperty();
+      TempRequest t = new TempRequest(aggregateRequest);
+      t.groupBy(property);
+      if (ids.size() < preferIdInCount()) {
+        t.appendSearchCriteria(
+            new IN(new PropertyReference(property), new Parameter(property, ids)));
+      } else {
+        t.appendSearchCriteria(new SubQuerySearchCriteria(property, request, ID));
+      }
+
+      AggregationResult aggregation = t.aggregation(userContext);
+      List<Map<String, Object>> dynamicAttributes = aggregation.toList();
+      for (Map<String, Object> dynamicAttribute : dynamicAttributes) {
+        Long parentID = ((Number) dynamicAttribute.remove(property)).longValue();
+        T parent = idEntityMap.get(parentID);
+        parent.appendDynamicProperty(dynamicAggregateAttribute.getName(), dynamicAttribute);
+      }
+    }
+  }
+
+  private int preferIdInCount() {
+    return 1000;
   }
 
   @Override
@@ -425,7 +459,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     List<String> tables = collectAggregationTables(userContext, request);
     Map<String, Object> parameters = new HashMap();
 
-    if (ObjectUtil.isEmpty(tables)){
+    if (ObjectUtil.isEmpty(tables)) {
       tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
     }
     String idTable = tables.get(0);
@@ -466,24 +500,29 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     List<SimpleNamedExpression> allDimensions = request.getAggregations().getDimensions();
     propagateDimensions.forEach(
         (property, dimensionRequest) -> {
-          SimpleNamedExpression toBeEnhancedDimension = findCurrentDimension(allDimensions, property);
+          SimpleNamedExpression toBeEnhancedDimension =
+              findCurrentDimension(allDimensions, property);
 
           List propagateDimensionValues = result.getPropagateDimensionValues(property);
-          TempRequest t = new TempRequest(dimensionRequest.returnType(), dimensionRequest.getTypeName());
+          TempRequest t =
+              new TempRequest(dimensionRequest.returnType(), dimensionRequest.getTypeName());
 
-          //自身的条件
+          // 自身的条件
           t.appendSearchCriteria(dimensionRequest.getSearchCriteria());
 
-          //动态属性查询(ID关联)
+          // 动态属性查询(ID关联)
           t.addSimpleDynamicProperty(property, new PropertyReference(ID));
 
-          Map<String, SearchRequest> subPropagateDimensions = dimensionRequest.getPropagateDimensions();
-          subPropagateDimensions.forEach((k, v) -> {
-            t.groupBy(k, v);
-          });
+          Map<String, SearchRequest> subPropagateDimensions =
+              dimensionRequest.getPropagateDimensions();
+          subPropagateDimensions.forEach(
+              (k, v) -> {
+                t.groupBy(k, v);
+              });
 
-          //更多的dimension关联
-          List<SimpleNamedExpression> dimensions = dimensionRequest.getAggregations().getDimensions();
+          // 更多的dimension关联
+          List<SimpleNamedExpression> dimensions =
+              dimensionRequest.getAggregations().getDimensions();
           for (SimpleNamedExpression dimension : dimensions) {
             t.addSimpleDynamicProperty(dimension.name(), dimension.getExpression());
           }
@@ -494,9 +533,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         });
   }
 
-  private SimpleNamedExpression findCurrentDimension(List<SimpleNamedExpression> allDimensions, String property) {
+  private SimpleNamedExpression findCurrentDimension(
+      List<SimpleNamedExpression> allDimensions, String property) {
     for (SimpleNamedExpression dimension : allDimensions) {
-      if(dimension.name().equals(property)){
+      if (dimension.name().equals(property)) {
         return dimension;
       }
     }
@@ -504,59 +544,78 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   }
 
   private void appendResult(
-          UserContext userContext,
-          AggregationResult result,
-          SearchRequest dimensionRequest,
-          SimpleNamedExpression toBeRefinedDimension, SmartList<Entity> dimensionResult) {
-    List<SimpleNamedExpression> simpleDynamicProperties = dimensionRequest.getSimpleDynamicProperties();
+      UserContext userContext,
+      AggregationResult result,
+      SearchRequest dimensionRequest,
+      SimpleNamedExpression toBeRefinedDimension,
+      SmartList<Entity> dimensionResult) {
+    List<SimpleNamedExpression> simpleDynamicProperties =
+        dimensionRequest.getSimpleDynamicProperties();
 
-    Map<Object, Map<SimpleNamedExpression, Object>> refinedDimensions = CollStreamUtil.toMap(dimensionResult.getData(), e -> e.getDynamicProperty(toBeRefinedDimension.name()), e -> {
-      Map<SimpleNamedExpression, Object> refinedDimension = new HashMap<>();
-      for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
-        if (simpleDynamicProperty.name().equals(toBeRefinedDimension.name())) {
-          continue;
-        }
-        refinedDimension.put(simpleDynamicProperty, e.getDynamicProperty(simpleDynamicProperty.name()));
-      }
-      return refinedDimension;
-    });
+    Map<Object, Map<SimpleNamedExpression, Object>> refinedDimensions =
+        CollStreamUtil.toMap(
+            dimensionResult.getData(),
+            e -> e.getDynamicProperty(toBeRefinedDimension.name()),
+            e -> {
+              Map<SimpleNamedExpression, Object> refinedDimension = new HashMap<>();
+              for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
+                if (simpleDynamicProperty.name().equals(toBeRefinedDimension.name())) {
+                  continue;
+                }
+                refinedDimension.put(
+                    simpleDynamicProperty, e.getDynamicProperty(simpleDynamicProperty.name()));
+              }
+              return refinedDimension;
+            });
 
     List<AggregationItem> data = result.getData();
 
     for (AggregationItem datum : data) {
       Map<SimpleNamedExpression, Object> dimensions = datum.getDimensions();
       Object currentValue = remove(dimensions, toBeRefinedDimension);
-      if (currentValue == null){
+      if (currentValue == null) {
         continue;
       }
       Map<SimpleNamedExpression, Object> replacements = refinedDimensions.get(currentValue);
-      if (replacements != null){
+      if (replacements != null) {
         dimensions.putAll(replacements);
       }
     }
 
-    //merge
-    Map<Map<SimpleNamedExpression, Object>, AggregationItem> collect = data.stream().collect(Collectors.toMap(item -> item.getDimensions(), item -> item, (pre, current) -> {
-      Map<SimpleNamedExpression, Object> preValues = pre.getValues();
-      Map<SimpleNamedExpression, Object> currentValues = current.getValues();
-      Set<SimpleNamedExpression> simpleNamedExpressions = preValues.keySet();
-      for (SimpleNamedExpression simpleNamedExpression : simpleNamedExpressions) {
-        preValues.put(simpleNamedExpression, merge(simpleNamedExpression, preValues.get(simpleNamedExpression), currentValues.get(simpleNamedExpression)));
-      }
-      return pre;
-    }));
+    // merge
+    Map<Map<SimpleNamedExpression, Object>, AggregationItem> collect =
+        data.stream()
+            .collect(
+                Collectors.toMap(
+                    item -> item.getDimensions(),
+                    item -> item,
+                    (pre, current) -> {
+                      Map<SimpleNamedExpression, Object> preValues = pre.getValues();
+                      Map<SimpleNamedExpression, Object> currentValues = current.getValues();
+                      Set<SimpleNamedExpression> simpleNamedExpressions = preValues.keySet();
+                      for (SimpleNamedExpression simpleNamedExpression : simpleNamedExpressions) {
+                        preValues.put(
+                            simpleNamedExpression,
+                            merge(
+                                simpleNamedExpression,
+                                preValues.get(simpleNamedExpression),
+                                currentValues.get(simpleNamedExpression)));
+                      }
+                      return pre;
+                    }));
 
     advanceGroupBy(userContext, result, dimensionRequest);
   }
 
-  private Object remove(Map<SimpleNamedExpression, Object> dimensions, SimpleNamedExpression toBeRefinedDimension) {
+  private Object remove(
+      Map<SimpleNamedExpression, Object> dimensions, SimpleNamedExpression toBeRefinedDimension) {
     Set<Map.Entry<SimpleNamedExpression, Object>> entries = dimensions.entrySet();
     Iterator<Map.Entry<SimpleNamedExpression, Object>> iterator = entries.iterator();
-    while(iterator.hasNext()){
+    while (iterator.hasNext()) {
       Map.Entry<SimpleNamedExpression, Object> next = iterator.next();
       SimpleNamedExpression key = next.getKey();
       Object value = next.getValue();
-      if (key.name().equals(toBeRefinedDimension.name())){
+      if (key.name().equals(toBeRefinedDimension.name())) {
         iterator.remove();
         return value;
       }
@@ -566,25 +625,25 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
   private Object merge(SimpleNamedExpression aggregation, Object p0, Object p1) {
     Expression expression = aggregation.getExpression();
-    if (!(expression instanceof FunctionApply)){
+    if (!(expression instanceof FunctionApply)) {
       throw new RepositoryException("目前聚合函数只能是FunctionApply表达式");
     }
 
     PropertyFunction operator = ((FunctionApply) expression).getOperator();
-    if (!(operator instanceof AggrFunction)){
+    if (!(operator instanceof AggrFunction)) {
       throw new RepositoryException("目前聚合函数只能是AggrFunction");
     }
-      AggrFunction aggr = (AggrFunction) operator;
-      if (aggr == AggrFunction.COUNT || aggr == AggrFunction.SUM){
-        return NumberUtil.add((Number)p0, (Number)p1);
-      }
-
-    if (aggr == AggrFunction.MIN){
-      return CompareUtil.compare((Comparable)p0, (Comparable)p1) < 0 ? p0 : p1;
+    AggrFunction aggr = (AggrFunction) operator;
+    if (aggr == AggrFunction.COUNT || aggr == AggrFunction.SUM) {
+      return NumberUtil.add((Number) p0, (Number) p1);
     }
 
-    if (aggr == AggrFunction.MIN){
-      return CompareUtil.compare((Comparable)p0, (Comparable)p1) < 0 ? p1 : p0;
+    if (aggr == AggrFunction.MIN) {
+      return CompareUtil.compare((Comparable) p0, (Comparable) p1) < 0 ? p0 : p1;
+    }
+
+    if (aggr == AggrFunction.MIN) {
+      return CompareUtil.compare((Comparable) p0, (Comparable) p1) < 0 ? p1 : p0;
     }
 
     throw new RepositoryException("不支持的AggrFunction" + aggr);
@@ -606,27 +665,39 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     };
   }
 
-  private String collectAggregationGroupBySql(UserContext userContext, SearchRequest<T> request, String idTable, Map<String, Object> parameters) {
+  private String collectAggregationGroupBySql(
+      UserContext userContext,
+      SearchRequest<T> request,
+      String idTable,
+      Map<String, Object> parameters) {
     List<SimpleNamedExpression> dimensions = request.getAggregations().getDimensions();
     if (dimensions.isEmpty()) {
       return null;
     }
     return dimensions.stream()
         .map(
-                dimension -> {
-                  Expression expression = dimension.getExpression();
-                  while (expression instanceof SimpleNamedExpression) {
-                    expression = dimension.getExpression();
-                  }
-                  return expression;
-                }
-            ).map(expression -> ExpressionHelper.toSql(userContext, expression, idTable, parameters, this))
+            dimension -> {
+              Expression expression = dimension.getExpression();
+              while (expression instanceof SimpleNamedExpression) {
+                expression = dimension.getExpression();
+              }
+              return expression;
+            })
+        .map(
+            expression ->
+                ExpressionHelper.toSql(userContext, expression, idTable, parameters, this))
         .collect(Collectors.joining(",", "GROUP BY ", ""));
   }
 
-  private String collectAggregationSelectSql(UserContext userContext, SearchRequest<T> request, String idTable, Map<String, Object> params) {
+  private String collectAggregationSelectSql(
+      UserContext userContext,
+      SearchRequest<T> request,
+      String idTable,
+      Map<String, Object> params) {
     List<SimpleNamedExpression> allSelected = request.getAggregations().getSelectedExpressions();
-    return allSelected.stream().map(expression -> ExpressionHelper.toSql(userContext, expression, idTable, params, this )).collect(Collectors.joining(","));
+    return allSelected.stream()
+        .map(expression -> ExpressionHelper.toSql(userContext, expression, idTable, params, this))
+        .collect(Collectors.joining(","));
   }
 
   private void enhanceWithAggregation(
@@ -710,7 +781,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       childTempRequest.setPartitionProperty(reverseProperty.getName());
     }
     childTempRequest.appendSearchCriteria(
-        new IN(new PropertyReference(reverseProperty.getName()), new Parameter(reverseProperty.getName(), results)));
+        new IN(
+            new PropertyReference(reverseProperty.getName()),
+            new Parameter(reverseProperty.getName(), results)));
     SmartList children = repository.executeForList(userContext, childTempRequest);
 
     Map<Long, T> longTMap = results.mapById();
@@ -780,7 +853,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
   private void setProperty(
       UserContext userContext, T pEntity, PropertyDescriptor pProperty, ResultSet resultSet) {
-    if(!shouldHandle(pProperty)){
+    if (!shouldHandle(pProperty)) {
       return;
     }
 
@@ -793,7 +866,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   }
 
   private boolean shouldHandle(PropertyDescriptor pProperty) {
-    if (pProperty instanceof Relation){
+    if (pProperty instanceof Relation) {
       return shouldHandle((Relation) pProperty);
     }
     return true;
@@ -806,7 +879,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     List<String> tables = collectDataTables(userContext, request);
 
     // 随机选择一个表（这里用了第一个）作为idTable
-    if (ObjectUtil.isEmpty(tables)){
+    if (ObjectUtil.isEmpty(tables)) {
       tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
     }
     String idTable = tables.get(0);
@@ -959,7 +1032,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return collectTablesFromProperties(userContext, allRelationProperties);
   }
 
-  private ArrayList<String> collectTablesFromProperties(UserContext userContext, List<String> properties) {
+  private ArrayList<String> collectTablesFromProperties(
+      UserContext userContext, List<String> properties) {
     Set<String> tables = new HashSet<>();
     for (String target : properties) {
       PropertyDescriptor property = findProperty(target);
@@ -973,7 +1047,6 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
     return ListUtil.toList(tables);
   }
-
 
   private String tableAlias(String table) {
     return NamingCase.toCamelCase(table);
@@ -1020,7 +1093,6 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
     return ExpressionHelper.toSql(userContext, searchCriteria, idTable, parameters, this);
   }
-
 
   public boolean isRequestInDatasource(UserContext pUserContext, Repository repository) {
     if (repository instanceof SQLRepository) {

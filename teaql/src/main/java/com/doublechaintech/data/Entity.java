@@ -49,5 +49,7 @@ public interface Entity {
 
   void addDynamicProperty(String propertyName, Object value);
 
+  void appendDynamicProperty(String propertyName, Object value);
+
   Object getDynamicProperty(String propertyName);
 }

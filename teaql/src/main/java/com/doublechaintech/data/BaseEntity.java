@@ -103,6 +103,16 @@ public class BaseEntity implements Entity {
   }
 
   @Override
+  public void appendDynamicProperty(String propertyName, Object value) {
+    List list = (List) this.additionalInfo.get(propertyName);
+    if (list == null) {
+      list = new ArrayList<>();
+      this.additionalInfo.put(propertyName, list);
+    }
+    list.add(value);
+  }
+
+  @Override
   public Object getDynamicProperty(String propertyName) {
     return this.additionalInfo.get(propertyName);
   }

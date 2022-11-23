@@ -12,6 +12,8 @@ import java.util.Map;
 
 public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> {
 
+  public static final String REFINEMENTS = "refinements";
+
   // select properties
   List<SimpleNamedExpression> projections = new ArrayList<>();
 
@@ -30,6 +32,9 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   // enhance relations
   Map<String, SearchRequest> enhanceRelations = new HashMap<>();
 
+  // 动态属性
+  List<SimpleAggregation> dynamicAggregateAttributes = new ArrayList<>();
+
   // enhance lists and partition by parent
   String partitionProperty;
 
@@ -37,11 +42,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   Class<T> returnType;
 
   // aggregations
-   Aggregations aggregations = new Aggregations();
-   Map<String, SearchRequest> propagateAggregations = new HashMap<>();
+  Aggregations aggregations = new Aggregations();
+  Map<String, SearchRequest> propagateAggregations = new HashMap<>();
 
   // group by, with aggregations
-   Map<String, SearchRequest> propagateDimensions = new HashMap<>();
+  Map<String, SearchRequest> propagateDimensions = new HashMap<>();
 
   public BaseRequest(Class<T> pReturnType) {
     returnType = pReturnType;
@@ -196,75 +201,99 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     this.simpleDynamicProperties.add(new SimpleNamedExpression(name, expression));
   }
 
-  public SearchCriteria createBasicSearchCriteria(String property, Operator operator, Object... values) {
-    if (operator.hasOneOperator()){
+  public void addAggregateDynamicProperty(String name, SearchRequest subRequest) {
+    this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest));
+  }
+
+  public SearchCriteria createBasicSearchCriteria(
+      String property, Operator operator, Object... values) {
+    if (operator.hasOneOperator()) {
       return new OneOperatorCriteria(operator, new PropertyReference(property));
-    }else if (operator.hasTwoOperator()){
-      return new TwoOperatorCriteria(operator, new PropertyReference(property), new Parameter(property, values, operator.hasMultiValue()));
-    }else if (operator.isBetween()){
-      if (ArrayUtil.length(values) != 2){
+    } else if (operator.hasTwoOperator()) {
+      return new TwoOperatorCriteria(
+          operator,
+          new PropertyReference(property),
+          new Parameter(property, values, operator.hasMultiValue()));
+    } else if (operator.isBetween()) {
+      if (ArrayUtil.length(values) != 2) {
         throw new RepositoryException("Between需要下限和上限两个参数");
       }
-      return new Between(new PropertyReference(property), new Parameter(property, values[0]), new Parameter(property, values[1]));
+      return new Between(
+          new PropertyReference(property),
+          new Parameter(property, values[0]),
+          new Parameter(property, values[1]));
     }
     throw new RepositoryException("不支持的operator:" + operator);
   }
 
-  public void addAggregate(SimpleNamedExpression aggregate){
+  public void addAggregate(SimpleNamedExpression aggregate) {
     getAggregations().getAggregates().add(aggregate);
   }
 
-  public void aggregate(String property, SearchRequest subRequest){
+  public void aggregate(String property, SearchRequest subRequest) {
     this.propagateAggregations.put(property, subRequest);
   }
 
+  public List<SimpleAggregation> getDynamicAggregateAttributes() {
+    return dynamicAggregateAttributes;
+  }
 
-  public void groupBy(String propertyName){
+  public void setDynamicAggregateAttributes(List<SimpleAggregation> pDynamicAggregateAttributes) {
+    dynamicAggregateAttributes = pDynamicAggregateAttributes;
+  }
+
+  public void groupBy(String propertyName) {
     groupBy(propertyName, propertyName);
   }
 
-  public void groupBy(String retName, String propertyName){
+  public void groupBy(String retName, String propertyName) {
     groupBy(retName, propertyName, AggrFunction.SELF);
   }
 
-  public void groupBy(String retName, String propertyName, AggrFunction function){
-    this.aggregations.getSimpleDimensions().add(new SimpleNamedExpression(retName, new AggrExpression(function, new PropertyReference(propertyName))));
+  public void groupBy(String retName, String propertyName, AggrFunction function) {
+    this.aggregations
+        .getSimpleDimensions()
+        .add(
+            new SimpleNamedExpression(
+                retName, new AggrExpression(function, new PropertyReference(propertyName))));
   }
 
-
-  public void groupBy(String propertyName, SearchRequest subRequest){
-    this.aggregations.getComplexDimensions().add(new SimpleNamedExpression(propertyName, new PropertyReference(propertyName)));
+  public void groupBy(String propertyName, SearchRequest subRequest) {
+    this.aggregations
+        .getComplexDimensions()
+        .add(new SimpleNamedExpression(propertyName, new PropertyReference(propertyName)));
     this.propagateDimensions.put(propertyName, subRequest);
   }
 
-  public void addAggregate(String retName, String propertyName, AggrFunction function){
-    addAggregate(new SimpleNamedExpression(retName, new AggrExpression(function, new PropertyReference(propertyName))));
+  public void addAggregate(String retName, String propertyName, AggrFunction function) {
+    addAggregate(
+        new SimpleNamedExpression(
+            retName, new AggrExpression(function, new PropertyReference(propertyName))));
   }
 
-  public BaseRequest<T> count(){
+  public BaseRequest<T> count() {
     countProperty("count", BaseEntity.ID_PROPERTY);
     return this;
   }
 
-
-  public BaseRequest<T> count(String retName){
+  public BaseRequest<T> count(String retName) {
     countProperty(retName, BaseEntity.ID_PROPERTY);
     return this;
   }
 
-  public void countProperty(String propertyName){
+  public void countProperty(String propertyName) {
     countProperty(propertyName, propertyName);
   }
 
-  public void countProperty(String retName, String propertyName){
+  public void countProperty(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.COUNT);
   }
 
-  public void sum(String propertyName){
+  public void sum(String propertyName) {
     sum(propertyName, propertyName);
   }
 
-  public void sum(String retName, String propertyName){
+  public void sum(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.SUM);
   }
 }

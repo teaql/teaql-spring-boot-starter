@@ -34,6 +34,8 @@ public interface SearchRequest<T extends Entity> {
 
   Map<String, SearchRequest> enhanceRelations();
 
+  List<SimpleAggregation> getDynamicAggregateAttributes();
+
   SearchRequest<T> appendSearchCriteria(SearchCriteria searchCriteria);
 
   default T execute(UserContext userContext) {
