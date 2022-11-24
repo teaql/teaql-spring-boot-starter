@@ -642,7 +642,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       return CompareUtil.compare((Comparable) p0, (Comparable) p1) < 0 ? p0 : p1;
     }
 
-    if (aggr == AggrFunction.MIN) {
+    if (aggr == AggrFunction.MAX) {
       return CompareUtil.compare((Comparable) p0, (Comparable) p1) < 0 ? p1 : p0;
     }
 
