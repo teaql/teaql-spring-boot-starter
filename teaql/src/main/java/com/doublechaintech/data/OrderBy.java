@@ -1,7 +1,5 @@
 package com.doublechaintech.data;
 
-import com.doublechaintech.data.sql.AggrFunction;
-
 import java.util.List;
 
 public class OrderBy implements Expression {

@@ -3,7 +3,6 @@ package com.doublechaintech.data.sql.expression;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.doublechaintech.data.*;
-import com.doublechaintech.data.sql.AggrFunction;
 import com.doublechaintech.data.sql.SQLColumnResolver;
 
 import java.util.List;
@@ -32,10 +31,24 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
     if (CollectionUtil.size(expressions) != 1) {
       throw new RepositoryException("AggrExpression的需要1个操作数");
     }
-    return StrUtil.format(
-        ((AggrFunction) operator)
-            .toString(
-                ExpressionHelper.toSql(
-                    userContext, expressions.get(0), idTable, parameters, sqlColumnResolver)));
+    String sqlColumn =
+        ExpressionHelper.toSql(
+            userContext, expressions.get(0), idTable, parameters, sqlColumnResolver);
+    AggrFunction aggrFunction = (AggrFunction) operator;
+    switch (aggrFunction) {
+      case SELF:
+        return sqlColumn;
+      case MIN:
+        return StrUtil.format("min({})", sqlColumn);
+      case MAX:
+        return StrUtil.format("max({})", sqlColumn);
+      case SUM:
+        return StrUtil.format("sum({})", sqlColumn);
+      case COUNT:
+        return StrUtil.format("count({})", sqlColumn);
+      case GBK:
+        return StrUtil.format("convert({} using gbk)", sqlColumn);
+    }
+    throw new RepositoryException("不支持的聚合函数:" + aggrFunction);
   }
 }

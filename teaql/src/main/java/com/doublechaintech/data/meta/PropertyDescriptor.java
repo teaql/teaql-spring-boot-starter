@@ -51,6 +51,6 @@ public class PropertyDescriptor {
   }
 
   public boolean isVersion() {
-    return getName().equals("id");
+    return getName().equals("version");
   }
 }
