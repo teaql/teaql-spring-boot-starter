@@ -34,7 +34,7 @@ subprojects {
 }
 
 allprojects {
-    group 'com.doublechaintech'
+    group 'io.teaql'
     version '1.0-RELEASE'
     publishing {
         repositories {

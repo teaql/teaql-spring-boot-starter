@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.doublechaintech.data.TQLAutoConfiguration
+  io.teaql.data.TQLAutoConfiguration
