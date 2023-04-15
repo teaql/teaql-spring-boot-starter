@@ -45,6 +45,10 @@ public interface Checker<T extends BaseEntity> {
     return prefix + "." + member;
   }
 
+  default String newPrefix(String prefix, String member, int index) {
+    return StrUtil.format("{}[{}]", newPrefix(prefix, member), index);
+  }
+
   default void requiredCheck(UserContext ctx, String preFix, Object current) {
     if (ObjectUtil.isNull(current)) {
       ctx.append(TEAQL_DATA_CHECK_RESULT, StrUtil.format("{}不能为空", preFix));

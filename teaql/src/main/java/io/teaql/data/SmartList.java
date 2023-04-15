@@ -72,4 +72,12 @@ public class SmartList<T extends Entity> implements Iterable<T> {
   public void setAggregationResults(List<AggregationResult> pAggregationResults) {
     aggregationResults = pAggregationResults;
   }
+
+  public int size() {
+    return data.size();
+  }
+
+  public T get(int index) {
+    return data.get(index);
+  }
 }
