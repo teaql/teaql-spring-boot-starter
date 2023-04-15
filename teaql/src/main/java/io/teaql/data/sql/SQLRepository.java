@@ -1116,90 +1116,132 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return NamingCase.toUnderlineCase(propertyName);
   }
 
-  public void ensureTable() {
-    EntityDescriptor entityDescriptor = this.entityDescriptor;
-
+  public void ensureTable(UserContext ctx, boolean addChildType) {
     List<SQLColumn> allColumns = new ArrayList<>();
-    boolean isParent = false;
-    while (entityDescriptor != null) {
-      List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
-      for (PropertyDescriptor ownProperty : ownProperties) {
-        List<SQLColumn> sqlColumns = getSqlColumns(ownProperty);
-        allColumns.addAll(sqlColumns);
-      }
-
-      if (isParent) {
-        PropertyDescriptor idProperty = entityDescriptor.findIdProperty();
-        String tableName = getSqlColumn(idProperty).getTableName();
-        SQLColumn childTypeCell = new SQLColumn(tableName, "_child_type");
-        childTypeCell.setType("VARCHAR(100)");
-        allColumns.add(childTypeCell);
-      }
-
-      entityDescriptor = entityDescriptor.getParent();
-      isParent = true;
+    List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
+    for (PropertyDescriptor ownProperty : ownProperties) {
+      List<SQLColumn> sqlColumns = getSqlColumns(ownProperty);
+      allColumns.addAll(sqlColumns);
     }
-
+    if (addChildType) {
+      SQLColumn childTypeCell = new SQLColumn(thisPrimaryTableName, "_child_type");
+      childTypeCell.setType("VARCHAR(100)");
+      allColumns.add(childTypeCell);
+    }
     Map<String, List<SQLColumn>> tableColumns =
         CollStreamUtil.groupByKey(allColumns, SQLColumn::getTableName);
-
     tableColumns.forEach(
         (table, columns) -> {
-          String sql = String.format("show fields from %s", table);
-          List<Map<String, Object>> tableInfo;
+          String sql =
+              String.format(
+                  "select * from information_schema.columns where table_name = '%s'", table);
+          List<Map<String, Object>> dbTableInfo;
           try {
-            tableInfo = jdbcTemplate.getJdbcTemplate().queryForList(sql);
+            dbTableInfo = jdbcTemplate.getJdbcTemplate().queryForList(sql);
           } catch (Exception exception) {
-            createTable(table, columns);
-            return;
+            throw new RepositoryException("获取table元信息失败", exception);
           }
-          ensure(tableInfo, columns);
+          ensure(ctx, dbTableInfo, table, columns);
         });
   }
 
-  private void ensure(List<Map<String, Object>> tableInfo, List<SQLColumn> columns) {
+  private void ensure(
+      UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
+    // 表格不存在
+    if (tableInfo.isEmpty()) {
+      createTable(ctx, table, columns);
+      return;
+    }
+
     Map<String, Map<String, Object>> fields =
-        CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get("Field")));
-    for (SQLColumn column : columns) {
+        CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get("column_name")));
+
+    for (int i = 0; i < columns.size(); i++) {
+      SQLColumn column = columns.get(i);
       String tableName = column.getTableName();
       String columnName = column.getColumnName();
       String type = column.getType();
+
+      String preColumnName = null;
+      if (i > 0) {
+        preColumnName = columns.get(i - 1).getColumnName();
+      }
+
       Map<String, Object> field = fields.get(columnName);
       if (field == null) {
-        // field is null;
-        addColumn(tableName, columnName, type);
+        addColumn(ctx, tableName, preColumnName, columnName, type);
         continue;
       }
 
-      String dbType = String.valueOf(field.get("Type"));
+      String dbType = calculateDBType(field);
       if (dbType.equalsIgnoreCase(type)) {
         continue;
       }
 
-      alterColumn(tableName, columnName, type);
+      alterColumn(ctx, tableName, columnName, type);
     }
   }
 
-  private void alterColumn(String tableName, String columnName, String type) {
-    //    String format =
-    //        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} {}", tableName, columnName, type);
-    //    jdbcTemplate.getJdbcTemplate().execute(format);
+  private String calculateDBType(Map<String, Object> columnInfo) {
+    String dataType = (String) columnInfo.get("data_type");
+    switch (dataType) {
+      case "bigint":
+        return "bigint";
+      case "boolean":
+        return "boolean";
+      case "character varying":
+        return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
+      case "date":
+        return "date";
+      case "integer":
+        return "integer";
+      case "numeric":
+        return StrUtil.format(
+            "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+      case "text":
+        return "text";
+      case "time without time zone":
+        return "time";
+      case "timestamp without time zone":
+        return "timestamp";
+      default:
+        throw new RepositoryException("未处理的类型:" + dataType);
+    }
   }
 
-  private void addColumn(String tableName, String columnName, String type) {
-    String format = StrUtil.format("ALTER TABLE {} ADD {} {}", tableName, columnName, type);
-    jdbcTemplate.getJdbcTemplate().execute(format);
+  private void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
+    String alterColumnSql =
+        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {}", tableName, columnName, type);
+    ctx.info(alterColumnSql);
+    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      jdbcTemplate.getJdbcTemplate().execute(alterColumnSql);
+    }
   }
 
-  private void createTable(String table, List<SQLColumn> columns) {
+  private void addColumn(
+      UserContext ctx, String tableName, String preColumnName, String columnName, String type) {
+    String addColumnSql =
+        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {}", tableName, columnName, type);
+    ctx.info(addColumnSql);
+    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      jdbcTemplate.getJdbcTemplate().execute(addColumnSql);
+    }
+  }
+
+  private void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
     StringBuilder sb = new StringBuilder();
-    sb.append("CREATE TABLE ").append(table).append(" (");
+    sb.append("CREATE TABLE ").append(table).append(" (\n");
     sb.append(
         columns.stream()
             .map(column -> column.getColumnName() + " " + column.getType())
-            .collect(Collectors.joining(",")));
-    sb.append(")");
-    jdbcTemplate.getJdbcTemplate().execute(sb.toString());
+            .collect(Collectors.joining(",\n")));
+    sb.append(")\n");
+    String createTableSql = sb.toString();
+    ctx.info(createTableSql);
+
+    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      jdbcTemplate.getJdbcTemplate().execute(createTableSql);
+    }
   }
 
   @Override

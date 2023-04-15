@@ -8,6 +8,7 @@ import io.teaql.data.sql.GenericSQLRelation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Entity元信息定义
@@ -153,5 +154,18 @@ public class EntityDescriptor {
 
     refer.properties.add(reverse);
     return this;
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (pO == null || getClass() != pO.getClass()) return false;
+    EntityDescriptor that = (EntityDescriptor) pO;
+    return getType().equals(that.getType());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getType());
   }
 }
