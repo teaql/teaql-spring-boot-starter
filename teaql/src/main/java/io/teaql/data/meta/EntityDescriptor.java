@@ -29,6 +29,8 @@ public class EntityDescriptor {
 
   private Set<EntityDescriptor> children = new HashSet<>();
 
+  private Map<String, Object> additionalInfo = new HashMap<>();
+
   public PropertyDescriptor findProperty(String propertyName) {
     if (ObjectUtil.isEmpty(properties)) {
       return null;
@@ -182,5 +184,22 @@ public class EntityDescriptor {
   @Override
   public int hashCode() {
     return Objects.hash(getType());
+  }
+
+  public boolean isRoot() {
+    return getParent() == null && getOwnRelations().isEmpty();
+  }
+
+  public EntityDescriptor with(String key, Object value) {
+    additionalInfo.put(key, value);
+    return this;
+  }
+
+  public Map<String, Object> getAdditionalInfo() {
+    return additionalInfo;
+  }
+
+  public void setAdditionalInfo(Map<String, Object> pAdditionalInfo) {
+    additionalInfo = pAdditionalInfo;
   }
 }

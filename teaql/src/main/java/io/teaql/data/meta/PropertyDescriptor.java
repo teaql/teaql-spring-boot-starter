@@ -1,5 +1,8 @@
 package io.teaql.data.meta;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /** Entity所包含的属性的元信息 */
 public class PropertyDescriptor {
 
@@ -14,6 +17,8 @@ public class PropertyDescriptor {
 
   /** 属性类型 */
   private PropertyType type;
+
+  private Map<String, Object> additionalInfo = new HashMap<>();
 
   public PropertyDescriptor() {}
 
@@ -52,5 +57,18 @@ public class PropertyDescriptor {
 
   public boolean isVersion() {
     return getName().equals("version");
+  }
+
+  public PropertyDescriptor with(String key, Object value) {
+    additionalInfo.put(key, value);
+    return this;
+  }
+
+  public Map<String, Object> getAdditionalInfo() {
+    return additionalInfo;
+  }
+
+  public void setAdditionalInfo(Map<String, Object> pAdditionalInfo) {
+    additionalInfo = pAdditionalInfo;
   }
 }

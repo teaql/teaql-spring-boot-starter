@@ -1126,14 +1126,14 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return NamingCase.toUnderlineCase(propertyName);
   }
 
-  public void ensureTable(UserContext ctx, boolean addChildType) {
+  public void ensureTable(UserContext ctx) {
     List<SQLColumn> allColumns = new ArrayList<>();
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
       List<SQLColumn> sqlColumns = getSqlColumns(ownProperty);
       allColumns.addAll(sqlColumns);
     }
-    if (addChildType) {
+    if (entityDescriptor.hasChildren()) {
       SQLColumn childTypeCell = new SQLColumn(thisPrimaryTableName, "_child_type");
       childTypeCell.setType("VARCHAR(100)");
       allColumns.add(childTypeCell);
@@ -1154,6 +1154,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
           ensure(ctx, dbTableInfo, table, columns);
         });
   }
+
+  public void ensureInitData(UserContext ctx) {}
 
   private void ensure(
       UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {

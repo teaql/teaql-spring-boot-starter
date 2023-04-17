@@ -18,13 +18,13 @@ public class SQLRepositorySchemaHelper {
     List<EntityDescriptor> entityDescriptors = entityMetaFactory.allEntityDescriptors();
     Set<EntityDescriptor> handled = new HashSet<>();
     for (EntityDescriptor entityDescriptor : entityDescriptors) {
-      ensureTable(ctx, handled, entityDescriptor, false);
+      ensureTable(ctx, handled, entityDescriptor);
     }
   }
 
   // ensure这个itemDescriptor以及依赖的所有表
   public void ensureTable(UserContext ctx, EntityDescriptor entityDescriptor) {
-    ensureTable(ctx, new HashSet<>(), entityDescriptor, false);
+    ensureTable(ctx, new HashSet<>(), entityDescriptor);
   }
 
   public void ensureTable(UserContext ctx, String entityType) {
@@ -34,10 +34,7 @@ public class SQLRepositorySchemaHelper {
   }
 
   private void ensureTable(
-      UserContext ctx,
-      Set<EntityDescriptor> handled,
-      EntityDescriptor entityDescriptor,
-      boolean hasChildren) {
+      UserContext ctx, Set<EntityDescriptor> handled, EntityDescriptor entityDescriptor) {
     if (handled.contains(entityDescriptor)) {
       return;
     }
@@ -45,14 +42,14 @@ public class SQLRepositorySchemaHelper {
     EntityDescriptor parent = entityDescriptor.getParent();
     // parent 存在时ensure parent
     if (parent != null) {
-      ensureTable(ctx, handled, parent, true);
+      ensureTable(ctx, handled, parent);
     }
     // 我持有的所有relation, 先解析引用的
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
     for (Relation ownRelation : ownRelations) {
       PropertyDescriptor reverseProperty = ownRelation.getReverseProperty();
       EntityDescriptor owner = reverseProperty.getOwner();
-      ensureTable(ctx, handled, owner, false);
+      ensureTable(ctx, handled, owner);
     }
     // 解析自已
     String type = entityDescriptor.getType();
@@ -60,7 +57,7 @@ public class SQLRepositorySchemaHelper {
 
     // 只有是sqlRepository才能ensure
     if (repository instanceof SQLRepository) {
-      ((SQLRepository<?>) repository).ensureTable(ctx, hasChildren);
+      ((SQLRepository<?>) repository).ensureTable(ctx);
     }
   }
 }
