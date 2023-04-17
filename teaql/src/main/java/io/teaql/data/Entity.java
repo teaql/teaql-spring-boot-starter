@@ -19,6 +19,7 @@ public interface Entity {
   }
 
   default Entity save(UserContext userContext) {
+    userContext.checkAndFix(this);
     userContext.saveGraph(this);
     return this;
   }

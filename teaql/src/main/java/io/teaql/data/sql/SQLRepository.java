@@ -847,6 +847,16 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         String name = simpleDynamicProperty.name();
         entity.addDynamicProperty(name, rs.getObject(name));
       }
+
+      if (entity.getVersion() < 0) {
+        if (entity instanceof BaseEntity) {
+          ((BaseEntity) entity).set$status(EntityStatus.PERSISTED_DELETED);
+        }
+      } else {
+        if (entity instanceof BaseEntity) {
+          ((BaseEntity) entity).set$status(EntityStatus.PERSISTED);
+        }
+      }
       return entity;
     };
   }

@@ -6,9 +6,7 @@ import io.teaql.data.Entity;
 import io.teaql.data.sql.GenericSQLProperty;
 import io.teaql.data.sql.GenericSQLRelation;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Entity元信息定义
@@ -28,6 +26,8 @@ public class EntityDescriptor {
 
   /** 继承结构 */
   private EntityDescriptor parent;
+
+  private Set<EntityDescriptor> children = new HashSet<>();
 
   public PropertyDescriptor findProperty(String propertyName) {
     if (ObjectUtil.isEmpty(properties)) {
@@ -102,6 +102,21 @@ public class EntityDescriptor {
 
   public void setParent(EntityDescriptor pParent) {
     parent = pParent;
+    if (parent != null) {
+      parent.addChild(this);
+    }
+  }
+
+  private void addChild(EntityDescriptor child) {
+    this.children.add(child);
+  }
+
+  public Set<EntityDescriptor> getChildren() {
+    return children;
+  }
+
+  public boolean hasChildren() {
+    return !children.isEmpty();
   }
 
   public PropertyDescriptor findVersionProperty() {

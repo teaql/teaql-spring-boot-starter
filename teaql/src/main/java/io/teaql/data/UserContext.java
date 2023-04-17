@@ -1,9 +1,12 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import io.teaql.data.checker.CheckException;
+import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
 
@@ -108,5 +111,20 @@ public class UserContext {
 
   public LocalDateTime now() {
     return LocalDateTime.now();
+  }
+
+  public void checkAndFix(Entity entity) {
+    if (entity instanceof BaseEntity) {
+      return;
+    }
+    String name = entity.getClass().getName();
+    Checker checker = getBean(ClassUtil.loadClass(name + "Checker"));
+    checker.checkAndFix(this, (BaseEntity) entity);
+    List errors = getList(Checker.TEAQL_DATA_CHECK_RESULT);
+    if (ObjectUtil.isEmpty(errors)) {
+      return;
+    }
+    localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
+    throw new CheckException(errors);
   }
 }

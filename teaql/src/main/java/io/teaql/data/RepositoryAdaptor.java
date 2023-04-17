@@ -128,7 +128,8 @@ public class RepositoryAdaptor {
     return repository.executeForList(userContext, request);
   }
 
-  public static <T extends Entity> AggregationResult aggregation(UserContext userContext, SearchRequest<T> request) {
+  public static <T extends Entity> AggregationResult aggregation(
+      UserContext userContext, SearchRequest<T> request) {
     Repository<T> repository = userContext.resolveRepository(request.getTypeName());
     return repository.aggregation(userContext, request);
   }

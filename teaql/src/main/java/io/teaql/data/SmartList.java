@@ -3,7 +3,10 @@ package io.teaql.data;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -79,5 +82,10 @@ public class SmartList<T extends Entity> implements Iterable<T> {
 
   public T get(int index) {
     return data.get(index);
+  }
+
+  public SmartList<T> save(UserContext userContext) {
+    userContext.saveGraph(this);
+    return this;
   }
 }
