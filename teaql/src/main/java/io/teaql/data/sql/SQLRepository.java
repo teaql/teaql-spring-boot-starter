@@ -1149,13 +1149,80 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
           try {
             dbTableInfo = jdbcTemplate.getJdbcTemplate().queryForList(sql);
           } catch (Exception exception) {
-            throw new RepositoryException("获取table元信息失败", exception);
+            dbTableInfo = ListUtil.empty();
           }
           ensure(ctx, dbTableInfo, table, columns);
         });
+    ensureInitData(ctx);
   }
 
-  public void ensureInitData(UserContext ctx) {}
+  public void ensureInitData(UserContext ctx) {
+    if (entityDescriptor.isRoot()) {
+      ensureRoot(ctx);
+    }
+  }
+
+  private void ensureRoot(UserContext ctx) {
+    Map<String, Object> dbRootRow = null;
+    try {
+      dbRootRow =
+          jdbcTemplate
+              .getJdbcTemplate()
+              .queryForMap(
+                  StrUtil.format(
+                      "SELECT * FROM {} WHERE id = 1", tableName(entityDescriptor.getType())));
+    } catch (Exception e) {
+
+    }
+
+    if (dbRootRow != null) {
+      long version = ((Number) dbRootRow.get("version")).longValue();
+      if (version > 0) {
+        return;
+      }
+      // update version
+      String sql =
+          StrUtil.format(
+              "UPDATE {} SET version = {} where id = '1';",
+              tableName(entityDescriptor.getType()),
+              -version);
+      ctx.info(sql);
+      if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+        jdbcTemplate.getJdbcTemplate().execute(sql);
+      }
+      return;
+    }
+    List rootRow = new ArrayList();
+    List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
+    for (PropertyDescriptor ownProperty : ownProperties) {
+      Object value = getRootPropertyValue(ctx, ownProperty);
+      rootRow.add(value);
+    }
+    String sql =
+        StrUtil.format(
+            "INSERT INTO {} VALUES ({});",
+            tableName(entityDescriptor.getType()),
+            CollectionUtil.join(
+                rootRow, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
+    ctx.info(sql);
+    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      jdbcTemplate.getJdbcTemplate().execute(sql);
+    }
+  }
+
+  private Object getRootPropertyValue(UserContext ctx, PropertyDescriptor property) {
+    if (property.isId()) {
+      return 1l;
+    }
+    if (property.isVersion()) {
+      return 1l;
+    }
+    String autoFunction = property.getAdditionalInfo().get("autoFunction");
+    if (!ObjectUtil.isEmpty(autoFunction)) {
+      return ReflectUtil.invoke(ctx, autoFunction);
+    }
+    return property.getAdditionalInfo().get("candidates");
+  }
 
   private void ensure(
       UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
@@ -1223,7 +1290,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
   private void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
     String alterColumnSql =
-        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {}", tableName, columnName, type);
+        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {};", tableName, columnName, type);
     ctx.info(alterColumnSql);
     if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
       jdbcTemplate.getJdbcTemplate().execute(alterColumnSql);
@@ -1233,7 +1300,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   private void addColumn(
       UserContext ctx, String tableName, String preColumnName, String columnName, String type) {
     String addColumnSql =
-        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {}", tableName, columnName, type);
+        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {};", tableName, columnName, type);
     ctx.info(addColumnSql);
     if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
       jdbcTemplate.getJdbcTemplate().execute(addColumnSql);
@@ -1247,7 +1314,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         columns.stream()
             .map(column -> column.getColumnName() + " " + column.getType())
             .collect(Collectors.joining(",\n")));
-    sb.append(")\n");
+    sb.append(");\n");
     String createTableSql = sb.toString();
     ctx.info(createTableSql);
 

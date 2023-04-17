@@ -29,7 +29,7 @@ public class EntityDescriptor {
 
   private Set<EntityDescriptor> children = new HashSet<>();
 
-  private Map<String, Object> additionalInfo = new HashMap<>();
+  private Map<String, String> additionalInfo = new HashMap<>();
 
   public PropertyDescriptor findProperty(String propertyName) {
     if (ObjectUtil.isEmpty(properties)) {
@@ -190,16 +190,16 @@ public class EntityDescriptor {
     return getParent() == null && getOwnRelations().isEmpty();
   }
 
-  public EntityDescriptor with(String key, Object value) {
+  public EntityDescriptor with(String key, String value) {
     additionalInfo.put(key, value);
     return this;
   }
 
-  public Map<String, Object> getAdditionalInfo() {
+  public Map<String, String> getAdditionalInfo() {
     return additionalInfo;
   }
 
-  public void setAdditionalInfo(Map<String, Object> pAdditionalInfo) {
+  public void setAdditionalInfo(Map<String, String> pAdditionalInfo) {
     additionalInfo = pAdditionalInfo;
   }
 }

@@ -18,7 +18,7 @@ public class PropertyDescriptor {
   /** 属性类型 */
   private PropertyType type;
 
-  private Map<String, Object> additionalInfo = new HashMap<>();
+  private Map<String, String> additionalInfo = new HashMap<>();
 
   public PropertyDescriptor() {}
 
@@ -59,16 +59,16 @@ public class PropertyDescriptor {
     return getName().equals("version");
   }
 
-  public PropertyDescriptor with(String key, Object value) {
+  public PropertyDescriptor with(String key, String value) {
     additionalInfo.put(key, value);
     return this;
   }
 
-  public Map<String, Object> getAdditionalInfo() {
+  public Map<String, String> getAdditionalInfo() {
     return additionalInfo;
   }
 
-  public void setAdditionalInfo(Map<String, Object> pAdditionalInfo) {
+  public void setAdditionalInfo(Map<String, String> pAdditionalInfo) {
     additionalInfo = pAdditionalInfo;
   }
 }
