@@ -14,26 +14,26 @@ import java.util.Set;
 public class SQLRepositorySchemaHelper {
 
   // ensure 所有的表
-  public void ensureTable(UserContext ctx, EntityMetaFactory entityMetaFactory) {
+  public void ensureSchema(UserContext ctx, EntityMetaFactory entityMetaFactory) {
     List<EntityDescriptor> entityDescriptors = entityMetaFactory.allEntityDescriptors();
     Set<EntityDescriptor> handled = new HashSet<>();
     for (EntityDescriptor entityDescriptor : entityDescriptors) {
-      ensureTable(ctx, handled, entityDescriptor);
+      ensureSchema(ctx, handled, entityDescriptor);
     }
   }
 
   // ensure这个itemDescriptor以及依赖的所有表
-  public void ensureTable(UserContext ctx, EntityDescriptor entityDescriptor) {
-    ensureTable(ctx, new HashSet<>(), entityDescriptor);
+  public void ensureSchema(UserContext ctx, EntityDescriptor entityDescriptor) {
+    ensureSchema(ctx, new HashSet<>(), entityDescriptor);
   }
 
-  public void ensureTable(UserContext ctx, String entityType) {
+  public void ensureSchema(UserContext ctx, String entityType) {
     Repository repository = ctx.resolveRepository(entityType);
     EntityDescriptor entityDescriptor = repository.getEntityDescriptor();
-    ensureTable(ctx, entityDescriptor);
+    ensureSchema(ctx, entityDescriptor);
   }
 
-  private void ensureTable(
+  private void ensureSchema(
       UserContext ctx, Set<EntityDescriptor> handled, EntityDescriptor entityDescriptor) {
     if (handled.contains(entityDescriptor)) {
       return;
@@ -42,14 +42,14 @@ public class SQLRepositorySchemaHelper {
     EntityDescriptor parent = entityDescriptor.getParent();
     // parent 存在时ensure parent
     if (parent != null) {
-      ensureTable(ctx, handled, parent);
+      ensureSchema(ctx, handled, parent);
     }
     // 我持有的所有relation, 先解析引用的
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
     for (Relation ownRelation : ownRelations) {
       PropertyDescriptor reverseProperty = ownRelation.getReverseProperty();
       EntityDescriptor owner = reverseProperty.getOwner();
-      ensureTable(ctx, handled, owner);
+      ensureSchema(ctx, handled, owner);
     }
     // 解析自已
     String type = entityDescriptor.getType();
@@ -57,7 +57,7 @@ public class SQLRepositorySchemaHelper {
 
     // 只有是sqlRepository才能ensure
     if (repository instanceof SQLRepository) {
-      ((SQLRepository<?>) repository).ensureTable(ctx);
+      ((SQLRepository<?>) repository).ensureSchema(ctx);
     }
   }
 }

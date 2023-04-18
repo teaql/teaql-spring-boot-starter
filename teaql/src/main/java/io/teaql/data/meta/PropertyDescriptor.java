@@ -1,6 +1,11 @@
 package io.teaql.data.meta;
 
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Entity所包含的属性的元信息 */
@@ -70,5 +75,18 @@ public class PropertyDescriptor {
 
   public void setAdditionalInfo(Map<String, String> pAdditionalInfo) {
     additionalInfo = pAdditionalInfo;
+  }
+
+  public boolean isIdentifier() {
+    String identifier = getAdditionalInfo().get("identifier");
+    return BooleanUtil.toBoolean(identifier);
+  }
+
+  public List<String> getCandidates() {
+    String candidates = getAdditionalInfo().get("candidates");
+    if (candidates == null) {
+      return ListUtil.empty();
+    }
+    return StrUtil.split(candidates, ",", true, true);
   }
 }

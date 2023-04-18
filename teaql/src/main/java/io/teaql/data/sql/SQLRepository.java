@@ -11,6 +11,7 @@ import io.teaql.data.*;
 import io.teaql.data.criteria.IN;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
+import io.teaql.data.meta.PropertyType;
 import io.teaql.data.meta.Relation;
 import io.teaql.data.sql.expression.ExpressionHelper;
 import org.springframework.jdbc.core.RowMapper;
@@ -1126,7 +1127,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return NamingCase.toUnderlineCase(propertyName);
   }
 
-  public void ensureTable(UserContext ctx) {
+  public void ensureSchema(UserContext ctx) {
     List<SQLColumn> allColumns = new ArrayList<>();
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
@@ -1154,12 +1155,113 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
           ensure(ctx, dbTableInfo, table, columns);
         });
     ensureInitData(ctx);
+    ensureIndexAndForeignKey(ctx);
+  }
+
+  private void ensureIndexAndForeignKey(UserContext ctx) {
+
   }
 
   public void ensureInitData(UserContext ctx) {
     if (entityDescriptor.isRoot()) {
       ensureRoot(ctx);
     }
+    if (entityDescriptor.isConstant()) {
+      ensureConstant(ctx);
+    }
+  }
+
+  private void ensureConstant(UserContext ctx) {
+    PropertyDescriptor identifier = entityDescriptor.getIdentifier();
+    List<String> candidates = identifier.getCandidates();
+    List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
+    List<String> columns = new ArrayList<>();
+    for (PropertyDescriptor ownProperty : ownProperties) {
+      columns.add(columnName(ownProperty.getName()));
+    }
+    for (int i = 0; i < candidates.size(); i++) {
+      String code = candidates.get(i);
+      List oneConstant = new ArrayList();
+      for (PropertyDescriptor ownProperty : ownProperties) {
+        oneConstant.add(getConstantPropertyValue(ctx, ownProperty, i, code));
+      }
+
+      Map<String, Object> dbRootRow = null;
+      try {
+        dbRootRow =
+            jdbcTemplate
+                .getJdbcTemplate()
+                .queryForMap(
+                    StrUtil.format(
+                        "SELECT * FROM {} WHERE id = {}",
+                        tableName(entityDescriptor.getType()),
+                        genIdForCandidateCode(code)));
+      } catch (Exception e) {
+
+      }
+
+      if (dbRootRow != null) {
+        long version = ((Number) dbRootRow.get("version")).longValue();
+        if (version > 0) {
+          return;
+        }
+        // update version
+        String sql =
+            StrUtil.format(
+                "UPDATE {} SET version = {} where id = '{}';\n",
+                tableName(entityDescriptor.getType()),
+                -version,
+                genIdForCandidateCode(code));
+        ctx.info(sql);
+        if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+          jdbcTemplate.getJdbcTemplate().execute(sql);
+        }
+        return;
+      }
+
+      String sql =
+          StrUtil.format(
+              "INSERT INTO {} ({}) VALUES ({});\n",
+              tableName(entityDescriptor.getType()),
+              CollectionUtil.join(columns, ","),
+              CollectionUtil.join(
+                  oneConstant, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
+      ctx.info(sql);
+      if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+        jdbcTemplate.getJdbcTemplate().execute(sql);
+      }
+    }
+  }
+
+  private long genIdForCandidateCode(String code) {
+    return Math.abs(code.toUpperCase().hashCode());
+  }
+
+  private Object getConstantPropertyValue(
+      UserContext ctx, PropertyDescriptor property, int index, String identifier) {
+    if (property.isId()) {
+      return genIdForCandidateCode(identifier);
+    }
+    if (property.isVersion()) {
+      return 1l;
+    }
+
+    PropertyType type = property.getType();
+    if (BaseEntity.class.isAssignableFrom(type.javaType())) {
+      String referType = type.javaType().getSimpleName();
+      EntityDescriptor refer = ctx.resolveEntityDescriptor(referType);
+      if (refer.isRoot()) {
+        return "1";
+      }
+    }
+
+    String autoFunction = property.getAdditionalInfo().get("autoFunction");
+    if (!ObjectUtil.isEmpty(autoFunction)) {
+      return ReflectUtil.invoke(ctx, autoFunction);
+    }
+
+    List<String> candidates = property.getCandidates();
+    return NamingCase.toPascalCase(CollectionUtil.get(candidates, index));
   }
 
   private void ensureRoot(UserContext ctx) {
@@ -1183,7 +1285,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       // update version
       String sql =
           StrUtil.format(
-              "UPDATE {} SET version = {} where id = '1';",
+              "UPDATE {} SET version = {} where id = '1';\n",
               tableName(entityDescriptor.getType()),
               -version);
       ctx.info(sql);
@@ -1192,16 +1294,19 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       }
       return;
     }
+    List<String> columns = new ArrayList();
     List rootRow = new ArrayList();
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
       Object value = getRootPropertyValue(ctx, ownProperty);
       rootRow.add(value);
+      columns.add(columnName(ownProperty.getName()));
     }
     String sql =
         StrUtil.format(
-            "INSERT INTO {} VALUES ({});",
+            "INSERT INTO {} ({}) VALUES ({});\n",
             tableName(entityDescriptor.getType()),
+            CollectionUtil.join(columns, ","),
             CollectionUtil.join(
                 rootRow, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
     ctx.info(sql);
@@ -1312,7 +1417,14 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     sb.append("CREATE TABLE ").append(table).append(" (\n");
     sb.append(
         columns.stream()
-            .map(column -> column.getColumnName() + " " + column.getType())
+            .map(
+                column -> {
+                  String dbColumn = column.getColumnName() + " " + column.getType();
+                  if ("id".equalsIgnoreCase(column.getColumnName())) {
+                    dbColumn = dbColumn + " PRIMARY KEY";
+                  }
+                  return dbColumn;
+                })
             .collect(Collectors.joining(",\n")));
     sb.append(");\n");
     String createTableSql = sb.toString();

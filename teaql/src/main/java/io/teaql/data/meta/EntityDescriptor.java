@@ -1,6 +1,7 @@
 package io.teaql.data.meta;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.Entity;
 import io.teaql.data.sql.GenericSQLProperty;
@@ -201,5 +202,19 @@ public class EntityDescriptor {
 
   public void setAdditionalInfo(Map<String, String> pAdditionalInfo) {
     additionalInfo = pAdditionalInfo;
+  }
+
+  public boolean isConstant() {
+    String constant = getAdditionalInfo().get("constant");
+    return BooleanUtil.toBoolean(constant);
+  }
+
+  public PropertyDescriptor getIdentifier() {
+    for (PropertyDescriptor ownProperty : getOwnProperties()) {
+      if (ownProperty.isIdentifier()) {
+        return ownProperty;
+      }
+    }
+    return null;
   }
 }
