@@ -1027,19 +1027,6 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         .collect(Collectors.joining(","));
   }
 
-  private String getSingleColumnNameWithAlias(String pProperty, SQLColumn sqlColumn) {
-    return StrUtil.format(
-        "{}.{} AS {}", tableAlias(sqlColumn.getTableName()), sqlColumn.getColumnName(), pProperty);
-  }
-
-  private String getMultiColumnNameWithAlias(String pProperty, SQLColumn sqlColumn) {
-    return StrUtil.format(
-        "{}.{} AS {}",
-        tableAlias(sqlColumn.getTableName()),
-        sqlColumn.getColumnName(),
-        pProperty + "_" + sqlColumn.getColumnName());
-  }
-
   private List<String> collectDataTables(UserContext userContext, SearchRequest<T> request) {
     List<String> allRelationProperties = request.dataProperties(userContext);
     return collectTablesFromProperties(userContext, allRelationProperties);
@@ -1438,9 +1425,13 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   @Override
   public List<SQLColumn> getPropertyColumns(String idTable, String propertyName) {
     if (CHILD_TYPE.equalsIgnoreCase(propertyName)) {
-      SQLColumn sqlColumn = new SQLColumn(thisPrimaryTableName, CHILD_TYPE);
-      sqlColumn.setType(CHILD_SQL_TYPE);
-      return ListUtil.of(sqlColumn);
+      if (entityDescriptor.hasChildren()) {
+        SQLColumn sqlColumn = new SQLColumn(thisPrimaryTableName, CHILD_TYPE);
+        sqlColumn.setType(CHILD_SQL_TYPE);
+        return ListUtil.of(sqlColumn);
+      } else {
+        return ListUtil.empty();
+      }
     }
 
     PropertyDescriptor property = findProperty(propertyName);
