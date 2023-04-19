@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumnResolver {
   public static final String VERSION = "version";
   public static final String ID = "id";
+  public static final String CHILD_TYPE = "_child_type";
+  public static final String CHILD_SQL_TYPE = "VARCHAR(100)";
   private final EntityDescriptor entityDescriptor;
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private String versionTableName;
@@ -304,7 +306,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       String type = this.types.get(i);
       SQLData childTypeCell = new SQLData();
       childTypeCell.setTableName(tableName);
-      childTypeCell.setColumnName("_child_type");
+      childTypeCell.setColumnName(CHILD_TYPE);
       childTypeCell.setValue(type);
       sqlEntity.addPropertySQLData(childTypeCell);
     }
@@ -1135,8 +1137,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       allColumns.addAll(sqlColumns);
     }
     if (entityDescriptor.hasChildren()) {
-      SQLColumn childTypeCell = new SQLColumn(thisPrimaryTableName, "_child_type");
-      childTypeCell.setType("VARCHAR(100)");
+      SQLColumn childTypeCell = new SQLColumn(thisPrimaryTableName, CHILD_TYPE);
+      childTypeCell.setType(CHILD_SQL_TYPE);
       allColumns.add(childTypeCell);
     }
     Map<String, List<SQLColumn>> tableColumns =
@@ -1158,9 +1160,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     ensureIndexAndForeignKey(ctx);
   }
 
-  private void ensureIndexAndForeignKey(UserContext ctx) {
-
-  }
+  private void ensureIndexAndForeignKey(UserContext ctx) {}
 
   public void ensureInitData(UserContext ctx) {
     if (entityDescriptor.isRoot()) {
@@ -1437,6 +1437,12 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
   @Override
   public List<SQLColumn> getPropertyColumns(String idTable, String propertyName) {
+    if (CHILD_TYPE.equalsIgnoreCase(propertyName)) {
+      SQLColumn sqlColumn = new SQLColumn(thisPrimaryTableName, CHILD_TYPE);
+      sqlColumn.setType(CHILD_SQL_TYPE);
+      return ListUtil.of(sqlColumn);
+    }
+
     PropertyDescriptor property = findProperty(propertyName);
     List<SQLColumn> sqlColumns = getSqlColumns(property);
     for (SQLColumn sqlColumn : sqlColumns) {

@@ -4,7 +4,6 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.criteria.*;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,8 +69,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     if (ObjectUtil.isEmpty(propertyName)) {
       return;
     }
-    if (this.projections.contains(propertyName)) {
-      return;
+    for (SimpleNamedExpression projection : this.projections) {
+      if (projection.name().equals(propertyName)) {
+        return;
+      }
     }
     this.projections.add(new SimpleNamedExpression(propertyName));
   }
@@ -295,5 +296,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public void sum(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.SUM);
+  }
+
+  public BaseRequest<T> matchType(String... types) {
+    appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
+    return this;
   }
 }
