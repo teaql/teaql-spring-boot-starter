@@ -1426,7 +1426,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   public List<SQLColumn> getPropertyColumns(String idTable, String propertyName) {
     if (CHILD_TYPE.equalsIgnoreCase(propertyName)) {
       if (entityDescriptor.hasChildren()) {
-        SQLColumn sqlColumn = new SQLColumn(thisPrimaryTableName, CHILD_TYPE);
+        SQLColumn sqlColumn = new SQLColumn(tableAlias(thisPrimaryTableName), CHILD_TYPE);
         sqlColumn.setType(CHILD_SQL_TYPE);
         return ListUtil.of(sqlColumn);
       } else {

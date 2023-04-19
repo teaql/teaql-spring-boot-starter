@@ -13,7 +13,7 @@ import java.util.Map;
 public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
   @Override
   public Class<TypeCriteria> type() {
-    return SQLExpressionParser.super.type();
+    return TypeCriteria.class;
   }
 
   @Override

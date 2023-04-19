@@ -23,6 +23,10 @@ public class NamedExpressionParser implements SQLExpressionParser<SimpleNamedExp
       SQLColumnResolver sqlColumnResolver) {
     Expression inner = expression.getExpression();
     String sql = ExpressionHelper.toSql(userContext, inner, idTable, parameters, sqlColumnResolver);
-    return StrUtil.format("{} AS {}", sql, expression.name());
+    String name = expression.name();
+    if (!name.toLowerCase().equals(name)) {
+      name = StrUtil.wrap(name, "'");
+    }
+    return StrUtil.format("{} AS {}", sql, name);
   }
 }
