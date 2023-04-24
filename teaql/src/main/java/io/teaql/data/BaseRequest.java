@@ -208,6 +208,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public SearchCriteria createBasicSearchCriteria(
       String property, Operator operator, Object... values) {
+    operator = refineOperator(operator, values);
     if (operator.hasOneOperator()) {
       return new OneOperatorCriteria(operator, new PropertyReference(property));
     } else if (operator.hasTwoOperator()) {
@@ -225,6 +226,28 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
           new Parameter(property, values[1]));
     }
     throw new RepositoryException("不支持的operator:" + operator);
+  }
+
+  private Operator refineOperator(Operator pOperator, Object[] pValues) {
+    boolean multiValue = ArrayUtil.length(pValues) > 1;
+    switch (pOperator) {
+      case EQUAL:
+      case IN:
+        if (multiValue) {
+          return Operator.IN;
+        } else {
+          return Operator.EQUAL;
+        }
+      case NOT_EQUAL:
+      case NOT_IN:
+        if (multiValue) {
+          return Operator.NOT_IN;
+        } else {
+          return Operator.NOT_EQUAL;
+        }
+    }
+
+    return pOperator;
   }
 
   public void addAggregate(SimpleNamedExpression aggregate) {

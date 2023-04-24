@@ -47,49 +47,49 @@ public class AggregationResult {
         .collect(Collectors.toList());
   }
 
-  public Number toNumber(Number defaultValue){
+  public Number toNumber(Number defaultValue) {
     AggregationItem first = CollectionUtil.getFirst(data);
-    if (first == null){
+    if (first == null) {
       return defaultValue;
     }
     Map<SimpleNamedExpression, Object> values = first.getValues();
-    if (ObjectUtil.isEmpty(values)){
+    if (ObjectUtil.isEmpty(values)) {
       return defaultValue;
     }
 
     Object firstValue = CollectionUtil.getFirst(values.values());
-    if (ObjectUtil.isEmpty(firstValue)){
+    if (ObjectUtil.isEmpty(firstValue)) {
       return defaultValue;
     }
 
-    if (firstValue instanceof Number){
+    if (firstValue instanceof Number) {
       return (Number) firstValue;
     }
 
     return Convert.convert(Number.class, firstValue);
   }
 
-  public int toInt(){
+  public int toInt() {
     return toNumber(0).intValue();
   }
 
-  public Map<Object, Number> toSimpleMap(){
+  public Map<Object, Number> toSimpleMap() {
     Map<Object, Number> ret = new HashMap<>();
     for (AggregationItem datum : data) {
       Map<SimpleNamedExpression, Object> values = datum.getValues();
       Map<SimpleNamedExpression, Object> dimensions = datum.getDimensions();
 
-      if (ObjectUtil.isEmpty(dimensions)){
+      if (ObjectUtil.isEmpty(dimensions)) {
         continue;
       }
 
-      if (ObjectUtil.isEmpty(values)){
+      if (ObjectUtil.isEmpty(values)) {
         continue;
       }
 
       Object firstValue = CollectionUtil.getFirst(values.values());
       Object firstDimension = CollectionUtil.getFirst(dimensions.values());
-      if (firstDimension == null){
+      if (firstDimension == null) {
         continue;
       }
 
@@ -99,16 +99,23 @@ public class AggregationResult {
     return ret;
   }
 
-  public List<Map<String, Object>> toList(){
-    return data.stream().map(item -> {
-      Map<String, Object> m = new HashMap();
-      item.getValues().forEach((k, v) -> {
-        m.put(k.name(), v);
-      });
-      item.getDimensions().forEach((k, v) -> {
-        m.put(k.name(), v);
-      });
-      return m;
-    }).collect(Collectors.toList());
+  public List<Map<String, Object>> toList() {
+    return data.stream()
+        .map(
+            item -> {
+              Map<String, Object> m = new HashMap();
+              item.getValues()
+                  .forEach(
+                      (k, v) -> {
+                        m.put(k.name(), v);
+                      });
+              item.getDimensions()
+                  .forEach(
+                      (k, v) -> {
+                        m.put(k.name(), v);
+                      });
+              return m;
+            })
+        .collect(Collectors.toList());
   }
 }

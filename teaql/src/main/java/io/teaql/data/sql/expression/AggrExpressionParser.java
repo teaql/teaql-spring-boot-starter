@@ -47,7 +47,7 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
       case COUNT:
         return StrUtil.format("count({})", sqlColumn);
       case GBK:
-        return StrUtil.format("convert({} using gbk)", sqlColumn);
+        return StrUtil.format("convert_to({},'GBK')", sqlColumn);
     }
     throw new RepositoryException("不支持的聚合函数:" + aggrFunction);
   }
