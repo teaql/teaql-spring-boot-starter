@@ -36,9 +36,14 @@ subprojects {
 allprojects {
     group 'io.teaql'
     version '1.01-RELEASE'
-    publishing {
-        repositories {
-            mavenLocal()
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/teaql/teaql-spring-boot-starter"
+            credentials {
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
         }
     }
 }
