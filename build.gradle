@@ -35,13 +35,15 @@ subprojects {
 allprojects {
     group 'io.teaql'
     version '1.01-SNAPSHOT'
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/teaql/teaql-spring-boot-starter"
-            credentials {
-                username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/teaql/teaql-spring-boot-starter"
+                credentials {
+                    username = System.getenv("USERNAME")
+                    password = System.getenv("TOKEN")
+                }
             }
         }
     }
