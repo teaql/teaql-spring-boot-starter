@@ -1,0 +1,3 @@
+rootProject.name = 'teaql-spring-boot-starter'
+include 'teaql-autoconfigure'
+include 'teaql'
