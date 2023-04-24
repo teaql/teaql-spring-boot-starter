@@ -12,7 +12,6 @@ publishing {
             groupId = "${groupId}"
             artifactId = 'teaql'
             version = "${version}"
-            artifact sourcesJar
             from components.java
         }
     }

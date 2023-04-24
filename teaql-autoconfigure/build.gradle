@@ -9,7 +9,6 @@ publishing {
             groupId = "${groupId}"
             artifactId = 'teaql-autoconfigure'
             version = "${version}"
-            artifact sourcesJar
             from components.java
         }
     }
