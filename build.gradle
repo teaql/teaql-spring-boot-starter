@@ -35,7 +35,7 @@ subprojects {
 
 allprojects {
     group 'io.teaql'
-    version '1.01-RELEASE'
+    version '1.01-SNAPSHOT'
     repositories {
         maven {
             name = "GitHubPackages"
