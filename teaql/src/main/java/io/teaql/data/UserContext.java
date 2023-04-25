@@ -127,4 +127,6 @@ public class UserContext {
     localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
     throw new CheckException(errors);
   }
+
+  public void init(Object request) {}
 }

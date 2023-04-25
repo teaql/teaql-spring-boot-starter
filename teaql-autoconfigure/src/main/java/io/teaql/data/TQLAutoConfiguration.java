@@ -20,7 +20,7 @@ public class TQLAutoConfiguration implements WebMvcConfigurer {
   @Bean
   @ConditionalOnMissingBean
   public TQLContextResolver userContextResolver() {
-    return new TQLContextResolver();
+    return new TQLContextResolver(dataConfig());
   }
 
   @Bean
