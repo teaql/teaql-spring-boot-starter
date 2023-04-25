@@ -8,9 +8,9 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class TQLContextResolver implements HandlerMethodArgumentResolver {
-  private DataConfig config;
+  private DataConfigProperties config;
 
-  public TQLContextResolver(DataConfig config) {
+  public TQLContextResolver(DataConfigProperties config) {
     this.config = config;
   }
 
@@ -26,7 +26,7 @@ public class TQLContextResolver implements HandlerMethodArgumentResolver {
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory)
       throws Exception {
-    Class<? extends UserContext> contextType = config.contextType();
+    Class<? extends UserContext> contextType = config.getContextClass();
     UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
     userContext.init(webRequest.getNativeRequest());
     return userContext;

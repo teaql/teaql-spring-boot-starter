@@ -30,8 +30,8 @@ public class UserContext {
     throw new RepositoryException("Repository for:" + type + " not defined.");
   }
 
-  public DataConfig config() {
-    return SpringUtil.getBean(DataConfig.class);
+  public DataConfigProperties config() {
+    return SpringUtil.getBean(DataConfigProperties.class);
   }
 
   public EntityDescriptor resolveEntityDescriptor(String type) {

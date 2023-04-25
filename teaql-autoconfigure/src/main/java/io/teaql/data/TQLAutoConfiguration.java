@@ -36,7 +36,7 @@ public class TQLAutoConfiguration implements WebMvcConfigurer {
 
   @Bean
   @ConfigurationProperties(prefix = "teaql")
-  public DataConfig dataConfig() {
+  public DataConfigProperties dataConfig() {
     return new DataConfigProperties();
   }
 }

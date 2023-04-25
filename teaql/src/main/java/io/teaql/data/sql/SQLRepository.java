@@ -1200,7 +1200,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
                 -version,
                 genIdForCandidateCode(code));
         ctx.info(sql);
-        if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+        if (ctx.config() != null && ctx.config().isEnsureTable()) {
           jdbcTemplate.getJdbcTemplate().execute(sql);
         }
         return;
@@ -1214,7 +1214,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
               CollectionUtil.join(
                   oneConstant, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
       ctx.info(sql);
-      if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      if (ctx.config() != null && ctx.config().isEnsureTable()) {
         jdbcTemplate.getJdbcTemplate().execute(sql);
       }
     }
@@ -1276,7 +1276,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
               tableName(entityDescriptor.getType()),
               -version);
       ctx.info(sql);
-      if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+      if (ctx.config() != null && ctx.config().isEnsureTable()) {
         jdbcTemplate.getJdbcTemplate().execute(sql);
       }
       return;
@@ -1297,7 +1297,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
             CollectionUtil.join(
                 rootRow, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
     ctx.info(sql);
-    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
       jdbcTemplate.getJdbcTemplate().execute(sql);
     }
   }
@@ -1384,7 +1384,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String alterColumnSql =
         StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {};", tableName, columnName, type);
     ctx.info(alterColumnSql);
-    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
       jdbcTemplate.getJdbcTemplate().execute(alterColumnSql);
     }
   }
@@ -1394,7 +1394,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String addColumnSql =
         StrUtil.format("ALTER TABLE {} ADD COLUMN {} {};", tableName, columnName, type);
     ctx.info(addColumnSql);
-    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
       jdbcTemplate.getJdbcTemplate().execute(addColumnSql);
     }
   }
@@ -1417,7 +1417,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String createTableSql = sb.toString();
     ctx.info(createTableSql);
 
-    if (ctx.config() != null && ctx.config().ensureTableEnabled()) {
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
       jdbcTemplate.getJdbcTemplate().execute(createTableSql);
     }
   }

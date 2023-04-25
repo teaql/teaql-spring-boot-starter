@@ -1,6 +1,6 @@
 package io.teaql.data;
 
-public class DataConfigProperties implements DataConfig {
+public class DataConfigProperties {
 
   private boolean ensureTable;
 
@@ -20,15 +20,5 @@ public class DataConfigProperties implements DataConfig {
 
   public void setContextClass(Class<? extends UserContext> pContextClass) {
     contextClass = pContextClass;
-  }
-
-  @Override
-  public boolean ensureTableEnabled() {
-    return isEnsureTable();
-  }
-
-  @Override
-  public Class<? extends UserContext> contextType() {
-    return getContextClass();
   }
 }
