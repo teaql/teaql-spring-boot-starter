@@ -1,10 +1,10 @@
 package io.teaql.data;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -151,7 +151,31 @@ public class BaseEntity implements Entity {
     return Entity.super.getProperty(propertyName);
   }
 
+  /**
+   * callbacks for updateXXX methods
+   *
+   * @param propertyName
+   * @param oldValue
+   * @param newValue
+   */
+  public void handleUpdate(String propertyName, Object oldValue, Object newValue) {
+    PropertyChangeEvent propertyChangeEvent = updatedProperties.get(propertyName);
+    // 多次变化记录最开始的值为old值
+    if (propertyChangeEvent != null) {
+      oldValue = propertyChangeEvent.getOldValue();
+    }
+    // 值在多次变化后，实际没有变化
+    if (ObjectUtil.equals(oldValue, newValue)) {
+      updatedProperties.remove(propertyName);
+      return;
+    }
+    updatedProperties.put(
+        propertyName, new PropertyChangeEvent(this, propertyName, oldValue, newValue));
+  }
+
   public void cacheRelation(String relationName, Entity relation) {
     this.relationCache.put(relationName, relation);
+    Object initValue = Entity.super.getProperty(relationName);
+    handleUpdate(relationName, initValue, relation);
   }
 }
