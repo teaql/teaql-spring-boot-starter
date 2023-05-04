@@ -178,4 +178,20 @@ public class BaseEntity implements Entity {
     Object initValue = Entity.super.getProperty(relationName);
     handleUpdate(relationName, initValue, relation);
   }
+
+  public Object getOldValue(String propertyName) {
+    PropertyChangeEvent propertyChangeEvent = updatedProperties.get(propertyName);
+    if (propertyChangeEvent == null) {
+      return null;
+    }
+    return propertyChangeEvent.getOldValue();
+  }
+
+  public Object getNewValue(String propertyName) {
+    PropertyChangeEvent propertyChangeEvent = updatedProperties.get(propertyName);
+    if (propertyChangeEvent == null) {
+      return null;
+    }
+    return propertyChangeEvent.getNewValue();
+  }
 }
