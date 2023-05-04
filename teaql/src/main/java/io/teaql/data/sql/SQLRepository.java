@@ -1337,8 +1337,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       if (i > 0) {
         preColumnName = columns.get(i - 1).getColumnName();
       }
-
-      Map<String, Object> field = fields.get(columnName);
+      String dbColumnName = StrUtil.unWrap(columnName, '\"');
+      Map<String, Object> field = fields.get(dbColumnName);
       if (field == null) {
         addColumn(ctx, tableName, preColumnName, columnName, type);
         continue;
