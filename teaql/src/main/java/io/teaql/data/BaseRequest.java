@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> {
 
@@ -138,7 +139,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     if(anotherRequest.getSearchCriteria()==null){
       return this;
     }
-    List<Expression> subExpress=((AND) anotherRequest.getSearchCriteria()).getExpressions();
+    List<Expression> subExpress=((AND) anotherRequest.getSearchCriteria())
+            .getExpressions().stream()
+            .filter(expression -> expression instanceof SearchCriteria)
+            //how to filter version criteria out????
+            .collect(Collectors.toList());
     //need to remove any condition with version
     int length = subExpress.size();
 
