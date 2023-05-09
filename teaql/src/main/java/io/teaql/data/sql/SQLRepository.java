@@ -1075,7 +1075,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       return null;
     }
     return StrUtil.format(
-        "LIMIT {} OFFSET {}", PageUtil.getStart(page.getNumber(), page.getSize()), page.getSize());
+        "LIMIT {} OFFSET {}", page.getSize(), PageUtil.getStart(page.getNumber(), page.getSize()));
   }
 
   private String prepareOrderBy(
