@@ -129,6 +129,37 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
+
+  protected BaseRequest<T> matchAny(BaseRequest<T> anotherRequest) {
+    if (searchCriteria == null) {
+      return this;
+    }
+
+    if(anotherRequest.getSearchCriteria()==null){
+      return this;
+    }
+    List<Expression> subExpress=((AND) anotherRequest.getSearchCriteria()).getExpressions();
+    //need to remove any condition with version
+    int length = subExpress.size();
+
+    SearchCriteria[] searchCriteriaArray=new SearchCriteria[length];
+
+    for(int i=0;i<length;i++){
+      searchCriteriaArray[i]=(SearchCriteria)subExpress.get(i);
+    }
+
+
+    ((AND) this.searchCriteria).getExpressions().add(SearchCriteria.or(searchCriteriaArray));
+
+    //anotherRequest.getE
+
+
+
+    return this;
+  }
+
+
+
   public BaseRequest<T> top(int topN) {
     this.page = new Page();
     this.page.setSize(topN);
@@ -325,4 +356,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
     return this;
   }
+
+
+
+
+
+
 }
