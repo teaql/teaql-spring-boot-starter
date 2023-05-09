@@ -7,7 +7,7 @@ import io.teaql.data.TypeCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLColumnResolver;
-
+import io.teaql.data.sql.SQLRepository;
 import java.util.Map;
 
 public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
@@ -31,6 +31,10 @@ public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
     Parameter typeParameter = expression.getTypeParameter();
     String parameterSql =
         ExpressionHelper.toSql(userContext, typeParameter, idTable, parameters, sqlColumnResolver);
-    return StrUtil.format("{}._child_type in ({})", childType.getTableName(), parameterSql);
+
+    if (userContext.getBool(SQLRepository.MULTI_TABLE, false)) {
+      return StrUtil.format("{}._child_type in ({})", childType.getTableName(), parameterSql);
+    }
+    return StrUtil.format("_child_type in ({})", parameterSql);
   }
 }

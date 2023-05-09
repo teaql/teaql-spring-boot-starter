@@ -14,20 +14,22 @@ import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
 import io.teaql.data.meta.Relation;
 import io.teaql.data.sql.expression.ExpressionHelper;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumnResolver {
   public static final String VERSION = "version";
   public static final String ID = "id";
   public static final String CHILD_TYPE = "_child_type";
   public static final String CHILD_SQL_TYPE = "VARCHAR(100)";
+
+  public static final String MULTI_TABLE = "MULTI_TABLE";
+
   private final EntityDescriptor entityDescriptor;
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private String versionTableName;
@@ -466,6 +468,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
     }
     String idTable = tables.get(0);
+    userContext.put(MULTI_TABLE, tables.size() > 1);
 
     String whereSql =
         prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
@@ -475,7 +478,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
 
     String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
-    String sql = StrUtil.format("SELECT {} FROM {}", selectSql, leftJoinTables(tables));
+    String sql =
+        StrUtil.format("SELECT {} FROM {}", selectSql, leftJoinTables(userContext, tables));
 
     if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
       sql = StrUtil.format("{} WHERE {}", sql, whereSql);
@@ -896,6 +900,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
     }
     String idTable = tables.get(0);
+    userContext.put(MULTI_TABLE, tables.size() > 1);
 
     // 生成查询条件
     String whereSql =
@@ -911,7 +916,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       return null;
     }
 
-    String tableSQl = leftJoinTables(tables);
+    String tableSQl = leftJoinTables(userContext, tables);
 
     // select部分
     String selectSql = collectSelectSql(userContext, request, idTable, parameters);
@@ -973,7 +978,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
   }
 
-  public String leftJoinTables(List<String> tables) {
+  public String leftJoinTables(UserContext userContext, List<String> tables) {
     List<String> sortedTables = new ArrayList<>();
     // table按主表排序
     for (String table : tables) {
@@ -991,10 +996,13 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     for (String sortedTable : sortedTables) {
       if (preTable == null) {
         preTable = sortedTable;
-        sb.append(StrUtil.format("{} AS {}", sortedTable, tableAlias(sortedTable)));
+        if (userContext.getBool(MULTI_TABLE, false)) {
+          sb.append(StrUtil.format("{} AS {}", sortedTable, tableAlias(sortedTable)));
+        } else {
+          sb.append(StrUtil.format("{}", sortedTable));
+        }
         continue;
       }
-
       sb.append(
           StrUtil.format(
               " LEFT JOIN {} AS {} ON {}.{} = {}.{}",
@@ -1024,7 +1032,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
     return allSelects.stream()
         .map(e -> ExpressionHelper.toSql(userContext, e, idTable, pParameters, this))
-        .collect(Collectors.joining(","));
+        .collect(Collectors.joining(", "));
   }
 
   private List<String> collectDataTables(UserContext userContext, SearchRequest<T> request) {
@@ -1102,18 +1110,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return false;
   }
 
-  private String joinProjections(List<String> projections) {
-    return projections.stream()
-        .map(propertyName -> StrUtil.format("{} AS {}", columnName(propertyName), propertyName))
-        .collect(Collectors.joining(","));
-  }
-
   public String tableName(String type) {
     return NamingCase.toUnderlineCase(type + "_data");
-  }
-
-  public String columnName(String propertyName) {
-    return NamingCase.toUnderlineCase(propertyName);
   }
 
   public void ensureSchema(UserContext ctx) {
@@ -1164,7 +1162,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     List<String> columns = new ArrayList<>();
     for (PropertyDescriptor ownProperty : ownProperties) {
-      columns.add(columnName(ownProperty.getName()));
+      SQLColumn sqlColumn = getSqlColumn(ownProperty);
+      columns.add(sqlColumn.getColumnName());
     }
     for (int i = 0; i < candidates.size(); i++) {
       String code = candidates.get(i);
@@ -1287,7 +1286,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     for (PropertyDescriptor ownProperty : ownProperties) {
       Object value = getRootPropertyValue(ctx, ownProperty);
       rootRow.add(value);
-      columns.add(columnName(ownProperty.getName()));
+      SQLColumn sqlColumn = getSqlColumn(ownProperty);
+      columns.add(sqlColumn.getColumnName());
     }
     String sql =
         StrUtil.format(

@@ -1,15 +1,12 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.*;
 import cn.hutool.extra.spring.SpringUtil;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +58,13 @@ public class UserContext {
 
   public <T extends Entity> AggregationResult aggregation(SearchRequest request) {
     return RepositoryAdaptor.aggregation(this, request);
+  }
+
+  public void put(String key, Object value) {
+    if (ObjectUtil.isEmpty(key)) {
+      throw new IllegalArgumentException("key cannot be null");
+    }
+    localStorage.put(key, value);
   }
 
   public void append(String key, Object value) {
@@ -126,6 +130,60 @@ public class UserContext {
     }
     localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
     throw new CheckException(errors);
+  }
+
+  public Object getObj(String key) {
+    return getObj(key, null);
+  }
+
+  public Object getObj(String key, Object defaultValue) {
+    Object o = localStorage.get(key);
+    if (o != null) {
+      return o;
+    }
+    return defaultValue;
+  }
+
+  public String getStr(String key) {
+    return getStr(key, null);
+  }
+
+  public String getStr(String key, String defaultValue) {
+    Object obj = getObj(key);
+    if (obj == null) {
+      return defaultValue;
+    }
+    return ObjectUtil.toString(obj);
+  }
+
+  public Integer getInt(String key) {
+    return getInt(key, null);
+  }
+
+  public Integer getInt(String key, Integer defaultValue) {
+    Object obj = getObj(key);
+    if (obj == null) {
+      return defaultValue;
+    }
+    if (obj instanceof Number) {
+      return ((Number) obj).intValue();
+    }
+    return NumberUtil.parseInt(ObjectUtil.toString(obj));
+  }
+
+  public Boolean getBool(String key) {
+    return getBool(key, null);
+  }
+
+  public Boolean getBool(String key, Boolean defaultValue) {
+    Object obj = getObj(key);
+    if (obj == null) {
+      return defaultValue;
+    }
+    if (obj instanceof Boolean) {
+      return (Boolean) obj;
+    }
+    return BooleanUtil.toBooleanObject(ObjectUtil.toString(obj));
   }
 
   public void init(Object request) {}
