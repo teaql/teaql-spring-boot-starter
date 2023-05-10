@@ -3,7 +3,6 @@ package io.teaql.data;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.criteria.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,40 +129,35 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
-
   protected BaseRequest<T> matchAny(BaseRequest<T> anotherRequest) {
     if (searchCriteria == null) {
       return this;
     }
 
-    if(anotherRequest.getSearchCriteria()==null){
+    if (anotherRequest.getSearchCriteria() == null) {
       return this;
     }
-    List<Expression> subExpress=((AND) anotherRequest.getSearchCriteria())
+    List<Expression> subExpress =
+        ((AND) anotherRequest.getSearchCriteria())
             .getExpressions().stream()
-            .filter(expression -> expression instanceof SearchCriteria)
-            //how to filter version criteria out????
-            .collect(Collectors.toList());
-    //need to remove any condition with version
+                .filter(expression -> expression instanceof SearchCriteria)
+                // how to filter version criteria out????
+                .collect(Collectors.toList());
+    // need to remove any condition with version
     int length = subExpress.size();
 
-    SearchCriteria[] searchCriteriaArray=new SearchCriteria[length];
+    SearchCriteria[] searchCriteriaArray = new SearchCriteria[length];
 
-    for(int i=0;i<length;i++){
-      searchCriteriaArray[i]=(SearchCriteria)subExpress.get(i);
+    for (int i = 0; i < length; i++) {
+      searchCriteriaArray[i] = (SearchCriteria) subExpress.get(i);
     }
-
 
     ((AND) this.searchCriteria).getExpressions().add(SearchCriteria.or(searchCriteriaArray));
 
-    //anotherRequest.getE
-
-
+    // anotherRequest.getE
 
     return this;
   }
-
-
 
   public BaseRequest<T> top(int topN) {
     this.page = new Page();
@@ -245,6 +239,18 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   public SearchCriteria createBasicSearchCriteria(
       String property, Operator operator, Object... values) {
     operator = refineOperator(operator, values);
+    SearchCriteria searchCriteria = internalCreateSearchCriteria(property, operator, values);
+    if (searchCriteria != null) {
+      if ("version".equals(property)) {
+        searchCriteria = new VersionSearchCriteria(searchCriteria);
+      }
+      return searchCriteria;
+    }
+    throw new RepositoryException("不支持的operator:" + operator);
+  }
+
+  private static SearchCriteria internalCreateSearchCriteria(
+      String property, Operator operator, Object[] values) {
     if (operator.hasOneOperator()) {
       return new OneOperatorCriteria(operator, new PropertyReference(property));
     } else if (operator.hasTwoOperator()) {
@@ -261,7 +267,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
           new Parameter(property, values[0]),
           new Parameter(property, values[1]));
     }
-    throw new RepositoryException("不支持的operator:" + operator);
+    return null;
   }
 
   private Operator refineOperator(Operator pOperator, Object[] pValues) {
@@ -361,10 +367,4 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
     return this;
   }
-
-
-
-
-
-
 }
