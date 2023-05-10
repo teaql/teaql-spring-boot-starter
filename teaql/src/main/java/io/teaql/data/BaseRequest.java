@@ -129,6 +129,22 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
+  protected  List<Expression>  extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest){
+
+    if(anotherRequest.getSearchCriteria()==null){
+      return new ArrayList<>();
+    }
+
+    List<Expression> subExpress=((AND) anotherRequest.getSearchCriteria())
+            .getExpressions().stream()
+            .filter(expression -> expression instanceof SearchCriteria)
+            //how to filter version criteria out????
+            .collect(Collectors.toList());
+
+
+
+  }
+
   protected BaseRequest<T> matchAny(BaseRequest<T> anotherRequest) {
     if (searchCriteria == null) {
       return this;
