@@ -30,7 +30,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   OrderBys orderBys = new OrderBys();
 
   // paging
-  Slice slice;
+  Slice slice = new Slice();
 
   // enhance relations
   Map<String, SearchRequest> enhanceRelations = new HashMap<>();

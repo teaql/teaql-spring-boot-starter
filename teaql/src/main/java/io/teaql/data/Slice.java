@@ -2,7 +2,7 @@ package io.teaql.data;
 
 public class Slice {
   private int offset;
-  private int size;
+  private int size = 1000;
 
   public int getOffset() {
     return offset;
