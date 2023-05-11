@@ -8,6 +8,7 @@ import io.teaql.data.criteria.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
+import io.teaql.data.meta.Relation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -407,15 +408,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         addAggregate(retName, propertyName, AggrFunction.SUM);
     }
 
-    public BaseRequest<T> matchType(String... types) {
+    protected BaseRequest<T> matchType(String... types) {
         appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
         return this;
     }
 
     protected Optional<PropertyDescriptor> getProperty(String property) {
-
-        EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
-        EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
+        EntityDescriptor entityDescriptor = getEntitiDescriptor();
         while (entityDescriptor != null) {
             PropertyDescriptor propertyDescriptor = entityDescriptor.findProperty(property);
             if (propertyDescriptor != null) {
@@ -424,13 +423,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
             entityDescriptor = entityDescriptor.getParent();
         }
         return Optional.empty();
+    }
 
+    private EntityDescriptor getEntitiDescriptor() {
+        EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
+        EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
+        return entityDescriptor;
     }
 
     public boolean isOneOfSelfField(String propertyName) {
-
         return getProperty(propertyName).isPresent();
-
     }
 
     public void setOffset(int offset) {
@@ -449,13 +451,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     public int getSize() {
         if (slice == null) {
-            return 1000;
+            slice = new Slice();
         }
         return slice.getSize();
     }
 
 
-    public void addOrderBy(String property, boolean asc) {
+    protected void addOrderBy(String property, boolean asc) {
         if (asc) {
             addOrderByAscending(property);
         } else {
@@ -464,7 +466,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
 
-    public boolean isDateTimeField(String fieldName) {
+    protected boolean isDateTimeField(String fieldName) {
         PropertyDescriptor propertyDescriptor = getProperty(fieldName).get();
         return propertyDescriptor.getAdditionalInfo().get("isDate").equals("true");
     }
@@ -473,12 +475,21 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         this.slice = null;
     }
 
-    public Optional<BaseRequest> subRequestOfFieldName(String fieldName) {
+    protected Optional<BaseRequest> subRequestOfFieldName(String fieldName) {
         Optional<PropertyDescriptor> propertyDescriptorOp = getProperty(fieldName);
         if (propertyDescriptorOp.isEmpty()) {
             throw new IllegalArgumentException(String.format("The field '%s' of request type '%s' do not exists", fieldName, this.getTypeName()));
         }
-        Class returnType = propertyDescriptorOp.get().getType().javaType();
-        return Optional.of(new TempRequest(returnType, ((Entity) ReflectUtil.newInstance(returnType)).typeName()));
+        PropertyDescriptor propertyDescriptor = propertyDescriptorOp.get();
+        Class returnType = propertyDescriptor.getType().javaType();
+        TempRequest tempRequest = new TempRequest(returnType, ((Entity) ReflectUtil.newInstance(returnType)).typeName());
+
+        Relation relation = (Relation) propertyDescriptor;
+        if (relation.getRelationKeeper() == getEntitiDescriptor()) {
+            this.appendSearchCriteria(new SubQuerySearchCriteria(fieldName, tempRequest, BaseEntity.ID_PROPERTY));
+        } else {
+            this.appendSearchCriteria(new SubQuerySearchCriteria(BaseEntity.ID_PROPERTY, tempRequest, relation.getReverseProperty().getName()));
+        }
+        return Optional.of(tempRequest);
     }
 }
