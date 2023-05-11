@@ -149,21 +149,26 @@ public class DynamicSearchHelper {
         return false; // do not need to continue, since the field is not found
       }
       BaseRequest req = basePropRequestOp.get();
-
       req.unlimited();
-
       currentName = fieldNames[i];
-      currentRequest.doAddSearchCriteria(chainCriteria(req, currentName));
+      //currentRequest.doAddSearchCriteria(chainCriteria(req, currentName));
+      currentRequest.appendSearchCriteria(req.getSearchCriteria());
+
 
       currentRequest = req;
     }
     final String lastSegmentOfField = fieldNames[fieldNames.length - 1];
     // last segment of field, use it as value
-    currentRequest.doAddSearchCriteria(
-            new SimplePropertyCriteria(
-                    lastSegmentOfField,
-                    currentRequest.guessOperator(lastSegmentOfField, field.getValue()),
-                    currentRequest.guessValue(lastSegmentOfField, field.getValue())));
+//    currentRequest.doAddSearchCriteria(
+//            new SimplePropertyCriteria(
+//                    lastSegmentOfField,
+//                    currentRequest.guessOperator(lastSegmentOfField, field.getValue()),
+//                    currentRequest.guessValue(lastSegmentOfField, field.getValue())));
+//
+//    currentRequest.createBasicSearchCriteria(fieldName,
+//            guessOperator(lastSegmentOfField, fieldValue),
+//            guessValue(SearchField.fromRequest(baseRequest,lastSegmentOfField),fieldValue));
+
     return false;
   }
   public Operator guessOperator(String name, JsonNode value) {
