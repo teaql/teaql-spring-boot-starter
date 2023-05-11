@@ -455,4 +455,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       addOrderByDescending(property);
     }
   }
+
+
+  public boolean isDateTimeField(String fieldName) {
+    return false;
+  }
+
+
 }

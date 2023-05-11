@@ -52,6 +52,19 @@ class SearchField {
     searchField.setDateTimeField(false);
     return searchField;
   }
+
+  public static  SearchField fromRequest(BaseRequest request,String fieldName){
+
+    if(request.isDateTimeField(fieldName)){
+      return dateField(fieldName);
+    }
+    return commonField(fieldName);
+
+
+
+  }
+
+
 }
 
 public class DynamicSearchHelper {
@@ -89,63 +102,70 @@ public class DynamicSearchHelper {
       baseRequest.setOffset(start);
     }
   }
-//
-//  public void addJsonFilter(BaseRequest baseRequest,JsonNode jsonNode) {
-//    if (jsonNode == null) {
-//      return;
-//    }
-//
-//    Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-//    while (fields.hasNext()) {
-//      Map.Entry<String, JsonNode> field = fields.next();
-//
-//      if (!handleChainField(field, jsonNode)) {
-//        continue;
-//      }
-//      String fieldName = field.getKey();
-//
-//      if (!baseRequest.isOneOfSelfField(fieldName)) {
-//        continue;
-//      }
-//      JsonNode fieldValue = field.getValue();
+
+  public void addJsonFilter(BaseRequest baseRequest,JsonNode jsonNode) {
+    if (jsonNode == null) {
+      return;
+    }
+
+    Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+    while (fields.hasNext()) {
+      Map.Entry<String, JsonNode> field = fields.next();
+
+      if (!handleChainField(field, jsonNode)) {
+        continue;
+      }
+      String fieldName = field.getKey();
+
+      if (!baseRequest.isOneOfSelfField(fieldName)) {
+        continue;
+      }
+      JsonNode fieldValue = field.getValue();
 //      baseRequest.doAddSearchCriteria(
 //              new SimplePropertyCriteria(
 //                      fieldName, guessOperator(fieldName, fieldValue), guessValue(baseRequest, fieldName, fieldValue)));
-//    }
-//  }
-//  protected boolean handleChainField(BaseRequest rootRequest,Map.Entry<String, JsonNode> field, JsonNode jsonNode) {
-//    String fieldName = field.getKey();
-//    String fieldNames[] = fieldName.split("\\.");
-//
-//    if (fieldNames.length < 2) {
-//      return true; // need to continue
-//    }
-//    BaseRequest currentRequest = rootRequest;
-//    String currentName = fieldNames[0];
-//
-//    for (int i = 0; i < fieldNames.length - 1; i++) {
-//      Optional<BaseRequest> basePropRequestOp = currentRequest.subRequestOfFieldName(fieldNames[i]);
-//      if (!basePropRequestOp.isPresent()) {
-//        return false; // do not need to continue, since the field is not found
-//      }
-//      BaseRequest req = basePropRequestOp.get();
-//
-//      req.unlimited();
-//
-//      currentName = fieldNames[i];
-//      currentRequest.doAddSearchCriteria(chainCriteria(req, currentName));
-//
-//      currentRequest = req;
-//    }
-//    final String lastSegmentOfField = fieldNames[fieldNames.length - 1];
-//    // last segment of field, use it as value
-//    currentRequest.doAddSearchCriteria(
-//            new SimplePropertyCriteria(
-//                    lastSegmentOfField,
-//                    currentRequest.guessOperator(lastSegmentOfField, field.getValue()),
-//                    currentRequest.guessValue(lastSegmentOfField, field.getValue())));
-//    return false;
-//  }
+
+      baseRequest.createBasicSearchCriteria(fieldName,
+              guessOperator(fieldName, fieldValue),
+              guessValue(SearchField.fromRequest(baseRequest,fieldName),fieldValue));
+
+
+
+    }
+  }
+  protected boolean handleChainField(BaseRequest rootRequest,Map.Entry<String, JsonNode> field, JsonNode jsonNode) {
+    String fieldName = field.getKey();
+    String fieldNames[] = fieldName.split("\\.");
+
+    if (fieldNames.length < 2) {
+      return true; // need to continue
+    }
+    BaseRequest currentRequest = rootRequest;
+    String currentName = fieldNames[0];
+
+    for (int i = 0; i < fieldNames.length - 1; i++) {
+      Optional<BaseRequest> basePropRequestOp = currentRequest.subRequestOfFieldName(fieldNames[i]);
+      if (!basePropRequestOp.isPresent()) {
+        return false; // do not need to continue, since the field is not found
+      }
+      BaseRequest req = basePropRequestOp.get();
+
+      req.unlimited();
+
+      currentName = fieldNames[i];
+      currentRequest.doAddSearchCriteria(chainCriteria(req, currentName));
+
+      currentRequest = req;
+    }
+    final String lastSegmentOfField = fieldNames[fieldNames.length - 1];
+    // last segment of field, use it as value
+    currentRequest.doAddSearchCriteria(
+            new SimplePropertyCriteria(
+                    lastSegmentOfField,
+                    currentRequest.guessOperator(lastSegmentOfField, field.getValue()),
+                    currentRequest.guessValue(lastSegmentOfField, field.getValue())));
+    return false;
+  }
   public Operator guessOperator(String name, JsonNode value) {
 
     JsonNodeType nodeType = value.getNodeType();
