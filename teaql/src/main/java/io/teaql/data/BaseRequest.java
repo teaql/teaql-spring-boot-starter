@@ -440,6 +440,14 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     slice.setSize(size);
   }
 
+  public int getSize() {
+    if (slice == null) {
+      return 1000;
+    }
+    return slice.getSize();
+  }
+
+
   public void addOrderBy(String property, boolean asc) {
     if (asc) {
       addOrderByAscending(property);

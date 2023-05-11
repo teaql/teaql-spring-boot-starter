@@ -36,4 +36,18 @@ public enum Operator implements PropertyFunction {
   public boolean isBetween(){
     return this == BETWEEN;
   }
+  static final String IS_NULL_EXPR = "__is_null__";
+  static final String IS_NOT_NULL_EXPR = "__is_not_null__";
+  public static Operator operatorByValue(String value) {
+
+    if (IS_NULL_EXPR.equalsIgnoreCase(value)) {
+      return IS_NULL;
+    }
+    if (IS_NOT_NULL_EXPR.equalsIgnoreCase(value)) {
+      return IS_NOT_NULL;
+    }
+    return null;
+  }
+
+
 }
