@@ -30,7 +30,7 @@ public interface SearchRequest<T extends Entity> {
 
   OrderBys getOrderBy();
 
-  Page getPage();
+  Slice getSlice();
 
   Map<String, SearchRequest> enhanceRelations();
 
@@ -89,7 +89,7 @@ public interface SearchRequest<T extends Entity> {
     }
 
     String partitionProperty = getPartitionProperty();
-    if (partitionProperty != null && getPage().getSize() != 0) {
+    if (partitionProperty != null && getSlice().getSize() != 0) {
       allRelationProperties.add(partitionProperty);
     }
 

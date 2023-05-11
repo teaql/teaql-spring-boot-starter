@@ -2,7 +2,11 @@ package io.teaql.data;
 
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import io.teaql.data.criteria.*;
+import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.EntityMetaFactory;
+import io.teaql.data.meta.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +30,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   OrderBys orderBys = new OrderBys();
 
   // paging
-  Page page;
+  Slice slice;
 
   // enhance relations
   Map<String, SearchRequest> enhanceRelations = new HashMap<>();
@@ -115,8 +119,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   @Override
-  public Page getPage() {
-    return page;
+  public Slice getSlice() {
+    return slice;
   }
 
   @Override
@@ -139,37 +143,35 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
-  protected  List<Expression>  extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest){
+  protected List<Expression> extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest) {
 
-
-
-    AND andSearchCriteria=(AND) anotherRequest.getSearchCriteria();
-    List<Expression> subExpression=andSearchCriteria
-            .getExpressions().stream()
+    AND andSearchCriteria = (AND) anotherRequest.getSearchCriteria();
+    List<Expression> subExpression =
+        andSearchCriteria.getExpressions().stream()
             .filter(expression -> expression instanceof SearchCriteria)
             .filter(expression -> !(expression instanceof VersionSearchCriteria))
-            //how to filter version criteria out????
+            // how to filter version criteria out????
             .collect(Collectors.toList());
 
     return subExpression;
-
   }
-  protected  BaseRequest<T> buildRequest(Map<String,Object> map){
 
-    String typeName=getTypeName();
+  protected BaseRequest<T> buildRequest(Map<String, Object> map) {
 
-    BaseRequest newReq=new TempRequest(this.returnType,typeName);
+    String typeName = getTypeName();
+
+    BaseRequest newReq = new TempRequest(this.returnType, typeName);
     //
-    map.entrySet().forEach(stringObjectEntry -> {
-
-      if(!stringObjectEntry.getKey().contains(".")){
-        //newReq.appendSearchCriteria(createBasicSearchCriteria())
-      }
-
-    });
+    map.entrySet()
+        .forEach(
+            stringObjectEntry -> {
+              if (!stringObjectEntry.getKey().contains(".")) {
+                // newReq.appendSearchCriteria(createBasicSearchCriteria())
+              }
+            });
     return newReq;
-
   }
+
   protected BaseRequest<T> internalMatchAny(BaseRequest<T> anotherRequest) {
     if (searchCriteria == null) {
       return this;
@@ -178,17 +180,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     if (anotherRequest.getSearchCriteria() == null) {
       return this;
     }
-    if (anotherRequest.getSearchCriteria() instanceof  VersionSearchCriteria) {
+    if (anotherRequest.getSearchCriteria() instanceof VersionSearchCriteria) {
       return this;
     }
 
-    if(!(anotherRequest.getSearchCriteria() instanceof  AND)){
+    if (!(anotherRequest.getSearchCriteria() instanceof AND)) {
       this.appendSearchCriteria(anotherRequest.getSearchCriteria());
       return this;
     }
 
-
-    List<Expression> subExpress =extractSearchCriteriaExcludeVersion(anotherRequest);
+    List<Expression> subExpress = extractSearchCriteriaExcludeVersion(anotherRequest);
     // need to remove any condition with version
     int length = subExpress.size();
     SearchCriteria[] searchCriteriaArray = new SearchCriteria[length];
@@ -204,15 +205,15 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   public BaseRequest<T> top(int topN) {
-    this.page = new Page();
-    this.page.setSize(topN);
+    this.slice = new Slice();
+    this.slice.setSize(topN);
     return this;
   }
 
-  public BaseRequest<T> page(int pageNumber, int pageSize) {
-    this.page = new Page();
-    this.page.setNumber(pageNumber);
-    this.page.setSize(pageSize);
+  public BaseRequest<T> offset(int offset, int size) {
+    this.slice = new Slice();
+    this.slice.setOffset(offset);
+    this.slice.setSize(size);
     return this;
   }
 
@@ -410,5 +411,40 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   public BaseRequest<T> matchType(String... types) {
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
     return this;
+  }
+
+  public boolean isOneOfSelfField(String property) {
+    EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
+    EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
+    while (entityDescriptor != null) {
+      PropertyDescriptor propertyDescriptor = entityDescriptor.findProperty(property);
+      if (propertyDescriptor != null) {
+        return true;
+      }
+      entityDescriptor = entityDescriptor.getParent();
+    }
+    return false;
+  }
+
+  public void setOffset(int offset) {
+    if (slice == null) {
+      slice = new Slice();
+    }
+    slice.setOffset(offset);
+  }
+
+  public void setSize(int size) {
+    if (slice == null) {
+      slice = new Slice();
+    }
+    slice.setSize(size);
+  }
+
+  public void addOrderBy(String property, boolean asc) {
+    if (asc) {
+      addOrderByAscending(property);
+    } else {
+      addOrderByDescending(property);
+    }
   }
 }

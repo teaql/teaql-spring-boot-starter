@@ -1,15 +1,15 @@
 package io.teaql.data;
 
-public class Page {
-  private int number;
+public class Slice {
+  private int offset;
   private int size;
 
-  public int getNumber() {
-    return number;
+  public int getOffset() {
+    return offset;
   }
 
-  public void setNumber(int pNumber) {
-    number = pNumber;
+  public void setOffset(int pOffset) {
+    offset = pOffset;
   }
 
   public int getSize() {

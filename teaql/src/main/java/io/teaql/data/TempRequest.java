@@ -14,7 +14,7 @@ public class TempRequest extends BaseRequest {
     simpleDynamicProperties.addAll(pRequest.getSimpleDynamicProperties());
     searchCriteria = pRequest.getSearchCriteria();
     orderBys = pRequest.getOrderBy();
-    page = pRequest.getPage();
+    slice = pRequest.getSlice();
     enhanceRelations = pRequest.enhanceRelations();
     partitionProperty = pRequest.getPartitionProperty();
     aggregations = pRequest.getAggregations();

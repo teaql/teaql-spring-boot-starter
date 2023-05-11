@@ -784,7 +784,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String typeName = childTempRequest.getTypeName();
     Repository repository = userContext.resolveRepository(typeName);
     PropertyDescriptor reverseProperty = relation.getReverseProperty();
-    if (childTempRequest.getPage() != null) {
+    if (childTempRequest.getSlice() != null) {
       childTempRequest.setPartitionProperty(reverseProperty.getName());
     }
     childTempRequest.appendSearchCriteria(
@@ -912,7 +912,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
 
     // 分页要求不要数据(用于统计)
-    if (request.getPage() != null && request.getPage().getSize() == 0) {
+    if (request.getSlice() != null && request.getSlice().getSize() == 0) {
       return null;
     }
 
@@ -922,13 +922,13 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String selectSql = collectSelectSql(userContext, request, idTable, parameters);
 
     String partitionProperty = request.getPartitionProperty();
-    if (!ObjectUtil.isEmpty(partitionProperty) && request.getPage() != null) {
+    if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
       ensureOrderByForPartition(request);
     }
 
     // 排序
     String orderBySql = prepareOrderBy(userContext, request, idTable, parameters);
-    if (!ObjectUtil.isEmpty(partitionProperty) && request.getPage() != null) {
+    if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
       PropertyDescriptor partitionPropertyDescriptor = findProperty(partitionProperty);
       SQLColumn sqlColumn = getSqlColumn(partitionPropertyDescriptor);
       String partitionTable;
@@ -950,8 +950,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
           orderBySql,
           tableSQl,
           whereSql,
-          PageUtil.getStart(request.getPage().getNumber(), request.getPage().getSize()) + 1,
-          PageUtil.getEnd(request.getPage().getNumber(), request.getPage().getSize()) + 1);
+          request.getSlice().getOffset() + 1,
+          request.getSlice().getOffset() + request.getSlice().getSize() + 1);
     } else {
       String sql = StrUtil.format("SELECT {} FROM {}", selectSql, tableSQl);
 
@@ -1070,12 +1070,11 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   }
 
   private String prepareLimit(SearchRequest request) {
-    Page page = request.getPage();
-    if (ObjectUtil.isEmpty(page)) {
+    Slice slice = request.getSlice();
+    if (ObjectUtil.isEmpty(slice)) {
       return null;
     }
-    return StrUtil.format(
-        "LIMIT {} OFFSET {}", page.getSize(), PageUtil.getStart(page.getNumber(), page.getSize()));
+    return StrUtil.format("LIMIT {} OFFSET {}", slice.getSize(), slice.getOffset());
   }
 
   private String prepareOrderBy(
