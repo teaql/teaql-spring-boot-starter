@@ -139,7 +139,38 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
-  protected BaseRequest<T> matchAny(BaseRequest<T> anotherRequest) {
+  protected  List<Expression>  extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest){
+
+
+
+    AND andSearchCriteria=(AND) anotherRequest.getSearchCriteria();
+    List<Expression> subExpression=andSearchCriteria
+            .getExpressions().stream()
+            .filter(expression -> expression instanceof SearchCriteria)
+            .filter(expression -> !(expression instanceof VersionSearchCriteria))
+            //how to filter version criteria out????
+            .collect(Collectors.toList());
+
+    return subExpression;
+
+  }
+  protected  BaseRequest<T> buildRequest(Map<String,Object> map){
+
+    String typeName=getTypeName();
+
+    BaseRequest newReq=new TempRequest(this.returnType,typeName);
+    //
+    map.entrySet().forEach(stringObjectEntry -> {
+
+      if(!stringObjectEntry.getKey().contains(".")){
+        //newReq.appendSearchCriteria(createBasicSearchCriteria())
+      }
+
+    });
+    return newReq;
+
+  }
+  protected BaseRequest<T> internalMatchAny(BaseRequest<T> anotherRequest) {
     if (searchCriteria == null) {
       return this;
     }
@@ -147,17 +178,20 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     if (anotherRequest.getSearchCriteria() == null) {
       return this;
     }
-    List<Expression> subExpress =
-        ((AND) anotherRequest.getSearchCriteria())
-            .getExpressions().stream()
-                .filter(expression -> expression instanceof SearchCriteria)
-                // how to filter version criteria out????
-                .collect(Collectors.toList());
+    if (anotherRequest.getSearchCriteria() instanceof  VersionSearchCriteria) {
+      return this;
+    }
+
+    if(!(anotherRequest.getSearchCriteria() instanceof  AND)){
+      this.appendSearchCriteria(anotherRequest.getSearchCriteria());
+      return this;
+    }
+
+
+    List<Expression> subExpress =extractSearchCriteriaExcludeVersion(anotherRequest);
     // need to remove any condition with version
     int length = subExpress.size();
-
     SearchCriteria[] searchCriteriaArray = new SearchCriteria[length];
-
     for (int i = 0; i < length; i++) {
       searchCriteriaArray[i] = (SearchCriteria) subExpress.get(i);
     }
