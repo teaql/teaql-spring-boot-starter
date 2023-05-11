@@ -51,7 +51,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     returnType = pReturnType;
   }
 
-  public void setReturnType(Class<T> pReturnType) {
+  protected void setReturnType(Class<T> pReturnType) {
     returnType = pReturnType;
   }
 
@@ -62,6 +62,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   // 尝试load 对象本身（存储自身的所有的表）
   public BaseRequest<T> selectSelf() {
+    return this;
+  }
+
+  // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及1对1关系的self
+  public BaseRequest<T> selectAll() {
+    return this;
+  }
+
+  // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及所有关系的self
+  public BaseRequest<T> selectAny() {
     return this;
   }
 
