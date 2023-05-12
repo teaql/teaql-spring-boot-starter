@@ -9,7 +9,6 @@ import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.criteria.TwoOperatorCriteria;
 import io.teaql.data.sql.SQLColumnResolver;
-
 import java.util.List;
 import java.util.Map;
 
@@ -40,37 +39,33 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
         ExpressionHelper.toSql(userContext, left, idTable, parameters, sqlColumnResolver);
     String rightSQL =
         ExpressionHelper.toSql(userContext, right, idTable, parameters, sqlColumnResolver);
-    return StrUtil.format("{} {} {}{}{}", leftSQL, getOp((Operator) operator), getPrefix((Operator) operator), rightSQL, getSuffix((Operator) operator));
+    return StrUtil.format(
+        "{} {} {}{}{}",
+        leftSQL,
+        getOp((Operator) operator),
+        getPrefix((Operator) operator),
+        rightSQL,
+        getSuffix((Operator) operator));
   }
 
   private Object getSuffix(Operator operator) {
-    switch (operator){
-      case IN :
+    switch (operator) {
+      case IN:
       case NOT_IN:
         return ")";
-      case CONTAIN:
-      case NOT_CONTAIN:
-      case BEGIN_WITH:
-      case NOT_BEGIN_WITH:
-        return "%";
       default:
         return "";
     }
   }
 
   private Object getPrefix(Operator operator) {
-   switch (operator){
-     case IN :
-     case NOT_IN:
-       return "(";
-     case CONTAIN:
-     case NOT_CONTAIN:
-     case END_WITH:
-     case NOT_END_WITH:
-       return "%";
-     default:
-       return "";
-   }
+    switch (operator) {
+      case IN:
+      case NOT_IN:
+        return "(";
+      default:
+        return "";
+    }
   }
 
   private String getOp(Operator operator) {
