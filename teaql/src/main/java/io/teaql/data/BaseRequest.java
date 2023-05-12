@@ -477,7 +477,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   protected boolean isDateTimeField(String fieldName) {
     PropertyDescriptor propertyDescriptor = getProperty(fieldName).get();
-    return propertyDescriptor.getAdditionalInfo().get("isDate").equals("true");
+    return "true".equals(propertyDescriptor.getAdditionalInfo().get("isDate"));
   }
 
   public BaseRequest<T> unlimited() {
