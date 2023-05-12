@@ -413,7 +413,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   protected Optional<PropertyDescriptor> getProperty(String property) {
-    EntityDescriptor entityDescriptor = getEntitiDescriptor();
+    EntityDescriptor entityDescriptor = getEntityDyyescriptor();
     while (entityDescriptor != null) {
       PropertyDescriptor propertyDescriptor = entityDescriptor.findProperty(property);
       if (propertyDescriptor != null) {
@@ -424,7 +424,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return Optional.empty();
   }
 
-  private EntityDescriptor getEntitiDescriptor() {
+  private EntityDescriptor getEntityDyyescriptor() {
     EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
     EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
     return entityDescriptor;
@@ -490,14 +490,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 1l));
 
     Relation relation = (Relation) propertyDescriptor;
-    if (relation.getRelationKeeper() == getEntitiDescriptor()) {
+    if (relation.getRelationKeeper() == getEntityDyyescriptor()) {
       this.appendSearchCriteria(
           new SubQuerySearchCriteria(fieldName, tempRequest, BaseEntity.ID_PROPERTY));
-    } else {
-      this.appendSearchCriteria(
+      return Optional.of(tempRequest);
+    }
+
+    this.appendSearchCriteria(
           new SubQuerySearchCriteria(
               BaseEntity.ID_PROPERTY, tempRequest, relation.getReverseProperty().getName()));
-    }
+
     return Optional.of(tempRequest);
   }
 }
