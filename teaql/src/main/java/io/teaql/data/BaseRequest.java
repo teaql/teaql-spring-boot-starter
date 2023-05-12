@@ -4,6 +4,8 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.teaql.data.criteria.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
@@ -265,6 +267,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public void setPropagateDimensions(Map<String, SearchRequest> pPropagateDimensions) {
     propagateDimensions = pPropagateDimensions;
+  }
+
+  protected void internalFindByJson(JsonNode jsonNode){
+
+    DynamicSearchHelper helper=new DynamicSearchHelper();
+    helper.mergeClauses(this,jsonNode);
+  }
+
+  protected void internalFindByJsonExpr(String jsonNodeExpr){
+    internalFindByJson(DynamicSearchHelper.jsonFromString(jsonNodeExpr));
   }
 
   @Override

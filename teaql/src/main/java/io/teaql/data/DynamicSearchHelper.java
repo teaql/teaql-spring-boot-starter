@@ -2,6 +2,7 @@ package io.teaql.data;
 
 import cn.hutool.core.util.PageUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import io.teaql.data.criteria.Operator;
 
@@ -67,6 +68,18 @@ class SearchField {
 }
 
 public class DynamicSearchHelper {
+
+
+    protected static JsonNode jsonFromString(String jsonExpr)  {
+        try{
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(jsonExpr);
+            return jsonNode;
+        }catch (Exception e){
+            throw new IllegalArgumentException("Input JSON format error: "+jsonExpr);
+        }
+
+    }
 
     public void mergeClauses(BaseRequest baseRequest, JsonNode jsonExpr) {
         //this.addJsonFilter(baseRequest,jsonExpr); // where name='x'
