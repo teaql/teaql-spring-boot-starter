@@ -468,8 +468,9 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return propertyDescriptor.getAdditionalInfo().get("isDate").equals("true");
   }
 
-  public void unlimited() {
+  public BaseRequest<T> unlimited() {
     this.slice = null;
+    return this;
   }
 
   protected Optional<BaseRequest> subRequestOfFieldName(String fieldName) {
