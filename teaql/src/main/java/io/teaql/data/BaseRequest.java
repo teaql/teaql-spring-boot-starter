@@ -313,7 +313,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       return new TwoOperatorCriteria(
           operator,
           new PropertyReference(property),
-          new Parameter(property, values, operator.hasMultiValue()));
+          new Parameter(property, values, operator));
     } else if (operator.isBetween()) {
       if (ArrayUtil.length(values) != 2) {
         throw new RepositoryException("Between需要下限和上限两个参数");

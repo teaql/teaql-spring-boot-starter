@@ -3,7 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-
+import io.teaql.data.criteria.Operator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,19 +11,30 @@ import java.util.List;
 public class Parameter implements Expression {
   private String name;
   private Object value;
+  private Operator operator;
 
-
-  public Parameter(String name, Object value, boolean multiValue) {
+  public Parameter(String name, Object value, Operator operator) {
     this.name = name;
+    this.operator = operator;
     List values = flatValues(value);
-    if (multiValue){
+    if (operator.hasMultiValue()) {
       this.value = values;
-    }else{
+    } else {
       Object first = CollectionUtil.getFirst(values);
       this.value = first;
     }
   }
 
+  public Parameter(String name, Object value, boolean multiValue) {
+    this.name = name;
+    List values = flatValues(value);
+    if (multiValue) {
+      this.value = values;
+    } else {
+      Object first = CollectionUtil.getFirst(values);
+      this.value = first;
+    }
+  }
 
   public Parameter(String name, Object value) {
     this(name, value, true);
@@ -66,4 +77,11 @@ public class Parameter implements Expression {
     }
   }
 
+  public Operator getOperator() {
+    return operator;
+  }
+
+  public void setOperator(Operator pOperator) {
+    operator = pOperator;
+  }
 }
