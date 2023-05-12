@@ -138,11 +138,11 @@ public class DynamicSearchHelper {
 //              new SimplePropertyCriteria(
 //                      fieldName, guessOperator(fieldName, fieldValue), guessValue(baseRequest, fieldName, fieldValue)));
 
-            baseRequest.createBasicSearchCriteria(fieldName,
+            SearchCriteria criteria = baseRequest.createBasicSearchCriteria(fieldName,
                     guessOperator(fieldName, fieldValue),
                     guessValue(SearchField.fromRequest(baseRequest, fieldName), fieldValue));
 
-
+            baseRequest.appendSearchCriteria(criteria);
         }
     }
 
