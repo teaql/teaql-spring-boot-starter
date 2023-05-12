@@ -82,7 +82,7 @@ public class DynamicSearchHelper {
     }
 
     public void mergeClauses(BaseRequest baseRequest, JsonNode jsonExpr) {
-        //this.addJsonFilter(baseRequest,jsonExpr); // where name='x'
+        this.addJsonFilter(baseRequest,jsonExpr); // where name='x'
         this.addJsonOrderBy(baseRequest, jsonExpr); // order by age
         this.addJsonLimiter(baseRequest, jsonExpr); // limit 0,1000
         this.addJsonPager(baseRequest, jsonExpr);
