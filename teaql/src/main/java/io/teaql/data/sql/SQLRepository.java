@@ -441,8 +441,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       } else {
         t.appendSearchCriteria(new SubQuerySearchCriteria(property, request, ID));
       }
-
-      AggregationResult aggregation = t.aggregation(userContext);
+      List<SearchRequest> aggregations = findAggregations(userContext, t);
+      SearchRequest aggregatePoint = aggregations.get(0);
+      AggregationResult aggregation = aggregatePoint.aggregation(userContext);
       List<Map<String, Object>> dynamicAttributes = aggregation.toList();
       for (Map<String, Object> dynamicAttribute : dynamicAttributes) {
         Long parentID = ((Number) dynamicAttribute.remove(property)).longValue();
