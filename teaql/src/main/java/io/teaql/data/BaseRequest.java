@@ -269,14 +269,14 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     propagateDimensions = pPropagateDimensions;
   }
 
-  protected void internalFindByJson(JsonNode jsonNode){
+  protected void internalFindWithJson(JsonNode jsonNode){
 
     DynamicSearchHelper helper=new DynamicSearchHelper();
     helper.mergeClauses(this,jsonNode);
   }
 
-  protected void internalFindByJsonExpr(String jsonNodeExpr){
-    internalFindByJson(DynamicSearchHelper.jsonFromString(jsonNodeExpr));
+  protected void internalFindWithJsonExpr(String jsonNodeExpr){
+    internalFindWithJson(DynamicSearchHelper.jsonFromString(jsonNodeExpr));
   }
 
   @Override
