@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
 }
 
 ext {
@@ -34,7 +34,7 @@ subprojects {
 
 allprojects {
     group 'io.teaql'
-    version '1.05-SNAPSHOT'
+    version '1.06-SNAPSHOT'
     publishing {
         repositories {
             maven {
