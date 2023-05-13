@@ -513,4 +513,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     return Optional.of(tempRequest);
   }
+
+  public void setSlice(Slice slice) {
+    this.slice=slice;
+  }
 }

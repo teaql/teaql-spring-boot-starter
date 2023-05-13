@@ -28,6 +28,12 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
         if (dependsOn.tryUseSubQuery() && isRequestInDatasource(userContext, sqlColumnResolver, repository)) {
             SQLRepository subRepository = (SQLRepository) repository;
             TempRequest tempRequest = new TempRequest(dependsOn.returnType(), dependsOn.getTypeName());
+
+            tempRequest.setSlice(dependsOn.getSlice());
+
+
+
+
             //只选择依赖的属性以及条件
             tempRequest.selectProperty(dependsOnPropertyName);
             tempRequest.appendSearchCriteria(dependsOn.getSearchCriteria());
