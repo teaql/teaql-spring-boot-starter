@@ -8,7 +8,9 @@ import cn.hutool.core.comparator.CompareUtil;
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.*;
 import io.teaql.data.*;
+import io.teaql.data.criteria.EQ;
 import io.teaql.data.criteria.IN;
+import io.teaql.data.criteria.TwoOperatorCriteria;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
@@ -788,10 +790,14 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     if (childTempRequest.getSlice() != null) {
       childTempRequest.setPartitionProperty(reverseProperty.getName());
     }
+
+
+
     childTempRequest.appendSearchCriteria(
-        new IN(
-            new PropertyReference(reverseProperty.getName()),
-            new Parameter(reverseProperty.getName(), results)));
+            getSearchCriteriaOfCollectChildren(results, reverseProperty));
+
+
+
     SmartList children = repository.executeForList(userContext, childTempRequest);
 
     Map<Long, T> longTMap = results.mapById();
@@ -805,6 +811,18 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         }
       }
     }
+  }
+
+  private TwoOperatorCriteria getSearchCriteriaOfCollectChildren(SmartList<T> results, PropertyDescriptor reverseProperty) {
+
+    if(results.size()==1){
+      return new EQ(new PropertyReference(reverseProperty.getName()),
+              new Parameter(reverseProperty.getName(), results,false));
+    }
+
+    return new IN(
+            new PropertyReference(reverseProperty.getName()),
+            new Parameter(reverseProperty.getName(), results));
   }
 
   private void enhanceParent(
