@@ -423,6 +423,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return smartList;
   }
 
+  //TODO: fix the dynamic base entity
   private void addDynamicAggregations(
       UserContext userContext, SearchRequest<T> request, SmartList<T> results) {
     List<SimpleAggregation> dynamicAggregateAttributes = request.getDynamicAggregateAttributes();
