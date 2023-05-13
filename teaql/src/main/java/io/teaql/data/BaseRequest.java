@@ -292,6 +292,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest));
   }
 
+  public void addSingleAggregateDynamicProperty(String name, SearchRequest subRequest) {
+    this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest, true));
+  }
+
   public SearchCriteria createBasicSearchCriteria(
       String property, Operator operator, Object... values) {
     operator = refineOperator(operator, values);

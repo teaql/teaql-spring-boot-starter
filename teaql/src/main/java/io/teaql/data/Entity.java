@@ -52,5 +52,5 @@ public interface Entity {
 
   void appendDynamicProperty(String propertyName, Object value);
 
-  Object getDynamicProperty(String propertyName);
+  <T> T getDynamicProperty(String propertyName);
 }

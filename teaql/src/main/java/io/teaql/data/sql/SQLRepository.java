@@ -444,13 +444,37 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       List<SearchRequest> aggregations = findAggregations(userContext, t);
       SearchRequest aggregatePoint = aggregations.get(0);
       AggregationResult aggregation = aggregatePoint.aggregation(userContext);
-      List<Map<String, Object>> dynamicAttributes = aggregation.toList();
-      for (Map<String, Object> dynamicAttribute : dynamicAttributes) {
-        Long parentID = ((Number) dynamicAttribute.remove(property)).longValue();
-        T parent = idEntityMap.get(parentID);
-        parent.appendDynamicProperty(dynamicAggregateAttribute.getName(), dynamicAttribute);
+      if (dynamicAggregateAttribute.isSingleNumber()) {
+        saveSingleDynamicValue(idEntityMap, dynamicAggregateAttribute, aggregation);
+      } else {
+        List<Map<String, Object>> dynamicAttributes = aggregation.toList();
+        for (Map<String, Object> dynamicAttribute : dynamicAttributes) {
+          saveMultiDynamicValue(idEntityMap, dynamicAggregateAttribute, property, dynamicAttribute);
+        }
       }
     }
+  }
+
+  private void saveMultiDynamicValue(
+      Map<Long, T> idEntityMap,
+      SimpleAggregation dynamicAggregateAttribute,
+      String property,
+      Map<String, Object> dynamicAttribute) {
+    Long parentID = ((Number) dynamicAttribute.remove(property)).longValue();
+    T parent = idEntityMap.get(parentID);
+    parent.appendDynamicProperty(dynamicAggregateAttribute.getName(), dynamicAttribute);
+  }
+
+  private void saveSingleDynamicValue(
+      Map<Long, T> idEntityMap,
+      SimpleAggregation dynamicAggregateAttribute,
+      AggregationResult aggregation) {
+    Map<Object, Number> simpleMap = aggregation.toSimpleMap();
+    simpleMap.forEach(
+        (parentId, value) -> {
+          T parent = idEntityMap.get(parentId);
+          parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
+        });
   }
 
   private int preferIdInCount() {

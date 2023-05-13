@@ -99,11 +99,19 @@ public class BaseEntity implements Entity {
 
   @Override
   public void addDynamicProperty(String propertyName, Object value) {
-    this.additionalInfo.put(propertyName, value);
+    this.additionalInfo.put(dynamicPropertyNameOf(propertyName), value);
+  }
+
+  public String dynamicPropertyNameOf(String propertyName) {
+    if (propertyName.startsWith(".") && propertyName.length() > 1) {
+      return propertyName.substring(1);
+    }
+    return String.join("", "_", propertyName);
   }
 
   @Override
   public void appendDynamicProperty(String propertyName, Object value) {
+    propertyName = dynamicPropertyNameOf(propertyName);
     List list = (List) this.additionalInfo.get(propertyName);
     if (list == null) {
       list = new ArrayList<>();
@@ -113,8 +121,16 @@ public class BaseEntity implements Entity {
   }
 
   @Override
-  public Object getDynamicProperty(String propertyName) {
-    return this.additionalInfo.get(propertyName);
+  public <T> T getDynamicProperty(String propertyName) {
+    return getDynamicProperty(propertyName, null);
+  }
+
+  public <T> T getDynamicProperty(String propertyName, T defaultValue) {
+    Object o = this.additionalInfo.get(dynamicPropertyNameOf(propertyName));
+    if (o == null) {
+      return defaultValue;
+    }
+    return (T) o;
   }
 
   @JsonAnyGetter
