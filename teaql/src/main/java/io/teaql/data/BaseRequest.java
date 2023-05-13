@@ -499,7 +499,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     tempRequest.selectProperty(BaseEntity.ID_PROPERTY);
     tempRequest.selectProperty(BaseEntity.VERSION_PROPERTY);
     tempRequest.appendSearchCriteria(
-        createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 1l));
+        createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0l));
 
     Relation relation = (Relation) propertyDescriptor;
     if (relation.getRelationKeeper() == getEntityDyyescriptor()) {
