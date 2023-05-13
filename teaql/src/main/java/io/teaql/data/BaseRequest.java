@@ -268,13 +268,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     propagateDimensions = pPropagateDimensions;
   }
 
-  protected void internalFindWithJson(JsonNode jsonNode){
+  protected void internalFindWithJson(JsonNode jsonNode) {
 
-    DynamicSearchHelper helper=new DynamicSearchHelper();
-    helper.mergeClauses(this,jsonNode);
+    DynamicSearchHelper helper = new DynamicSearchHelper();
+    helper.mergeClauses(this, jsonNode);
   }
 
-  protected void internalFindWithJsonExpr(String jsonNodeExpr){
+  protected void internalFindWithJsonExpr(String jsonNodeExpr) {
     internalFindWithJson(DynamicSearchHelper.jsonFromString(jsonNodeExpr));
   }
 
@@ -287,12 +287,17 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     this.simpleDynamicProperties.add(new SimpleNamedExpression(name, expression));
   }
 
+  public void addAggregateDynamicProperty(
+      String name, SearchRequest subRequest, boolean singleValueResult) {
+    this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest, singleValueResult));
+  }
+
   public void addAggregateDynamicProperty(String name, SearchRequest subRequest) {
-    this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest));
+    this.addAggregateDynamicProperty(name, subRequest, false);
   }
 
   public void addSingleAggregateDynamicProperty(String name, SearchRequest subRequest) {
-    this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest, true));
+    this.addAggregateDynamicProperty(name, subRequest, true);
   }
 
   public SearchCriteria createBasicSearchCriteria(
@@ -314,9 +319,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       return new OneOperatorCriteria(operator, new PropertyReference(property));
     } else if (operator.hasTwoOperator()) {
       return new TwoOperatorCriteria(
-          operator,
-          new PropertyReference(property),
-          new Parameter(property, values, operator));
+          operator, new PropertyReference(property), new Parameter(property, values, operator));
     } else if (operator.isBetween()) {
       if (ArrayUtil.length(values) != 2) {
         throw new RepositoryException("Between需要下限和上限两个参数");
@@ -512,13 +515,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     this.appendSearchCriteria(
-          new SubQuerySearchCriteria(
-              BaseEntity.ID_PROPERTY, tempRequest, relation.getReverseProperty().getName()));
+        new SubQuerySearchCriteria(
+            BaseEntity.ID_PROPERTY, tempRequest, relation.getReverseProperty().getName()));
 
     return Optional.of(tempRequest);
   }
 
   public void setSlice(Slice slice) {
-    this.slice=slice;
+    this.slice = slice;
   }
 }
