@@ -4,7 +4,6 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.teaql.data.criteria.*;
 import io.teaql.data.meta.EntityDescriptor;
@@ -429,7 +428,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   protected Optional<PropertyDescriptor> getProperty(String property) {
-    EntityDescriptor entityDescriptor = getEntityDyyescriptor();
+    EntityDescriptor entityDescriptor = getEntityDescriptor();
     while (entityDescriptor != null) {
       PropertyDescriptor propertyDescriptor = entityDescriptor.findProperty(property);
       if (propertyDescriptor != null) {
@@ -440,7 +439,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return Optional.empty();
   }
 
-  private EntityDescriptor getEntityDyyescriptor() {
+  private EntityDescriptor getEntityDescriptor() {
     EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
     EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
     return entityDescriptor;
@@ -503,10 +502,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     tempRequest.selectProperty(BaseEntity.ID_PROPERTY);
     tempRequest.selectProperty(BaseEntity.VERSION_PROPERTY);
     tempRequest.appendSearchCriteria(
-        createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 1l));
-
+        createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0l));
+    tempRequest.unlimited();
     Relation relation = (Relation) propertyDescriptor;
-    if (relation.getRelationKeeper() == getEntityDyyescriptor()) {
+    if (relation.getRelationKeeper() == getEntityDescriptor()) {
       this.appendSearchCriteria(
           new SubQuerySearchCriteria(fieldName, tempRequest, BaseEntity.ID_PROPERTY));
       return Optional.of(tempRequest);
@@ -517,5 +516,9 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
               BaseEntity.ID_PROPERTY, tempRequest, relation.getReverseProperty().getName()));
 
     return Optional.of(tempRequest);
+  }
+
+  public void setSlice(Slice slice) {
+    this.slice=slice;
   }
 }
