@@ -2,17 +2,27 @@ package io.teaql.data.value;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.SmartList;
+import java.util.function.Function;
 
-public interface SmartListExpression<T, U extends BaseEntity> extends Expression<T, SmartList<U>> {
-  default Expression<T, Integer> size() {
+public class SmartListExpression<T, E, U extends BaseEntity>
+    extends ExpressionAdaptor<T, E, SmartList<U>> {
+  public SmartListExpression(Expression<T, E> pExpression, Function<E, SmartList<U>> pFunction) {
+    super(pExpression, pFunction);
+  }
+
+  public SmartListExpression(Expression<T, SmartList<U>> pExpression) {
+    super(pExpression);
+  }
+
+  public Expression<T, Integer> size() {
     return apply(list -> list.size());
   }
 
-  default Expression<T, U> first() {
+  public Expression<T, U> first() {
     return apply(list -> list.get(0));
   }
 
-  default Expression<T, U> get(int index) {
+  public Expression<T, U> get(int index) {
     return apply(
         list -> {
           if (index < 0 || index > list.size() - 1) {
