@@ -195,6 +195,40 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
+  protected void withDeletedRows() {
+    removeTopVersionCriteria();
+  }
+
+  protected void deletedRowsOnly() {
+    removeTopVersionCriteria();
+    appendSearchCriteria(
+        createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.LESS_THAN, 0l));
+  }
+
+  protected void removeTopVersionCriteria() {
+    SearchCriteria searchCriteria = getSearchCriteria();
+    if (searchCriteria == null) {
+      return;
+    }
+
+    if (searchCriteria instanceof VersionSearchCriteria) {
+      this.searchCriteria = null;
+    }
+
+    if (!(searchCriteria instanceof AND)) {
+      return;
+    }
+
+    List<Expression> expressions = ((AND) searchCriteria).getExpressions();
+    Iterator<Expression> iterator = expressions.iterator();
+    while (iterator.hasNext()) {
+      Expression next = iterator.next();
+      if (next instanceof VersionSearchCriteria) {
+        iterator.remove();
+      }
+    }
+  }
+
   public BaseRequest<T> top(int topN) {
     this.slice = new Slice();
     this.slice.setSize(topN);
