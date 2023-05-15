@@ -144,24 +144,18 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   protected List<Expression> extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest) {
-
     AND andSearchCriteria = (AND) anotherRequest.getSearchCriteria();
     List<Expression> subExpression =
         andSearchCriteria.getExpressions().stream()
             .filter(expression -> expression instanceof SearchCriteria)
             .filter(expression -> !(expression instanceof VersionSearchCriteria))
-            // how to filter version criteria out????
             .collect(Collectors.toList());
-
     return subExpression;
   }
 
   protected BaseRequest<T> buildRequest(Map<String, Object> map) {
-
     String typeName = getTypeName();
-
     BaseRequest newReq = new TempRequest(this.returnType, typeName);
-    //
     map.entrySet()
         .forEach(
             stringObjectEntry -> {
@@ -180,6 +174,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     if (anotherRequest.getSearchCriteria() == null) {
       return this;
     }
+
     if (anotherRequest.getSearchCriteria() instanceof VersionSearchCriteria) {
       return this;
     }
@@ -190,17 +185,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     List<Expression> subExpress = extractSearchCriteriaExcludeVersion(anotherRequest);
-    // need to remove any condition with version
+    // collection search criteria other than version criteria
     int length = subExpress.size();
     SearchCriteria[] searchCriteriaArray = new SearchCriteria[length];
     for (int i = 0; i < length; i++) {
       searchCriteriaArray[i] = (SearchCriteria) subExpress.get(i);
     }
-
     ((AND) this.searchCriteria).getExpressions().add(SearchCriteria.or(searchCriteriaArray));
-
-    // anotherRequest.getE
-
     return this;
   }
 
