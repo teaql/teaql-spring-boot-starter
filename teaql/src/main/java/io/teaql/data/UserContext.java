@@ -187,4 +187,8 @@ public class UserContext {
   }
 
   public void init(Object request) {}
+
+  public Long generateId(Entity pEntity) {
+    return null;
+  }
 }

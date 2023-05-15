@@ -3,7 +3,6 @@ package io.teaql.data;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.IdUtil;
 import io.teaql.data.meta.EntityDescriptor;
-
 import java.util.Collection;
 
 public interface Repository<T extends Entity> {
@@ -14,6 +13,12 @@ public interface Repository<T extends Entity> {
     if (entity.getId() != null) {
       return entity.getId();
     }
+
+    Long id = userContext.generateId(entity);
+    if (id != null) {
+      return id;
+    }
+
     return IdUtil.getSnowflakeNextId();
   }
 
