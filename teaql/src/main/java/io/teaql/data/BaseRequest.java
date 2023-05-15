@@ -195,14 +195,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
-  protected void withDeletedRows() {
+  protected BaseRequest<T> withDeletedRows() {
     removeTopVersionCriteria();
+    return this;
   }
 
-  protected void deletedRowsOnly() {
+  protected BaseRequest<T> deletedRowsOnly() {
     removeTopVersionCriteria();
     appendSearchCriteria(
         createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.LESS_THAN, 0l));
+    return this;
   }
 
   protected void removeTopVersionCriteria() {
