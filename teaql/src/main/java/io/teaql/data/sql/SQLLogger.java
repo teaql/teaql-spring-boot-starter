@@ -2,6 +2,7 @@ package io.teaql.data.sql;
 
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.BaseEntity;
+import io.teaql.data.UserContext;
 import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -114,13 +115,13 @@ public class SQLLogger {
                 .collect(Collectors.joining(" -> "));
     }
 
-    public static <T> void logNamedSQL(String sql, Map<String, ?> paramMap, List<T> result) {
+    public static <T> void logNamedSQL(UserContext userContext, String sql, Map<String, ?> paramMap, List<T> result) {
         String finalSQL = NamedParameterUtils.substituteNamedParameters(sql, null);
-        logSQLAndParameters(
+        logSQLAndParameters(userContext,
                 finalSQL, NamedParameterUtils.buildValueArray(sql, paramMap), showResult(result));
     }
 
-    public static void logSQLAndParameters(String sql, Object[] parameters, String result) {
+    public static void logSQLAndParameters(UserContext userContext, String sql, Object[] parameters, String result) {
 
         StringBuilder finalSQL = new StringBuilder();
 
@@ -140,7 +141,12 @@ public class SQLLogger {
             finalSQL.append(ch);
         }
         String newMethod = getStackTrace();
-        logDebug(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
+        //logDebug(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
+        //logDebug(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
+
+        userContext.info(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
+
+
     }
 
     public static void logDebug(String message) {
