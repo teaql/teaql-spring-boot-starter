@@ -415,6 +415,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       userContext.info(sql);
       userContext.info("{}", params);
       results = this.jdbcTemplate.query(sql, params, getMapper(userContext, request));
+
+      SQLLogger.logNamedSQL(sql,params,new ArrayList<>());
+
     }
     SmartList<T> smartList = new SmartList<>(results);
     enhanceRelations(userContext, smartList, request);
