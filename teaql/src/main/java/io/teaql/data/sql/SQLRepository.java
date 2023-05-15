@@ -423,7 +423,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return smartList;
   }
 
-  //TODO: fix the dynamic base entity
+  // TODO: fix the dynamic base entity
   private void addDynamicAggregations(
       UserContext userContext, SearchRequest<T> request, SmartList<T> results) {
     List<SimpleAggregation> dynamicAggregateAttributes = request.getDynamicAggregateAttributes();
@@ -433,6 +433,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
     Map<Long, T> idEntityMap = results.mapById();
     Set<Long> ids = idEntityMap.keySet();
+    if (ObjectUtil.isEmpty(ids)) {
+      return;
+    }
+
     for (SimpleAggregation dynamicAggregateAttribute : dynamicAggregateAttributes) {
       SearchRequest aggregateRequest = dynamicAggregateAttribute.getAggregateRequest();
       String property = aggregateRequest.getPartitionProperty();
@@ -816,12 +820,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       childTempRequest.setPartitionProperty(reverseProperty.getName());
     }
 
-
-
     childTempRequest.appendSearchCriteria(
-            getSearchCriteriaOfCollectChildren(results, reverseProperty));
-
-
+        getSearchCriteriaOfCollectChildren(results, reverseProperty));
 
     SmartList children = repository.executeForList(userContext, childTempRequest);
 
@@ -838,16 +838,18 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
   }
 
-  private TwoOperatorCriteria getSearchCriteriaOfCollectChildren(SmartList<T> results, PropertyDescriptor reverseProperty) {
+  private TwoOperatorCriteria getSearchCriteriaOfCollectChildren(
+      SmartList<T> results, PropertyDescriptor reverseProperty) {
 
-    if(results.size()==1){
-      return new EQ(new PropertyReference(reverseProperty.getName()),
-              new Parameter(reverseProperty.getName(), results,false));
+    if (results.size() == 1) {
+      return new EQ(
+          new PropertyReference(reverseProperty.getName()),
+          new Parameter(reverseProperty.getName(), results, false));
     }
 
     return new IN(
-            new PropertyReference(reverseProperty.getName()),
-            new Parameter(reverseProperty.getName(), results));
+        new PropertyReference(reverseProperty.getName()),
+        new Parameter(reverseProperty.getName(), results));
   }
 
   private void enhanceParent(
