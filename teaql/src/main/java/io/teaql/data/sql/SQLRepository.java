@@ -412,11 +412,11 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String sql = buildDataSQL(userContext, request, params);
     List<T> results = new ArrayList<>();
     if (!ObjectUtil.isEmpty(sql)) {
-      userContext.info(sql);
-      userContext.info("{}", params);
+      //userContext.info(sql);
+      //userContext.info("{}", params);
       results = this.jdbcTemplate.query(sql, params, getMapper(userContext, request));
+      SQLLogger.logNamedSQL(userContext,sql,params,results);
 
-      SQLLogger.logNamedSQL(userContext,sql,params,new ArrayList<>());
 
     }
     SmartList<T> smartList = new SmartList<>(results);
