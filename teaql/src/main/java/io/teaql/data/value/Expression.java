@@ -6,21 +6,7 @@ public interface Expression<E, T> {
   T eval(E e);
 
   default <U> Expression<E, U> apply(Function<T, U> function) {
-    return new Expression<>() {
-      @Override
-      public U eval(E e) {
-        T eval = Expression.this.eval(e);
-        if (function == null) {
-          return null;
-        }
-        return function.apply(eval);
-      }
-
-      @Override
-      public E $getRoot() {
-        return Expression.super.$getRoot();
-      }
-    };
+    return new ExpressionAdaptor(this, function);
   }
 
   default E $getRoot() {
