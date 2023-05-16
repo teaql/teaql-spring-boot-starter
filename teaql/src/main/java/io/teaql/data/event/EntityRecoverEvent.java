@@ -2,12 +2,12 @@ package io.teaql.data.event;
 
 import io.teaql.data.BaseEntity;
 
-public class EntityCreatedEvent {
+public class EntityRecoverEvent {
   private BaseEntity item;
 
   //TODO: copy properties from item to local entity
-  public EntityCreatedEvent(BaseEntity item) {
-    this.item = item;
+  public EntityRecoverEvent(BaseEntity recoverItem) {
+    this.item = recoverItem;
   }
 
   public BaseEntity getItem() {

@@ -196,17 +196,18 @@ public class UserContext {
     this.internalIdGenerator = internalIdGenerator;
   }
 
-
-
   InternalIdGenerator internalIdGenerator;
+
   public Long generateId(Entity pEntity) {
-    if(this.internalIdGenerator==null){
+    if (this.internalIdGenerator == null) {
       return null;
     }
     return internalIdGenerator.generateId(pEntity);
   }
 
+  public void sendEvent(Object entityUpdateEvent) {}
 
-
-
+  public void afterPersist(BaseEntity item) {
+    item.clearUpdatedProperties();
+  }
 }

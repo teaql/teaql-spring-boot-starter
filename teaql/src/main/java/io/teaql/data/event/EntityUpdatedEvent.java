@@ -6,6 +6,11 @@ import java.util.List;
 public class EntityUpdatedEvent {
   private BaseEntity item;
 
+  // TODO: copy properties from item to local entity
+  public EntityUpdatedEvent(BaseEntity item) {
+    this.item = item;
+  }
+
   public BaseEntity getItem() {
     return item;
   }

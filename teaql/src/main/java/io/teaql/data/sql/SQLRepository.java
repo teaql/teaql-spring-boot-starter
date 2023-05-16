@@ -11,6 +11,10 @@ import io.teaql.data.*;
 import io.teaql.data.criteria.EQ;
 import io.teaql.data.criteria.IN;
 import io.teaql.data.criteria.TwoOperatorCriteria;
+import io.teaql.data.event.EntityCreatedEvent;
+import io.teaql.data.event.EntityDeletedEvent;
+import io.teaql.data.event.EntityRecoverEvent;
+import io.teaql.data.event.EntityUpdatedEvent;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
@@ -171,8 +175,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
     for (T updateItem : updateItems) {
       updateItem.setVersion(updateItem.getVersion() + 1);
-      if (updateItem instanceof BaseEntity) {
-        ((BaseEntity) updateItem).gotoNextStatus(EntityAction.PERSIST);
+      if (updateItem instanceof BaseEntity item) {
+        userContext.sendEvent(new EntityUpdatedEvent(item));
+        item.gotoNextStatus(EntityAction.PERSIST);
+        userContext.afterPersist(item);
       }
     }
   }
@@ -309,8 +315,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         });
 
     for (T createItem : createItems) {
-      if (createItem instanceof BaseEntity) {
-        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+      if (createItem instanceof BaseEntity item) {
+        item.gotoNextStatus(EntityAction.PERSIST);
+        userContext.sendEvent(new EntityCreatedEvent(item));
+        userContext.afterPersist(item);
       }
     }
   }
@@ -411,8 +419,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
     for (T deleteItem : entities) {
       deleteItem.setVersion(-(deleteItem.getVersion() + 1));
-      if (deleteItem instanceof BaseEntity) {
-        ((BaseEntity) deleteItem).gotoNextStatus(EntityAction.PERSIST);
+      if (deleteItem instanceof BaseEntity item) {
+        item.gotoNextStatus(EntityAction.PERSIST);
+        userContext.sendEvent(new EntityDeletedEvent(item));
+        userContext.afterPersist(item);
       }
     }
   }
@@ -445,8 +455,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
     for (T recoverItem : entities) {
       recoverItem.setVersion(-recoverItem.getVersion() + 1);
-      if (recoverItem instanceof BaseEntity) {
-        ((BaseEntity) recoverItem).gotoNextStatus(EntityAction.PERSIST);
+      if (recoverItem instanceof BaseEntity item) {
+        item.gotoNextStatus(EntityAction.PERSIST);
+        userContext.sendEvent(new EntityRecoverEvent(item));
+        userContext.afterPersist(item);
       }
     }
   }

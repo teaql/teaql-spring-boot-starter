@@ -244,4 +244,8 @@ public class BaseEntity implements Entity {
   public boolean recoverItem() {
     return $status == EntityStatus.UPDATED_RECOVER;
   }
+
+  public void clearUpdatedProperties() {
+    this.updatedProperties.clear();
+  }
 }
