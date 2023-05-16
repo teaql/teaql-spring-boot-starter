@@ -169,9 +169,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         updateVersionTableVersion(userContext, sqlEntity);
       }
     }
-    for (T createItem : updateItems) {
-      if (createItem instanceof BaseEntity) {
-        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+    for (T updateItem : updateItems) {
+      updateItem.setVersion(updateItem.getVersion() + 1);
+      if (updateItem instanceof BaseEntity) {
+        ((BaseEntity) updateItem).gotoNextStatus(EntityAction.PERSIST);
       }
     }
   }
@@ -408,9 +409,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       }
     }
 
-    for (T createItem : entities) {
-      if (createItem instanceof BaseEntity) {
-        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+    for (T deleteItem : entities) {
+      deleteItem.setVersion(-(deleteItem.getVersion() + 1));
+      if (deleteItem instanceof BaseEntity) {
+        ((BaseEntity) deleteItem).gotoNextStatus(EntityAction.PERSIST);
       }
     }
   }
@@ -441,9 +443,10 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         throw new ConcurrentModifyException();
       }
     }
-    for (T createItem : entities) {
-      if (createItem instanceof BaseEntity) {
-        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+    for (T recoverItem : entities) {
+      recoverItem.setVersion(-recoverItem.getVersion() + 1);
+      if (recoverItem instanceof BaseEntity) {
+        ((BaseEntity) recoverItem).gotoNextStatus(EntityAction.PERSIST);
       }
     }
   }
