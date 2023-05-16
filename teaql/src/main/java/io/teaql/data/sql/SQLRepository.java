@@ -106,6 +106,11 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     if (ObjectUtil.isNotEmpty(deleteItems)) {
       delete(userContext, deleteItems);
     }
+
+    Collection<T> recoverItems = CollUtil.filterNew(entities, Entity::recoverItem);
+    if (ObjectUtil.isNotEmpty(recoverItems)) {
+      recover(userContext, recoverItems);
+    }
     return entities;
   }
 
@@ -143,43 +148,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
             // 主表，通过Id 来修改， 附属表（先查询是否有记录，有则直接更新，否则新增）
             boolean primaryTable = this.primaryTableNames.contains(k);
             if (versionTable) {
-              // version表已更新
-              versionTableUpdated.set(true);
-              // 增加version列的修改
-              columns.add(VERSION);
-              l.add(sqlEntity.getVersion() + 1); // 版本加1
-              l.add(sqlEntity.getId());
-              l.add(sqlEntity.getVersion());
-              int update =
-                  jdbcTemplate
-                      .getJdbcTemplate()
-                      .update(
-                          StrUtil.format(
-                              "UPDATE {} SET {} WHERE id = ? AND version = ?",
-                              k,
-                              columns.stream()
-                                  .map(c -> c + " = ?")
-                                  .collect(Collectors.joining(" , "))),
-                          l.toArray(new Object[0]));
-              if (update != 1) {
-                throw new ConcurrentModifyException();
-              }
+              updateVersionTable(userContext, sqlEntity, versionTableUpdated, k, columns, l);
             } else if (primaryTable) {
-              l.add(sqlEntity.getId());
-              int update =
-                  jdbcTemplate
-                      .getJdbcTemplate()
-                      .update(
-                          StrUtil.format(
-                              "UPDATE {} SET {} WHERE id = ?",
-                              k,
-                              columns.stream()
-                                  .map(c -> c + " = ?")
-                                  .collect(Collectors.joining(" , "))),
-                          l.toArray(new Object[0]));
-              if (update != 1) {
-                throw new RepositoryException("主表数据更新失败");
-              }
+              updatePrimaryTable(userContext, sqlEntity, k, columns, l);
             } else {
               // 附属表，不检查结果
               jdbcTemplate
@@ -195,23 +166,72 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
 
       // 如果没有更新version table属性，此处我们只更新version table的版本
       if (!versionTableUpdated.get()) {
-        int update =
-            jdbcTemplate
-                .getJdbcTemplate()
-                .update(
-                    StrUtil.format(
-                        "UPDATE {} SET {} = ？ WHERE {} = ? and {} = ?",
-                        this.versionTableName,
-                        VERSION,
-                        ID,
-                        VERSION),
-                    new Object[] {
-                      sqlEntity.getVersion() + 1, sqlEntity.getId(), sqlEntity.getVersion()
-                    });
-        if (update != 1) {
-          throw new ConcurrentModifyException();
-        }
+        updateVersionTableVersion(userContext, sqlEntity);
       }
+    }
+    for (T createItem : updateItems) {
+      if (createItem instanceof BaseEntity) {
+        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+      }
+    }
+  }
+
+  private void updateVersionTableVersion(UserContext userContext, SQLEntity sqlEntity) {
+    String updateSql =
+        StrUtil.format(
+            "UPDATE {} SET {} = ？ WHERE {} = ? and {} = ?",
+            this.versionTableName,
+            VERSION,
+            ID,
+            VERSION);
+    Object[] parameters = {sqlEntity.getVersion() + 1, sqlEntity.getId(), sqlEntity.getVersion()};
+    int update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    if (update != 1) {
+      throw new ConcurrentModifyException();
+    }
+  }
+
+  private void updatePrimaryTable(
+      UserContext userContext, SQLEntity sqlEntity, String k, List<String> columns, List l) {
+    l.add(sqlEntity.getId());
+    String updateSql =
+        StrUtil.format(
+            "UPDATE {} SET {} WHERE id = ?",
+            k,
+            columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
+    Object[] parameters = l.toArray(new Object[0]);
+    int update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    if (update != 1) {
+      throw new RepositoryException("主表数据更新失败");
+    }
+  }
+
+  private void updateVersionTable(
+      UserContext userContext,
+      SQLEntity sqlEntity,
+      AtomicBoolean versionTableUpdated,
+      String k,
+      List<String> columns,
+      List l) {
+    // version表已更新
+    versionTableUpdated.set(true);
+    // 增加version列的修改
+    columns.add(VERSION);
+    l.add(sqlEntity.getVersion() + 1); // 版本加1
+    l.add(sqlEntity.getId());
+    l.add(sqlEntity.getVersion());
+    String updateSql =
+        StrUtil.format(
+            "UPDATE {} SET {} WHERE id = ? AND version = ?",
+            k,
+            columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
+    Object[] parameters = l.toArray(new Object[0]);
+    int update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    if (update != 1) {
+      throw new ConcurrentModifyException();
     }
   }
 
@@ -280,10 +300,18 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
                   k,
                   CollectionUtil.join(columns, ","),
                   StrUtil.repeatAndJoin("?", columns.size(), ","));
-          userContext.info(sql);
-          userContext.info("parameters:{}", v);
-          jdbcTemplate.getJdbcTemplate().batchUpdate(sql, v);
+          int[] rets = jdbcTemplate.getJdbcTemplate().batchUpdate(sql, v);
+          int i = 0;
+          for (int ret : rets) {
+            SQLLogger.logSQLAndParameters(userContext, sql, v.get(i++), ret + " UPDATED");
+          }
         });
+
+    for (T createItem : createItems) {
+      if (createItem instanceof BaseEntity) {
+        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+      }
+    }
   }
 
   private SQLEntity convertToSQLEntityForInsert(UserContext userContext, T entity) {
@@ -368,17 +396,54 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
                       -(e.getVersion() + 1), e.getId(), e.getVersion()
                     })
             .collect(Collectors.toList());
-    int[] rets =
-        jdbcTemplate
-            .getJdbcTemplate()
-            .batchUpdate(
-                StrUtil.format(
-                    "UPDATE {} SET version = ? WHERE id = ? AND version = ?",
-                    this.versionTableName),
-                args);
-    for (int i : rets) {
-      if (i != 1) {
+    String updateSql =
+        StrUtil.format(
+            "UPDATE {} SET version = ? WHERE id = ? AND version = ?", this.versionTableName);
+    int[] rets = jdbcTemplate.getJdbcTemplate().batchUpdate(updateSql, args);
+    int i = 0;
+    for (int ret : rets) {
+      SQLLogger.logSQLAndParameters(userContext, updateSql, args.get(i++), ret + " UPDATED");
+      if (ret != 1) {
         throw new ConcurrentModifyException();
+      }
+    }
+
+    for (T createItem : entities) {
+      if (createItem instanceof BaseEntity) {
+        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
+      }
+    }
+  }
+
+  @Override
+  public void recover(UserContext userContext, Collection<T> entities) {
+    if (ObjectUtil.isNotEmpty(entities)) {
+      return;
+    }
+    List<Object[]> args =
+        entities.stream()
+            .filter(e -> e.getVersion() < 0)
+            .map(
+                e ->
+                    new Object[] {
+                      // 版本取反加1。即version的绝对值表示修改次数，版本为负表示已被删除
+                      (-e.getVersion() + 1), e.getId(), e.getVersion()
+                    })
+            .collect(Collectors.toList());
+    String updateSql =
+        StrUtil.format(
+            "UPDATE {} SET version = ? WHERE id = ? AND version = ?", this.versionTableName);
+    int[] rets = jdbcTemplate.getJdbcTemplate().batchUpdate(updateSql, args);
+    int i = 0;
+    for (int ret : rets) {
+      SQLLogger.logSQLAndParameters(userContext, updateSql, args.get(i++), ret + " UPDATED");
+      if (ret != 1) {
+        throw new ConcurrentModifyException();
+      }
+    }
+    for (T createItem : entities) {
+      if (createItem instanceof BaseEntity) {
+        ((BaseEntity) createItem).gotoNextStatus(EntityAction.PERSIST);
       }
     }
   }
@@ -412,12 +477,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     String sql = buildDataSQL(userContext, request, params);
     List<T> results = new ArrayList<>();
     if (!ObjectUtil.isEmpty(sql)) {
-      //userContext.info(sql);
-      //userContext.info("{}", params);
       results = this.jdbcTemplate.query(sql, params, getMapper(userContext, request));
-      SQLLogger.logNamedSQL(userContext,sql,params,results);
-
-
+      SQLLogger.logNamedSQL(userContext, sql, params, results);
     }
     SmartList<T> smartList = new SmartList<>(results);
     enhanceRelations(userContext, smartList, request);

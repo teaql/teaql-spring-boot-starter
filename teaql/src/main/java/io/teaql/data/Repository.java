@@ -38,6 +38,12 @@ public interface Repository<T extends Entity> {
 
   void delete(UserContext userContext, Collection<T> entities);
 
+  default void recover(UserContext userContext, T entity) {
+    recover(userContext, ListUtil.of(entity));
+  }
+
+  void recover(UserContext userContext, Collection<T> entities);
+
   T execute(UserContext userContext, SearchRequest<T> request);
 
   SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request);

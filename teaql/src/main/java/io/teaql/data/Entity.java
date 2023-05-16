@@ -1,7 +1,6 @@
 package io.teaql.data;
 
 import cn.hutool.core.bean.BeanUtil;
-
 import java.util.List;
 
 // 实体接口
@@ -24,15 +23,17 @@ public interface Entity {
     return this;
   }
 
-  default void delete(UserContext userContext) {
-    userContext.delete(this);
-  }
+  void delete(UserContext userContext);
+
+  Entity recover(UserContext userContext);
 
   boolean newItem();
 
   boolean updateItem();
 
   boolean deleteItem();
+
+  boolean recoverItem();
 
   boolean needPersist();
 

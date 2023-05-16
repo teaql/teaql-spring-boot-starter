@@ -73,7 +73,8 @@ public class BaseEntity implements Entity {
   public boolean needPersist() {
     return $status == EntityStatus.NEW
         || $status == EntityStatus.UPDATED
-        || $status == EntityStatus.UPDATED_DELETED;
+        || $status == EntityStatus.UPDATED_DELETED
+        || $status == EntityStatus.UPDATED_RECOVER;
   }
 
   @Override
@@ -175,6 +176,7 @@ public class BaseEntity implements Entity {
    * @param newValue
    */
   public void handleUpdate(String propertyName, Object oldValue, Object newValue) {
+    gotoNextStatus(EntityAction.UPDATE);
     PropertyChangeEvent propertyChangeEvent = updatedProperties.get(propertyName);
     // 多次变化记录最开始的值为old值
     if (propertyChangeEvent != null) {
@@ -187,6 +189,10 @@ public class BaseEntity implements Entity {
     }
     updatedProperties.put(
         propertyName, new PropertyChangeEvent(this, propertyName, oldValue, newValue));
+  }
+
+  public void gotoNextStatus(EntityAction action) {
+    set$status(get$status().next(action));
   }
 
   public void cacheRelation(String relationName, Entity relation) {
@@ -209,5 +215,33 @@ public class BaseEntity implements Entity {
       return null;
     }
     return propertyChangeEvent.getNewValue();
+  }
+
+  public BaseEntity markToRemove() {
+    gotoNextStatus(EntityAction.DELETE);
+    return this;
+  }
+
+  public BaseEntity markToRecover() {
+    gotoNextStatus(EntityAction.RECOVER);
+    return this;
+  }
+
+  @Override
+  public void delete(UserContext userContext) {
+    markToRemove();
+    userContext.saveGraph(this);
+  }
+
+  @Override
+  public BaseEntity recover(UserContext userContext) {
+    markToRecover();
+    userContext.saveGraph(this);
+    return this;
+  }
+
+  @Override
+  public boolean recoverItem() {
+    return $status == EntityStatus.UPDATED_RECOVER;
   }
 }
