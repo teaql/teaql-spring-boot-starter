@@ -23,9 +23,11 @@ public interface Entity {
     return this;
   }
 
-  void delete(UserContext userContext);
+  default void delete(UserContext userContext) {}
 
-  Entity recover(UserContext userContext);
+  default Entity recover(UserContext userContext) {
+    return this;
+  }
 
   boolean newItem();
 
@@ -33,7 +35,9 @@ public interface Entity {
 
   boolean deleteItem();
 
-  boolean recoverItem();
+  default boolean recoverItem() {
+    return false;
+  }
 
   boolean needPersist();
 
