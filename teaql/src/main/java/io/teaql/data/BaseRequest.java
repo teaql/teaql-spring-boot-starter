@@ -42,7 +42,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   String partitionProperty;
 
   // basic return type
-  Class<T> returnType;
+  Class<? extends T> returnType;
 
   // aggregations
   Aggregations aggregations = new Aggregations();
@@ -55,12 +55,12 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     returnType = pReturnType;
   }
 
-  protected void setReturnType(Class<T> pReturnType) {
+  protected void setReturnType(Class<? extends T> pReturnType) {
     returnType = pReturnType;
   }
 
   @Override
-  public Class<T> returnType() {
+  public Class<? extends T> returnType() {
     return returnType;
   }
 

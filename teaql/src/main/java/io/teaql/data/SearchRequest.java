@@ -10,7 +10,7 @@ public interface SearchRequest<T extends Entity> {
     return StrUtil.removeSuffix(simpleName, "Request");
   }
 
-  Class<T> returnType();
+  Class<? extends T> returnType();
 
   String getPartitionProperty();
 
