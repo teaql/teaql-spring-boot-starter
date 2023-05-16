@@ -188,7 +188,25 @@ public class UserContext {
 
   public void init(Object request) {}
 
-  public Long generateId(Entity pEntity) {
-    return null;
+  public InternalIdGenerator getInternalIdGenerator() {
+    return internalIdGenerator;
   }
+
+  public void setInternalIdGenerator(InternalIdGenerator internalIdGenerator) {
+    this.internalIdGenerator = internalIdGenerator;
+  }
+
+
+
+  InternalIdGenerator internalIdGenerator;
+  public Long generateId(Entity pEntity) {
+    if(this.internalIdGenerator==null){
+      return null;
+    }
+    return internalIdGenerator.generateId(pEntity);
+  }
+
+
+
+
 }
