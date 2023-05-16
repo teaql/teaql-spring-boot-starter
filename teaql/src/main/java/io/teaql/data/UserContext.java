@@ -205,7 +205,7 @@ public class UserContext {
     return internalIdGenerator.generateId(pEntity);
   }
 
-  public void sendEvent(Object entityUpdateEvent) {}
+  public void sendEvent(Object event) {}
 
   public void afterPersist(BaseEntity item) {
     item.clearUpdatedProperties();
