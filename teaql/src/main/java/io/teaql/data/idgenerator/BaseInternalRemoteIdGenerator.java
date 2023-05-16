@@ -1,83 +1,13 @@
 package io.teaql.data.idgenerator;
 
+import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.InternalIdGenerator;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-class TestEntity implements Entity{
 
-    @Override
-    public Long getId() {
-        return null;
-    }
-
-    @Override
-    public void setId(Long id) {
-
-    }
-
-    @Override
-    public Long getVersion() {
-        return null;
-    }
-
-    @Override
-    public void setVersion(Long id) {
-
-    }
-
-    @Override
-    public String typeName() {
-        return Entity.super.typeName();
-    }
-
-    @Override
-    public boolean newItem() {
-        return false;
-    }
-
-    @Override
-    public boolean updateItem() {
-        return false;
-    }
-
-    @Override
-    public boolean deleteItem() {
-        return false;
-    }
-
-    @Override
-    public boolean needPersist() {
-        return false;
-    }
-
-    @Override
-    public List<String> getUpdatedProperties() {
-        return null;
-    }
-
-    @Override
-    public void addRelation(String relationName, Entity value) {
-
-    }
-
-    @Override
-    public void addDynamicProperty(String propertyName, Object value) {
-
-    }
-
-    @Override
-    public void appendDynamicProperty(String propertyName, Object value) {
-
-    }
-
-    @Override
-    public <T> T getDynamicProperty(String propertyName) {
-        return null;
-    }
-}
 public class BaseInternalRemoteIdGenerator implements InternalIdGenerator {
 
 
@@ -105,7 +35,7 @@ public class BaseInternalRemoteIdGenerator implements InternalIdGenerator {
 
 
 
-        Long id=new BaseInternalRemoteIdGenerator().generateId(new TestEntity());
+        Long id=new BaseInternalRemoteIdGenerator().generateId(new BaseEntity());
         System.out.println(id);
 
 
