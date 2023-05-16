@@ -382,7 +382,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   public void addAggregate(SimpleNamedExpression aggregate) {
-    getAggregations().getAggregates().add(aggregate);
+    List<SimpleNamedExpression> aggregates = getAggregations().getAggregates();
+    String aggregateName = aggregate.name();
+    // 对于重复添加同一名称的聚合，忽略掉它
+    for (SimpleNamedExpression simpleNamedExpression : aggregates) {
+      String name = simpleNamedExpression.name();
+      if (aggregateName.equals(name)) {
+        return;
+      }
+    }
+    aggregates.add(aggregate);
   }
 
   public void aggregate(String property, SearchRequest subRequest) {
