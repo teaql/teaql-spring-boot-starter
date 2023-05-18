@@ -1,11 +1,14 @@
 package io.teaql.data.sql;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.UserContext;
 import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -174,10 +177,7 @@ public class SQLLogger {
     }
 
     protected static String sqlTimeExpr(LocalDateTime dateTimeValue) {
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        // It is not thread safe, how silly the JDK is!!!
-        return simpleDateFormat.format(dateTimeValue);
+        return LocalDateTimeUtil.formatNormal(dateTimeValue);
     }
 
     protected static String wrapValueInSQL(Object value) {
@@ -201,6 +201,12 @@ public class SQLLogger {
             Date dateValue = (Date) value;
             return join("'", sqlDateExpr(dateValue), "'");
         }
+
+      if (value instanceof LocalDate) {
+        LocalDate dateValue = (LocalDate) value;
+        return join("'", sqlLocalDateExpr(dateValue), "'");
+      }
+
         if (value instanceof Number) {
             return value.toString();
         }
@@ -232,7 +238,11 @@ public class SQLLogger {
         return join("'", value.getClass(), "'");
     }
 
-    protected static String sqlDateExpr(Date dateValue) {
+  private static Object sqlLocalDateExpr(LocalDate pDateValue) {
+    return LocalDateTimeUtil.formatNormal(pDateValue);
+  }
+
+  protected static String sqlDateExpr(Date dateValue) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(dateValue);
     }
