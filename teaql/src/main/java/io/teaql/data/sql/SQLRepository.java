@@ -1362,6 +1362,8 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       if (refer.isRoot()) {
         return "1";
       }
+      // set others as null
+      return null;
     }
 
     String autoFunction = property.getAdditionalInfo().get("autoFunction");
@@ -1370,7 +1372,12 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     }
 
     List<String> candidates = property.getCandidates();
-    return NamingCase.toPascalCase(CollectionUtil.get(candidates, index));
+
+    if (property.isIdentifier()) {
+      return NamingCase.toPascalCase(identifier);
+    }
+
+    return CollectionUtil.get(candidates, index);
   }
 
   private void ensureRoot(UserContext ctx) {
