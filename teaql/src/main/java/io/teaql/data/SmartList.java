@@ -2,7 +2,7 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
-
+import cn.hutool.core.util.ObjectUtil;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -87,5 +87,12 @@ public class SmartList<T extends Entity> implements Iterable<T> {
   public SmartList<T> save(UserContext userContext) {
     userContext.saveGraph(this);
     return this;
+  }
+
+  public int getTotalCount() {
+    if (ObjectUtil.isEmpty(aggregationResults)) {
+      return size();
+    }
+    return aggregationResults.get(0).toInt();
   }
 }
