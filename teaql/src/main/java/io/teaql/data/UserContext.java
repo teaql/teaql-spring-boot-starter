@@ -118,7 +118,7 @@ public class UserContext {
   }
 
   public void checkAndFix(Entity entity) {
-    if (entity instanceof BaseEntity) {
+    if (!(entity instanceof BaseEntity)) {
       return;
     }
     String name = entity.getClass().getName();
