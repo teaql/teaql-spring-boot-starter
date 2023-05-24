@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 
 public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumnResolver {
   public static final String VERSION = "version";
@@ -35,6 +36,7 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
   public static final String CHILD_SQL_TYPE = "VARCHAR(100)";
 
   public static final String MULTI_TABLE = "MULTI_TABLE";
+  public static final String TEAQL_ID_SPACE_TABLE = "teaql_id_space";
 
   private final EntityDescriptor entityDescriptor;
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -1266,6 +1268,81 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
         });
     ensureInitData(ctx);
     ensureIndexAndForeignKey(ctx);
+    ensureIdSpaceTable(ctx);
+  }
+
+  private void ensureIdSpaceTable(UserContext ctx) {
+    String sql =
+        String.format(
+            "select * from information_schema.columns where table_name = '%s'",
+            TEAQL_ID_SPACE_TABLE);
+    List<Map<String, Object>> dbTableInfo;
+    try {
+      dbTableInfo = jdbcTemplate.getJdbcTemplate().queryForList(sql);
+    } catch (Exception exception) {
+      dbTableInfo = ListUtil.empty();
+    }
+
+    if (!ObjectUtil.isEmpty(dbTableInfo)) {
+      return;
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("CREATE TABLE ")
+        .append(TEAQL_ID_SPACE_TABLE)
+        .append(" (\n")
+        .append("type_name varchar(100) PRIMARY KEY,\n")
+        .append("current_level bigint);\n");
+    String createIdSpaceSql = sb.toString();
+    ctx.info(createIdSpaceSql);
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
+      jdbcTemplate.getJdbcTemplate().execute(createIdSpaceSql);
+    }
+  }
+
+  @Override
+  public Long prepareId(UserContext userContext, T entity) {
+    if (entity.getId() != null) {
+      return entity.getId();
+    }
+    Long id = userContext.generateId(entity);
+    if (id != null) {
+      return id;
+    }
+
+    TransactionTemplate transactionTemplate = userContext.getBean(TransactionTemplate.class);
+    return transactionTemplate.execute(
+        status -> {
+          String type = CollectionUtil.getLast(types);
+          Long current =
+              jdbcTemplate
+                  .getJdbcTemplate()
+                  .queryForObject(
+                      StrUtil.format(
+                          "SELECT current_level from {} WHERE type_name = '{}' for update",
+                          TEAQL_ID_SPACE_TABLE,
+                          type),
+                      Long.class);
+          if (current == null) {
+            current = 1l;
+            jdbcTemplate
+                .getJdbcTemplate()
+                .execute(
+                    StrUtil.format(
+                        "INSERT INTO {} VALUES ('{}', {})", TEAQL_ID_SPACE_TABLE, type, current));
+            return current;
+          }
+          current += 1;
+          jdbcTemplate
+              .getJdbcTemplate()
+              .execute(
+                  StrUtil.format(
+                      "UPDATE {} SET current_level = {} WHERE type_name = '{}'",
+                      TEAQL_ID_SPACE_TABLE,
+                      current,
+                      type));
+          return current;
+        });
   }
 
   private void ensureIndexAndForeignKey(UserContext ctx) {}
