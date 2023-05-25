@@ -1314,15 +1314,21 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     return transactionTemplate.execute(
         status -> {
           String type = CollectionUtil.getLast(types);
-          Long current =
-              jdbcTemplate
-                  .getJdbcTemplate()
-                  .queryForObject(
-                      StrUtil.format(
-                          "SELECT current_level from {} WHERE type_name = '{}' for update",
-                          TEAQL_ID_SPACE_TABLE,
-                          type),
-                      Long.class);
+          Long current = null;
+          try {
+            current =
+                jdbcTemplate
+                    .getJdbcTemplate()
+                    .queryForObject(
+                        StrUtil.format(
+                            "SELECT current_level from {} WHERE type_name = '{}' for update",
+                            TEAQL_ID_SPACE_TABLE,
+                            type),
+                        Long.class);
+          } catch (Exception e) {
+
+          }
+
           if (current == null) {
             current = 1l;
             jdbcTemplate
