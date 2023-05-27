@@ -1449,9 +1449,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
       return null;
     }
 
-    String autoFunction = property.getAdditionalInfo().get("autoFunction");
-    if (!ObjectUtil.isEmpty(autoFunction)) {
-      return ReflectUtil.invoke(ctx, autoFunction);
+    String createFunction = property.getAdditionalInfo().get("createFunction");
+    if (!ObjectUtil.isEmpty(createFunction)) {
+      return ReflectUtil.invoke(ctx, createFunction);
     }
 
     List<String> candidates = property.getCandidates();
@@ -1522,9 +1522,9 @@ public class SQLRepository<T extends Entity> implements Repository<T>, SQLColumn
     if (property.isVersion()) {
       return 1l;
     }
-    String autoFunction = property.getAdditionalInfo().get("autoFunction");
-    if (!ObjectUtil.isEmpty(autoFunction)) {
-      return ReflectUtil.invoke(ctx, autoFunction);
+    String createFunction = property.getAdditionalInfo().get("createFunction");
+    if (!ObjectUtil.isEmpty(createFunction)) {
+      return ReflectUtil.invoke(ctx, createFunction);
     }
     return property.getAdditionalInfo().get("candidates");
   }
