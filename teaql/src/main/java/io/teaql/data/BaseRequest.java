@@ -466,6 +466,13 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return this;
   }
 
+  protected BaseRequest<T> withTypeGroup() {
+    this.aggregations
+        .getSimpleDimensions()
+        .add(new SimpleNamedExpression("_type", new PropertyReference("_child_type")));
+    return this;
+  }
+
   protected Optional<PropertyDescriptor> getProperty(String property) {
     EntityDescriptor entityDescriptor = getEntityDescriptor();
     while (entityDescriptor != null) {
