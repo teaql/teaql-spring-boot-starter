@@ -22,5 +22,5 @@ dependencies {
     api 'com.doublechaintech:named-data-lib:1.0.4'
     api 'org.springframework:spring-jdbc'
     api 'org.springframework:spring-context'
-    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'com.fasterxml.jackson.core:jackson-databind'
 }

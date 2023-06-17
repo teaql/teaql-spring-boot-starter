@@ -1,26 +1,33 @@
 package io.teaql.data;
 
-import cn.hutool.extra.spring.SpringUtil;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-
 @Configuration
-@Import(SpringUtil.class)
-public class TQLAutoConfiguration implements WebMvcConfigurer {
+public class TQLAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   public TQLContextResolver userContextResolver() {
     return new TQLContextResolver(dataConfig());
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+  public TQLReactiveContextResolver reactiveUserContextResolver() {
+    return new TQLReactiveContextResolver(dataConfig());
   }
 
   @Bean
@@ -29,9 +36,30 @@ public class TQLAutoConfiguration implements WebMvcConfigurer {
     return new SimpleEntityMetaFactory();
   }
 
-  @Override
-  public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(userContextResolver());
+  @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  public WebMvcConfigurer webMvcConfigurer(List<HandlerMethodArgumentResolver> custom) {
+    return new WebMvcConfigurer() {
+      @Override
+      public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.addAll(custom);
+      }
+    };
+  }
+
+  @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+  public WebFluxConfigurer reactiveConfigure(
+      List<org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver> custom) {
+    return new WebFluxConfigurer() {
+      @Override
+      public void configureArgumentResolvers(ArgumentResolverConfigurer configure) {
+        for (org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver
+            handlerMethodArgumentResolver : custom) {
+          configure.addCustomResolver(handlerMethodArgumentResolver);
+        }
+      }
+    };
   }
 
   @Bean
