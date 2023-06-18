@@ -65,6 +65,7 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public WebMvcConfigurer webMvcConfigurer(TQLContextResolver tqlResolver) {
       return new WebMvcConfigurer() {
         @Override
@@ -100,6 +101,7 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public WebFluxConfigurer webFluxConfigurer(TQLReactiveContextResolver resolver) {
       return new WebFluxConfigurer() {
         @Override
