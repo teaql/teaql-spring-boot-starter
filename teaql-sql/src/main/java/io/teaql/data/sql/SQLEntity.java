@@ -80,7 +80,7 @@ public class SQLEntity {
     if (pList == null) {
       return true;
     }
-    // id不会为空，所以通过计数为1来判断
+    // id is not null, we count all non-values
     int notNullCount = 0;
     for (Object o : pList) {
       if (o != null) {

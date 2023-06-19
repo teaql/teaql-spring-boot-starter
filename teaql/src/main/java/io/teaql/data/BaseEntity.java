@@ -126,6 +126,16 @@ public class BaseEntity implements Entity {
     return getDynamicProperty(propertyName, null);
   }
 
+  @Override
+  public void markAsDeleted() {
+    gotoNextStatus(EntityAction.DELETE);
+  }
+
+  @Override
+  public void markAsRecover() {
+    gotoNextStatus(EntityAction.RECOVER);
+  }
+
   public <T> T getDynamicProperty(String propertyName, T defaultValue) {
     Object o = this.additionalInfo.get(dynamicPropertyNameOf(propertyName));
     if (o == null) {

@@ -2,12 +2,19 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.meta.EntityDescriptor;
 import java.util.Collection;
 
 public interface Repository<T extends Entity> {
 
   EntityDescriptor getEntityDescriptor();
+
+  Collection<T> save(UserContext userContext, Collection<T> entities);
+
+  SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request);
+
+  AggregationResult aggregation(UserContext userContext, SearchRequest<T> request);
 
   default Long prepareId(UserContext userContext, T entity) {
     if (entity.getId() != null) {
@@ -30,23 +37,42 @@ public interface Repository<T extends Entity> {
     return entity;
   }
 
-  Collection<T> save(UserContext userContext, Collection<T> entities);
-
   default void delete(UserContext userContext, T entity) {
+    if (ObjectUtil.isEmpty(entity)) {
+      return;
+    }
     delete(userContext, ListUtil.of(entity));
   }
 
-  void delete(UserContext userContext, Collection<T> entities);
+  default void delete(UserContext userContext, Collection<T> entities) {
+    if (ObjectUtil.isNotEmpty(entities)) {
+      for (T entity : entities) {
+        entity.markAsDeleted();
+      }
+    }
+    save(userContext, entities);
+  }
 
   default void recover(UserContext userContext, T entity) {
+    if (ObjectUtil.isEmpty(entity)) {
+      return;
+    }
     recover(userContext, ListUtil.of(entity));
   }
 
-  void recover(UserContext userContext, Collection<T> entities);
+  default void recover(UserContext userContext, Collection<T> entities) {
+    if (ObjectUtil.isNotEmpty(entities)) {
+      for (T entity : entities) {
+        entity.markAsRecover();
+      }
+    }
+    save(userContext, entities);
+  }
 
-  T execute(UserContext userContext, SearchRequest<T> request);
-
-  SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request);
-
-  AggregationResult aggregation(UserContext userContext, SearchRequest<T> request);
+  default T execute(UserContext userContext, SearchRequest<T> request) {
+    if (request instanceof BaseRequest) {
+      ((BaseRequest<T>) request).top(1);
+    }
+    return executeForList(userContext, request).first();
+  }
 }

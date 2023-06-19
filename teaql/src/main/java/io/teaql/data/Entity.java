@@ -58,4 +58,8 @@ public interface Entity {
   void appendDynamicProperty(String propertyName, Object value);
 
   <T> T getDynamicProperty(String propertyName);
+
+  void markAsDeleted();
+
+  void markAsRecover();
 }

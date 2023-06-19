@@ -5,28 +5,27 @@ import static io.teaql.data.EntityAction.*;
 import cn.hutool.core.map.multi.RowKeyTable;
 import cn.hutool.core.util.StrUtil;
 
-// entity的状态
+// entity status definitions
 public enum EntityStatus {
-  // 通过new 创建的entity, 目标是保存新对象
+  // the entity is created from constructors
   NEW,
 
-  // 持久化的
-  // Repository接口(save,query)返回的对象（总是含有id, version > 0）
+  // the entity from Repository save,query（with version > 0）
   PERSISTED,
 
-  // Repository接口(save,query,deleted)返回的对象总是含有id, version < 0）
+  // the entity from Repository save,query,delete（with version < 0）
   PERSISTED_DELETED,
 
-  // 已更新, 对于PERSISTED的对象，（成功）更新里面的字段后的状态
+  // the PERSISTED entities after successfully updated
   UPDATED,
 
-  // 已删除, 对于PERSISTED的对象
+  // the PERSISTED entities after successfully deleted
   UPDATED_DELETED,
 
-  // 已更新, 对于PERSISTED_DELETED的对象，调用recover
+  // the PERSISTED_DELETED entities after successfully recover
   UPDATED_RECOVER,
 
-  // 引用, 含有ID, 只表示关系， 持久化时会跳过它
+  // refer only, cannot change it, and will not persist it
   REFER;
 
   private static final RowKeyTable<EntityStatus, EntityAction, EntityStatus> statusTransaction =

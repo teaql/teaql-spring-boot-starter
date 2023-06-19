@@ -10,7 +10,7 @@ publishing {
     publications {
         library(MavenPublication) {
             groupId = "${groupId}"
-            artifactId = 'teaql'
+            artifactId = 'teaql-sql'
             version = "${version}"
             from components.java
         }
@@ -18,8 +18,5 @@ publishing {
 }
 
 dependencies {
-    api 'cn.hutool:hutool-all:5.8.15'
-    api 'com.doublechaintech:named-data-lib:1.0.4'
-    implementation 'org.springframework:spring-context'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation project(':teaql')
 }

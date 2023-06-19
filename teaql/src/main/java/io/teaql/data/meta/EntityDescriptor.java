@@ -4,9 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.Entity;
-import io.teaql.data.sql.GenericSQLProperty;
-import io.teaql.data.sql.GenericSQLRelation;
-
 import java.util.*;
 
 /**
@@ -128,50 +125,6 @@ public class EntityDescriptor {
 
   public PropertyDescriptor findIdProperty() {
     return getOwnProperties().stream().filter(p -> p.isId()).findFirst().orElse(null);
-  }
-
-  public EntityDescriptor addSimpleProperty(
-      String propertyName, Class type, String tableName, String columnName, String columnType) {
-    GenericSQLProperty property = new GenericSQLProperty(tableName, columnName, columnType);
-    property.setName(propertyName);
-    property.setType(new SimplePropertyType(type));
-    property.setOwner(this);
-    properties.add(property);
-    return this;
-  }
-
-  public EntityDescriptor addObjectProperty(
-      EntityMetaFactory factory,
-      String propertyName,
-      String parentType,
-      String reverseName,
-      Class<? extends Entity> parentClass,
-      String tableName,
-      String columnName,
-      String columnType) {
-    GenericSQLRelation relation = new GenericSQLRelation();
-    relation.setOwner(this);
-    relation.setName(propertyName);
-    relation.setType(new SimplePropertyType(parentClass));
-    relation.setRelationKeeper(this);
-    relation.setTableName(tableName);
-    relation.setColumnName(columnName);
-    relation.setColumnType(columnType);
-    properties.add(relation);
-
-    // parent增加一个反向的关系
-    EntityDescriptor refer = factory.resolveEntityDescriptor(parentType);
-    Relation reverse = new Relation();
-    reverse.setOwner(refer);
-    reverse.setName(reverseName);
-    reverse.setType(new SimplePropertyType(this.getTargetType()));
-    reverse.setRelationKeeper(this);
-
-    relation.setReverseProperty(reverse);
-    reverse.setReverseProperty(relation);
-
-    refer.properties.add(reverse);
-    return this;
   }
 
   @Override
