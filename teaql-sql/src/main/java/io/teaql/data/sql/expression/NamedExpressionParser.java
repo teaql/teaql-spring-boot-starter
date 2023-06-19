@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.Expression;
 import io.teaql.data.SimpleNamedExpression;
 import io.teaql.data.UserContext;
-import io.teaql.data.sql.SQLColumnResolver;
+import io.teaql.data.sql.SQLRepository;
 import java.util.Map;
 
 public class NamedExpressionParser implements SQLExpressionParser<SimpleNamedExpression> {
@@ -19,7 +19,7 @@ public class NamedExpressionParser implements SQLExpressionParser<SimpleNamedExp
       SimpleNamedExpression expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     Expression inner = expression.getExpression();
     String sql = ExpressionHelper.toSql(userContext, inner, idTable, parameters, sqlColumnResolver);
     String name = expression.name();

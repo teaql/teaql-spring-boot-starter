@@ -8,8 +8,7 @@ import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.OneOperatorCriteria;
 import io.teaql.data.criteria.Operator;
-import io.teaql.data.sql.SQLColumnResolver;
-
+import io.teaql.data.sql.SQLRepository;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +24,7 @@ public class OneOperatorExpressionParser implements SQLExpressionParser<OneOpera
       OneOperatorCriteria criteria,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     List<Expression> expressions = criteria.getExpressions();
     PropertyFunction operator = criteria.getOperator();
     if (!(operator instanceof Operator)) {

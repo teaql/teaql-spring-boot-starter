@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.PropertyReference;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumn;
-import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class PropertyParser implements SQLExpressionParser<PropertyReference> {
       PropertyReference property,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     String propertyName = property.getPropertyName();
     SQLColumn propertyColumn = sqlColumnResolver.getPropertyColumn(idTable, propertyName);
     if (userContext.getBool(SQLRepository.MULTI_TABLE, false)) {

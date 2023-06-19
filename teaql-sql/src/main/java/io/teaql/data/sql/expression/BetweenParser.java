@@ -4,8 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.Expression;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Between;
-import io.teaql.data.sql.SQLColumnResolver;
-
+import io.teaql.data.sql.SQLRepository;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class BetweenParser implements SQLExpressionParser<Between> {
       Between expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     List<Expression> expressions = expression.getExpressions();
     Expression property = expressions.get(0);
     Expression lowValue = expressions.get(1);

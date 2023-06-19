@@ -3,7 +3,7 @@ package io.teaql.data.sql.expression;
 import io.teaql.data.OrderBy;
 import io.teaql.data.OrderBys;
 import io.teaql.data.UserContext;
-import io.teaql.data.sql.SQLColumnResolver;
+import io.teaql.data.sql.SQLRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ public class OrderBysParser implements SQLExpressionParser<OrderBys> {
       OrderBys expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     List<OrderBy> orderBys = expression.getOrderBys();
     if (orderBys.isEmpty()) {
       return null;

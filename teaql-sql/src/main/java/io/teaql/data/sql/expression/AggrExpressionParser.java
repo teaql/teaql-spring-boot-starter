@@ -3,8 +3,7 @@ package io.teaql.data.sql.expression;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.*;
-import io.teaql.data.sql.SQLColumnResolver;
-
+import io.teaql.data.sql.SQLRepository;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
       AggrExpression agg,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     PropertyFunction operator = agg.getOperator();
     if (!(operator instanceof AggrFunction)) {
       throw new RepositoryException("AggrExpression的operator只能是" + AggrFunction.class);

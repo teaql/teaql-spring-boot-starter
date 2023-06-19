@@ -4,6 +4,7 @@ import io.teaql.data.Expression;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumnResolver;
+import io.teaql.data.sql.SQLRepository;
 
 import java.util.Map;
 
@@ -17,15 +18,15 @@ public interface SQLExpressionParser<T extends Expression> {
       T expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
-    return toSql(userContext, expression, parameters, sqlColumnResolver);
+      SQLRepository sqlRepository) {
+    return toSql(userContext, expression, parameters, sqlRepository);
   }
 
   default String toSql(
       UserContext userContext,
       T expression,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlRepository) {
     throw new RepositoryException("尚未实现");
   }
 

@@ -6,7 +6,6 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.TypeCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumn;
-import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
 import java.util.Map;
 
@@ -22,7 +21,7 @@ public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
       TypeCriteria expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     SQLColumn childType = sqlColumnResolver.getPropertyColumn(idTable, "_child_type");
     if (childType == null) {
       // 没有子类型,忽略此条件

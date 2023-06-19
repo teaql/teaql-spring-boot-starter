@@ -16,10 +16,12 @@ import io.teaql.data.meta.PropertyType;
 import io.teaql.data.meta.Relation;
 import io.teaql.data.repository.AbstractRepository;
 import io.teaql.data.sql.expression.ExpressionHelper;
+import io.teaql.data.sql.expression.SQLExpressionParser;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -43,11 +45,43 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   private List<String> auxiliaryTableNames;
   private List<PropertyDescriptor> allProperties = new ArrayList<>();
 
+  private Map<Class, SQLExpressionParser> expressionParsers = new ConcurrentHashMap<>();
+
   public SQLRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     this.entityDescriptor = entityDescriptor;
     this.dataSource = dataSource;
     initSQLMeta(entityDescriptor);
     DbUtil.setShowSqlGlobal(false, false, false, Level.TRACE);
+    initExpressionParsers(entityDescriptor, dataSource);
+  }
+
+  protected void initExpressionParsers(EntityDescriptor entityDescriptor, DataSource dataSource) {
+    Set<Class<?>> parsers =
+        ClassUtil.scanPackageBySuper(
+            ExpressionHelper.class.getPackageName(), SQLExpressionParser.class);
+    for (Class<?> parser : parsers) {
+      if (!ClassUtil.isInterface(parser) && !ClassUtil.isAbstract(parser)) {
+        SQLExpressionParser o = (SQLExpressionParser) ReflectUtil.newInstance(parser);
+        registerExpressionParser(o);
+      }
+    }
+  }
+
+  public void registerExpressionParser(SQLExpressionParser sqlExpressionParser) {
+    if (sqlExpressionParser == null) {
+      return;
+    }
+    Class type = sqlExpressionParser.type();
+    if (type != null) {
+      expressionParsers.put(type, sqlExpressionParser);
+    }
+  }
+
+  public void registerExpressionParser(Class<? extends SQLExpressionParser> parser) {
+    if (!ClassUtil.isInterface(parser) && !ClassUtil.isAbstract(parser)) {
+      SQLExpressionParser o = ReflectUtil.newInstance(parser);
+      registerExpressionParser(o);
+    }
   }
 
   private void initSQLMeta(EntityDescriptor entityDescriptor) {
@@ -599,37 +633,38 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   public String buildDataSQL(
       UserContext userContext, SearchRequest request, Map<String, Object> parameters) {
 
-    // 收集所有相关联的表
+    // collect tables from the request
     List<String> tables = collectDataTables(userContext, request);
 
-    // 随机选择一个表（这里用了第一个）作为idTable
     if (ObjectUtil.isEmpty(tables)) {
       tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
     }
+
+    // pick the first the table as the id table(all tables have id column)
     String idTable = tables.get(0);
     userContext.put(MULTI_TABLE, tables.size() > 1);
 
-    // 生成查询条件
+    // condition
     String whereSql =
         prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
 
-    // 运算条件为false,不会有结果
+    // condition is false, no result
     if (SearchCriteria.FALSE.equalsIgnoreCase(whereSql)) {
       return null;
     }
 
-    // 分页要求不要数据(用于统计)
+    // no data is required
     if (request.getSlice() != null && request.getSlice().getSize() == 0) {
       return null;
     }
 
     String tableSQl = leftJoinTables(userContext, tables);
 
-    // select部分
+    // selects
     String selectSql = collectSelectSql(userContext, request, idTable, parameters);
 
     String partitionProperty = request.getPartitionProperty();
-    if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
+    if (ObjectUtil.isNotEmpty(partitionProperty) && request.getSlice() != null) {
       ensureOrderByForPartition(request);
     }
 
@@ -687,7 +722,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   public String leftJoinTables(UserContext userContext, List<String> tables) {
     List<String> sortedTables = new ArrayList<>();
-    // table按主表排序
     for (String table : tables) {
       if (primaryTableNames.contains(table)) {
         sortedTables.add(table);
@@ -698,16 +732,17 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         sortedTables.add(table);
       }
     }
+
+    if (!userContext.getBool(MULTI_TABLE, false)) {
+      return StrUtil.format("{}", sortedTables.get(0));
+    }
+
     StringBuilder sb = new StringBuilder();
     String preTable = null;
     for (String sortedTable : sortedTables) {
       if (preTable == null) {
         preTable = sortedTable;
-        if (userContext.getBool(MULTI_TABLE, false)) {
-          sb.append(StrUtil.format("{} AS {}", sortedTable, tableAlias(sortedTable)));
-        } else {
-          sb.append(StrUtil.format("{}", sortedTable));
-        }
+        sb.append(StrUtil.format("{} AS {}", sortedTable, tableAlias(sortedTable)));
         continue;
       }
       sb.append(
@@ -1316,5 +1351,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   public void setTqlIdSpaceTable(String pTqlIdSpaceTable) {
     tqlIdSpaceTable = pTqlIdSpaceTable;
+  }
+
+  public Map<Class, SQLExpressionParser> getExpressionParsers() {
+    return expressionParsers;
   }
 }

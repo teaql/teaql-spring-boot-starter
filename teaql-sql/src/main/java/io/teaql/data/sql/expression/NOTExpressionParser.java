@@ -7,6 +7,7 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.NOT;
 import io.teaql.data.sql.SQLColumnResolver;
+import io.teaql.data.sql.SQLRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class NOTExpressionParser implements SQLExpressionParser<NOT> {
       NOT expression,
       String idTable,
       Map<String, Object> parameters,
-      SQLColumnResolver sqlColumnResolver) {
+      SQLRepository sqlColumnResolver) {
     List<Expression> expressions = expression.getExpressions();
     Expression sub = CollectionUtil.getFirst(expressions);
     if (sub == null) {
