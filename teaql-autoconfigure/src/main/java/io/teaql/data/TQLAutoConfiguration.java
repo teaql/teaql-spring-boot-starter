@@ -1,9 +1,14 @@
 package io.teaql.data;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -35,6 +40,33 @@ public class TQLAutoConfiguration {
   @ConditionalOnMissingBean
   public EntityMetaFactory entityMetaFactory() {
     return new SimpleEntityMetaFactory();
+  }
+
+  @Bean
+  public TQLResolver tqlResolver() {
+    TQLResolver tqlResolver =
+        new TQLResolver() {
+          @Override
+          public <T> T getBean(Class<T> clazz) {
+            return SpringUtil.getBean(clazz);
+          }
+
+          @Override
+          public <T> List<T> getBeans(Class<T> clazz) {
+            Map<String, T> beansOfType = SpringUtil.getBeansOfType(clazz);
+            if (ObjectUtil.isEmpty(beansOfType)) {
+              return Collections.emptyList();
+            }
+            return new ArrayList<>(beansOfType.values());
+          }
+
+          @Override
+          public <T> T getBean(String name) {
+            return SpringUtil.getBean(name);
+          }
+        };
+    GLobalResolver.registerResolver(tqlResolver);
+    return tqlResolver;
   }
 
   @Configuration

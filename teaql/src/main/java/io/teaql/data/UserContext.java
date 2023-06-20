@@ -2,11 +2,9 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.*;
-import cn.hutool.extra.spring.SpringUtil;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
-import io.teaql.data.meta.EntityMetaFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,25 +13,37 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserContext {
+  private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
   public Repository resolveRepository(String type) {
-    Map<String, Repository> beansOfType = SpringUtil.getBeansOfType(Repository.class);
-    for (Repository value : beansOfType.values()) {
-      if (value.getEntityDescriptor().getType().equals(type)) {
-        return value;
+    if (resolver != null) {
+      Repository repository = resolver.resolveRepository(type);
+      if (repository != null) {
+        return repository;
       }
     }
     throw new RepositoryException("Repository for:" + type + " not defined.");
   }
 
   public DataConfigProperties config() {
-    return SpringUtil.getBean(DataConfigProperties.class);
+    if (resolver != null) {
+      DataConfigProperties bean = resolver.getBean(DataConfigProperties.class);
+      if (bean != null) {
+        return bean;
+      }
+    }
+    return new DataConfigProperties();
   }
 
   public EntityDescriptor resolveEntityDescriptor(String type) {
-    EntityMetaFactory bean = SpringUtil.getBean(EntityMetaFactory.class);
-    return bean.resolveEntityDescriptor(type);
+    if (resolver != null) {
+      EntityDescriptor entityDescriptor = resolver.resolveEntityDescriptor(type);
+      if (entityDescriptor != null) {
+        return entityDescriptor;
+      }
+    }
+    throw new RepositoryException("ItemDescriptor for:" + type + " not defined.");
   }
 
   public void saveGraph(Object items) {
@@ -110,7 +120,13 @@ public class UserContext {
   }
 
   public <T> T getBean(Class<T> clazz) {
-    return SpringUtil.getBean(clazz);
+    if (resolver != null) {
+      T bean = resolver.getBean(clazz);
+      if (bean != null) {
+        return bean;
+      }
+    }
+    throw new TQLException("No bean defined for type:" + clazz);
   }
 
   public LocalDateTime now() {
@@ -209,5 +225,13 @@ public class UserContext {
 
   public void afterPersist(BaseEntity item) {
     item.clearUpdatedProperties();
+  }
+
+  public TQLResolver getResolver() {
+    return resolver;
+  }
+
+  public void setResolver(TQLResolver pResolver) {
+    resolver = pResolver;
   }
 }

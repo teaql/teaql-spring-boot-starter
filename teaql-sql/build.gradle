@@ -18,5 +18,5 @@ publishing {
 }
 
 dependencies {
-    implementation project(':teaql')
+    api project(':teaql')
 }

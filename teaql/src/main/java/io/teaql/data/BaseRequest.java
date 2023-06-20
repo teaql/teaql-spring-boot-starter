@@ -3,11 +3,9 @@ package io.teaql.data;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.teaql.data.criteria.*;
 import io.teaql.data.meta.EntityDescriptor;
-import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
 import java.util.*;
@@ -486,9 +484,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   private EntityDescriptor getEntityDescriptor() {
-    EntityMetaFactory entityMetaFactory = SpringUtil.getBean(EntityMetaFactory.class);
-    EntityDescriptor entityDescriptor = entityMetaFactory.resolveEntityDescriptor(getTypeName());
-    return entityDescriptor;
+    TQLResolver globalResolver = GLobalResolver.getGlobalResolver();
+    if (globalResolver == null) {
+      throw new TQLException("No global resolver registered");
+    }
+    return globalResolver.resolveEntityDescriptor(getTypeName());
   }
 
   public boolean isOneOfSelfField(String propertyName) {
