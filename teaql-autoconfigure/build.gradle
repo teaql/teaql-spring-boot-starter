@@ -3,7 +3,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
-    compileOnly 'com.zaxxer:HikariCP'
 }
 
 publishing {

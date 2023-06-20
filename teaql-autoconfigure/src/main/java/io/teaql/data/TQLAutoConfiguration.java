@@ -3,28 +3,19 @@ package io.teaql.data;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.zaxxer.hikari.HikariDataSource;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -37,30 +28,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import reactor.core.publisher.Mono;
 
 @Configuration
-@EnableConfigurationProperties(DataSourceProperties.class)
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class TQLAutoConfiguration {
-
-  // copy from spring jdbc, we only want the data source injection here
-  @Configuration(proxyBeanMethods = false)
-  @ConditionalOnClass(HikariDataSource.class)
-  @ConditionalOnMissingBean(DataSource.class)
-  @ConditionalOnProperty(
-      name = "spring.datasource.type",
-      havingValue = "com.zaxxer.hikari.HikariDataSource",
-      matchIfMissing = true)
-  static class Hikari {
-    @Bean
-    @ConfigurationProperties(prefix = "spring.datasource.hikari")
-    HikariDataSource dataSource(DataSourceProperties properties) {
-      HikariDataSource dataSource =
-          properties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
-      if (StringUtils.hasText(properties.getName())) {
-        dataSource.setPoolName(properties.getName());
-      }
-      return dataSource;
-    }
-  }
 
   @Bean
   @ConfigurationProperties(prefix = "teaql")
