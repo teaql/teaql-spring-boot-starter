@@ -1,10 +1,13 @@
 package io.teaql.data.checker;
 
 import cn.hutool.core.util.StrUtil;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class CheckException extends RuntimeException {
+
+  List<CheckResult> violates = new ArrayList<>();
+
   public CheckException() {
     super();
   }
@@ -26,7 +29,8 @@ public class CheckException extends RuntimeException {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 
-  public CheckException(List pErrors) {
+  public CheckException(List<CheckResult> pErrors) {
     this(StrUtil.join(";", pErrors));
+    this.violates = pErrors;
   }
 }

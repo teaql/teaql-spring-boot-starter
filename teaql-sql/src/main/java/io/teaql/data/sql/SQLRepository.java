@@ -604,6 +604,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             ((BaseEntity) entity).set$status(EntityStatus.PERSISTED);
           }
         }
+        list.add(entity);
       }
       return list;
     };
@@ -963,10 +964,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 }
 
                 if (dbCurrent == null) {
+                  current.set(1l);
                   db.execute(
                       StrUtil.format(
                           "INSERT INTO {} VALUES ('{}', {})", getTqlIdSpaceTable(), type, current));
-                  current.set(1l);
                   return;
                 }
                 dbCurrent = NumberUtil.add(dbCurrent, 1);

@@ -5,9 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.UserContext;
-
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /** 在保存entity之前会用checker来检查或设置一些默认值 */
 public interface Checker<T extends BaseEntity> {
@@ -51,68 +49,46 @@ public interface Checker<T extends BaseEntity> {
 
   default void requiredCheck(UserContext ctx, String preFix, Object current) {
     if (ObjectUtil.isNull(current)) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, StrUtil.format("{}不能为空", preFix));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.required(preFix));
     }
   }
 
   default void minNumberCheck(UserContext ctx, String preFix, Number minNumber, Number current) {
     if (NumberUtil.isLess(NumberUtil.toBigDecimal(current), NumberUtil.toBigDecimal(minNumber))) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format("{}最小值检查失败:系统要求不能小于{},当前值{}", preFix, minNumber, current));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.min(preFix, minNumber, current));
     }
   }
 
   default void maxNumberCheck(UserContext ctx, String preFix, Number maxNumber, Number current) {
     if (NumberUtil.isGreater(
         NumberUtil.toBigDecimal(current), NumberUtil.toBigDecimal(maxNumber))) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format("{}最大值检查失败:系统要求不能大于{},当前值{}", preFix, maxNumber, current));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.max(preFix, maxNumber, current));
     }
   }
 
   default void minStringCheck(UserContext ctx, String preFix, int minLen, CharSequence value) {
     if (StrUtil.length(value) < minLen) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format(
-              "{}最小长度检查失败:系统要求不能小于{},当前值{}长度为{}", preFix, minLen, value, value.length()));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minStr(preFix, minLen, value));
     }
   }
 
   default void maxStringCheck(UserContext ctx, String preFix, int maxLen, CharSequence value) {
     if (StrUtil.length(value) > maxLen) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format(
-              "{}最大长度检查失败:系统要求不能大于{},当前值{}长度为{}", preFix, maxLen, value, value.length()));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxStr(preFix, maxLen, value));
     }
   }
 
   default void minDateTimeCheck(
       UserContext ctx, String preFix, LocalDateTime minDate, LocalDateTime value) {
     if (value.isBefore(minDate)) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format(
-              "{}最小日期检查失败:系统要求不能早于{},当前值{}",
-              preFix,
-              minDate.format(DateTimeFormatter.ISO_DATE),
-              value.format(DateTimeFormatter.ISO_DATE)));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minDate(preFix, minDate, value));
     }
   }
 
   default void maxDateTimeCheck(
       UserContext ctx, String preFix, LocalDateTime maxDate, LocalDateTime value) {
     if (value.isAfter(maxDate)) {
-      ctx.append(
-          TEAQL_DATA_CHECK_RESULT,
-          StrUtil.format(
-              "{}最大日期检查失败:系统要求不能晚于{},当前值{}",
-              preFix,
-              maxDate.format(DateTimeFormatter.ISO_DATE),
-              value.format(DateTimeFormatter.ISO_DATE)));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxDate(preFix, maxDate, value));
     }
   }
 
