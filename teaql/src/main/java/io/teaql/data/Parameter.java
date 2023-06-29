@@ -1,6 +1,7 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.criteria.Operator;
@@ -29,7 +30,7 @@ public class Parameter implements Expression {
     this.name = name;
     List values = flatValues(value);
     if (multiValue) {
-      this.value = values;
+      this.value = values.toArray();
     } else {
       Object first = CollectionUtil.getFirst(values);
       this.value = first;
