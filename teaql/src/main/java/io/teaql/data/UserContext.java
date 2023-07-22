@@ -5,6 +5,7 @@ import cn.hutool.core.util.*;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -202,7 +203,13 @@ public class UserContext {
     return BooleanUtil.toBooleanObject(ObjectUtil.toString(obj));
   }
 
-  public void init(Object request) {}
+  public void init(Object request) {
+    Class<? extends UserContextInitializer> contextInitializer = config().getContextInitializer();
+    if (contextInitializer != null) {
+      UserContextInitializer initializer = ReflectUtil.newInstanceIfPossible(contextInitializer);
+      initializer.init(this, request);
+    }
+  }
 
   public InternalIdGenerator getInternalIdGenerator() {
     return internalIdGenerator;

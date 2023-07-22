@@ -4,68 +4,68 @@ import java.time.LocalDateTime;
 
 public class CheckResult {
   private RuleId ruleId;
-  private String location;
+  private ObjectLocation location;
 
   private String rootType;
 
   private Object inputValue;
   private Object systemValue;
 
-  public static CheckResult required(String prefix) {
+  public static CheckResult required(ObjectLocation location) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(prefix);
+    checkResult.setLocation(location);
     checkResult.setRuleId(RuleId.REQUIRED);
     return checkResult;
   }
 
-  public static Object min(String preFix, Number minNumber, Number current) {
+  public static Object min(ObjectLocation location, Number minNumber, Number current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(minNumber);
     checkResult.setRuleId(RuleId.MIN);
     return checkResult;
   }
 
-  public static Object max(String preFix, Number maxNumber, Number current) {
+  public static Object max(ObjectLocation location, Number maxNumber, Number current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(maxNumber);
     checkResult.setRuleId(RuleId.MAX);
     return checkResult;
   }
 
-  public static Object minStr(String preFix, int minLen, CharSequence current) {
+  public static Object minStr(ObjectLocation location, int minLen, CharSequence current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(minLen);
     checkResult.setRuleId(RuleId.MIN_STR_LEN);
     return checkResult;
   }
 
-  public static Object maxStr(String preFix, int maxLen, CharSequence current) {
+  public static Object maxStr(ObjectLocation location, int maxLen, CharSequence current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(maxLen);
     checkResult.setRuleId(RuleId.MAX_STR_LEN);
     return checkResult;
   }
 
-  public static Object minDate(String preFix, LocalDateTime min, LocalDateTime current) {
+  public static Object minDate(ObjectLocation location, LocalDateTime min, LocalDateTime current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(min);
     checkResult.setRuleId(RuleId.MIN_DATE);
     return checkResult;
   }
 
-  public static Object maxDate(String preFix, LocalDateTime max, LocalDateTime current) {
+  public static Object maxDate(ObjectLocation location, LocalDateTime max, LocalDateTime current) {
     CheckResult checkResult = new CheckResult();
-    checkResult.setLocation(preFix);
+    checkResult.setLocation(location);
     checkResult.setInputValue(current);
     checkResult.setSystemValue(max);
     checkResult.setRuleId(RuleId.MAX_DATE);
@@ -80,11 +80,11 @@ public class CheckResult {
     ruleId = pRuleId;
   }
 
-  public String getLocation() {
+  public ObjectLocation getLocation() {
     return location;
   }
 
-  public void setLocation(String pLocation) {
+  public void setLocation(ObjectLocation pLocation) {
     location = pLocation;
   }
 

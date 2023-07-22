@@ -12,7 +12,7 @@ public interface Checker<T extends BaseEntity> {
   String TEAQL_DATA_CHECK_RESULT = "teaql_data_check_result";
   String TEAQL_DATA_CHECKED_ITEMS = "teaql_data_checkedItems";
 
-  void checkAndFix(UserContext ctx, T entity, String preFix);
+  void checkAndFix(UserContext ctx, T entity, ObjectLocation location);
 
   default void markAsChecked(UserContext ctx, T entity) {
     ctx.append(TEAQL_DATA_CHECKED_ITEMS, entity);
@@ -36,63 +36,67 @@ public interface Checker<T extends BaseEntity> {
     }
   }
 
-  default String newPrefix(String prefix, String member) {
-    if (ObjectUtil.isEmpty(prefix)) {
-      return member;
+  default ObjectLocation newLocation(ObjectLocation parent, String member) {
+    if (ObjectUtil.isEmpty(parent)) {
+      return ObjectLocation.hashRoot(member);
     }
-    return prefix + "." + member;
+    return parent.member(member);
   }
 
-  default String newPrefix(String prefix, String member, int index) {
-    return StrUtil.format("{}[{}]", newPrefix(prefix, member), index);
+  default ObjectLocation newLocation(ObjectLocation parent, String member, int index) {
+    return newLocation(parent, member).element(index);
   }
 
-  default void requiredCheck(UserContext ctx, String preFix, Object current) {
+  default void requiredCheck(UserContext ctx, ObjectLocation location, Object current) {
     if (ObjectUtil.isNull(current)) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.required(preFix));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.required(location));
     }
   }
 
-  default void minNumberCheck(UserContext ctx, String preFix, Number minNumber, Number current) {
+  default void minNumberCheck(
+      UserContext ctx, ObjectLocation location, Number minNumber, Number current) {
     if (NumberUtil.isLess(NumberUtil.toBigDecimal(current), NumberUtil.toBigDecimal(minNumber))) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.min(preFix, minNumber, current));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.min(location, minNumber, current));
     }
   }
 
-  default void maxNumberCheck(UserContext ctx, String preFix, Number maxNumber, Number current) {
+  default void maxNumberCheck(
+      UserContext ctx, ObjectLocation location, Number maxNumber, Number current) {
     if (NumberUtil.isGreater(
         NumberUtil.toBigDecimal(current), NumberUtil.toBigDecimal(maxNumber))) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.max(preFix, maxNumber, current));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.max(location, maxNumber, current));
     }
   }
 
-  default void minStringCheck(UserContext ctx, String preFix, int minLen, CharSequence value) {
+  default void minStringCheck(
+      UserContext ctx, ObjectLocation location, int minLen, CharSequence value) {
     if (StrUtil.length(value) < minLen) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minStr(preFix, minLen, value));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minStr(location, minLen, value));
     }
   }
 
-  default void maxStringCheck(UserContext ctx, String preFix, int maxLen, CharSequence value) {
+  default void maxStringCheck(
+      UserContext ctx, ObjectLocation location, int maxLen, CharSequence value) {
     if (StrUtil.length(value) > maxLen) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxStr(preFix, maxLen, value));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxStr(location, maxLen, value));
     }
   }
 
   default void minDateTimeCheck(
-      UserContext ctx, String preFix, LocalDateTime minDate, LocalDateTime value) {
+      UserContext ctx, ObjectLocation location, LocalDateTime minDate, LocalDateTime value) {
     if (value.isBefore(minDate)) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minDate(preFix, minDate, value));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.minDate(location, minDate, value));
     }
   }
 
   default void maxDateTimeCheck(
-      UserContext ctx, String preFix, LocalDateTime maxDate, LocalDateTime value) {
+      UserContext ctx, ObjectLocation location, LocalDateTime maxDate, LocalDateTime value) {
     if (value.isAfter(maxDate)) {
-      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxDate(preFix, maxDate, value));
+      ctx.append(TEAQL_DATA_CHECK_RESULT, CheckResult.maxDate(location, maxDate, value));
     }
   }
 
   default void checkAndFix(UserContext ctx, T entity) {
-    checkAndFix(ctx, entity, "");
+    checkAndFix(ctx, entity, null);
   }
 }
