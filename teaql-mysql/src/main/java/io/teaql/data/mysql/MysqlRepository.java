@@ -1,4 +1,4 @@
-package io.teaql.data.mysql.io.teaql.data.mysql;
+package io.teaql.data.mysql;
 
 import io.teaql.data.Entity;
 import io.teaql.data.meta.EntityDescriptor;
