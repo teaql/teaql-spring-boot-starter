@@ -1246,6 +1246,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return "text";
       case "time without time zone":
         return "time";
+      case "timestamp":
       case "timestamp without time zone":
         return "timestamp";
       default:
