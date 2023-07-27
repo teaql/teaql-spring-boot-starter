@@ -1188,7 +1188,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return property.getAdditionalInfo().get("candidates");
   }
 
-  private void ensure(
+  protected void ensure(
       UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
     // 表格不存在
     if (tableInfo.isEmpty()) {

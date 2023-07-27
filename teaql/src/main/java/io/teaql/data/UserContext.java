@@ -146,7 +146,12 @@ public class UserContext {
       return;
     }
     localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
+    errors = translateError(entity, errors);
     throw new CheckException(errors);
+  }
+
+  public List translateError(Entity pEntity, List errors) {
+    return errors;
   }
 
   public Object getObj(String key) {

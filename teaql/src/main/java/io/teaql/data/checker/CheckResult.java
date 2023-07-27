@@ -121,4 +121,14 @@ public class CheckResult {
     MAX_DATE,
     REQUIRED
   }
+
+  @Override
+  public String toString() {
+    return "CheckResult{" +
+            "ruleId=" + ruleId +
+            ", location=" + location +
+            ", inputValue=" + inputValue +
+            ", systemValue=" + systemValue +
+            '}';
+  }
 }
