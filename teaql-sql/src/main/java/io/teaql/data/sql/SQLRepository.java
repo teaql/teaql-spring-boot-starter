@@ -1241,6 +1241,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
       case "date":
         return "date";
+      case "int":
       case "integer":
         return "integer";
       case "numeric":
