@@ -1209,7 +1209,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       if (i > 0) {
         preColumnName = columns.get(i - 1).getColumnName();
       }
-      String dbColumnName = StrUtil.unWrap(columnName, '\"');
+      String dbColumnName = getPureColumnName(columnName);
       Map<String, Object> field = fields.get(dbColumnName);
       if (field == null) {
         addColumn(ctx, tableName, preColumnName, columnName, type);
@@ -1223,6 +1223,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
       alterColumn(ctx, tableName, columnName, type);
     }
+  }
+
+  protected String getPureColumnName(String columnName) {
+    return StrUtil.unWrap(columnName, '\"');
   }
 
   private String calculateDBType(Map<String, Object> columnInfo) {
