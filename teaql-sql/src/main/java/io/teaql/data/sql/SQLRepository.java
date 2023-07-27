@@ -1234,6 +1234,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     switch (dataType) {
       case "bigint":
         return "bigint";
+      case "tinyint":
       case "boolean":
         return "boolean";
       case "varchar":
@@ -1244,6 +1245,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       case "int":
       case "integer":
         return "integer";
+      case "decimal":
       case "numeric":
         return StrUtil.format(
             "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
