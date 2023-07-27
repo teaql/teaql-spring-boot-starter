@@ -1232,6 +1232,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return "bigint";
       case "boolean":
         return "boolean";
+      case "varchar":
       case "character varying":
         return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
       case "date":
