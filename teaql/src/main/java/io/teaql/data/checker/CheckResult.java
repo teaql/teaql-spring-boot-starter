@@ -11,6 +11,8 @@ public class CheckResult {
   private Object inputValue;
   private Object systemValue;
 
+  private String naturalLanguageStatement;
+
   public static CheckResult required(ObjectLocation location) {
     CheckResult checkResult = new CheckResult();
     checkResult.setLocation(location);
@@ -124,11 +126,23 @@ public class CheckResult {
 
   @Override
   public String toString() {
-    return "CheckResult{" +
-            "ruleId=" + ruleId +
-            ", location=" + location +
-            ", inputValue=" + inputValue +
-            ", systemValue=" + systemValue +
-            '}';
+    return "CheckResult{"
+        + "ruleId="
+        + ruleId
+        + ", location="
+        + location
+        + ", inputValue="
+        + inputValue
+        + ", systemValue="
+        + systemValue
+        + '}';
+  }
+
+  public String getNaturalLanguageStatement() {
+    return naturalLanguageStatement;
+  }
+
+  public void setNaturalLanguageStatement(String pNaturalLanguageStatement) {
+    naturalLanguageStatement = pNaturalLanguageStatement;
   }
 }

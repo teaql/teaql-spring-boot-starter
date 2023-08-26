@@ -3,6 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.*;
 import io.teaql.data.checker.CheckException;
+import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.web.UserContextInitializer;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UserContext {
+public class UserContext implements NaturalLanguageTranslator {
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
@@ -138,8 +139,10 @@ public class UserContext {
     if (!(entity instanceof BaseEntity)) {
       return;
     }
-    String name = entity.getClass().getName();
-    Checker checker = getBean(ClassUtil.loadClass(name + "Checker"));
+    Checker checker = getChecker(entity);
+    if (ObjectUtil.isEmpty(checker)) {
+      throw new TQLException("No checker defined for entity:" + entity);
+    }
     checker.checkAndFix(this, (BaseEntity) entity);
     List errors = getList(Checker.TEAQL_DATA_CHECK_RESULT);
     if (ObjectUtil.isEmpty(errors)) {
@@ -150,8 +153,18 @@ public class UserContext {
     throw new CheckException(errors);
   }
 
-  public List translateError(Entity pEntity, List errors) {
-    return errors;
+  public Checker getChecker(Entity entity) {
+    String name = entity.getClass().getName();
+    Checker checker = getBean(ClassUtil.loadClass(name + "Checker"));
+    return checker;
+  }
+
+  public List<CheckResult> translateError(Entity pEntity, List<CheckResult> errors) {
+    return getNaturalLanguageTranslator().translateError(pEntity, errors);
+  }
+
+  public NaturalLanguageTranslator getNaturalLanguageTranslator() {
+    return new EnglishTranslator();
   }
 
   public Object getObj(String key) {

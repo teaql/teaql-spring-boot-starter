@@ -26,4 +26,23 @@ public class ObjectLocation {
   public ObjectLocation element(int index) {
     return new ArrayLocation(this, index);
   }
+
+  public int getLevel() {
+    if (getParent() == null) {
+      return 1;
+    }
+    return getParent().getLevel() + 1;
+  }
+
+  public boolean isFirstLevel() {
+    return getLevel() == 1;
+  }
+
+  public boolean isSecondLevel() {
+    return getLevel() == 2;
+  }
+
+  public boolean isThirdLevel() {
+    return getLevel() == 3;
+  }
 }

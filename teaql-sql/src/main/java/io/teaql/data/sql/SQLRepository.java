@@ -862,9 +862,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         CollStreamUtil.groupByKey(allColumns, SQLColumn::getTableName);
     tableColumns.forEach(
         (table, columns) -> {
-          String sql =
-              String.format(
-                  "select * from information_schema.columns where table_name = '%s'", table);
+          String sql = findTableColumnsSql(dataSource, table);
           List<Map<String, Object>> dbTableInfo;
           try {
             dbTableInfo = DbUtil.use(dataSource).query(sql, mapList());
@@ -878,11 +876,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ensureIdSpaceTable(ctx);
   }
 
+  protected String findTableColumnsSql(DataSource dataSource, String table) {
+    return String.format("select * from information_schema.columns where table_name = '%s'", table);
+  }
+
   private void ensureIdSpaceTable(UserContext ctx) {
-    String sql =
-        String.format(
-            "select * from information_schema.columns where table_name = '%s'",
-            getTqlIdSpaceTable());
+    String sql = findIdSpaceTableSql();
     List<Map<String, Object>> dbTableInfo;
     try {
       dbTableInfo = DbUtil.use(dataSource).query(sql, mapList());
@@ -909,6 +908,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         throw new RepositoryException(pE);
       }
     }
+  }
+
+  private String findIdSpaceTableSql() {
+    return findTableColumnsSql(dataSource, getTqlIdSpaceTable());
   }
 
   private RsHandler<List<Map<String, Object>>> mapList() {

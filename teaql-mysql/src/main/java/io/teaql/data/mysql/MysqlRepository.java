@@ -8,6 +8,7 @@ import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -26,5 +27,17 @@ public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
 
   protected String getPureColumnName(String columnName) {
     return StrUtil.unWrap(columnName, '`');
+  }
+
+  @Override
+  protected String findTableColumnsSql(DataSource dataSource, String table) {
+    try {
+      String databaseName = dataSource.getConnection().getCatalog();
+      return String.format(
+          "select * from information_schema.columns where table_name = '%s' and table_schema = '%s'",
+          table, databaseName);
+    } catch (SQLException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 }
