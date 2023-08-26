@@ -1,5 +1,6 @@
 package io.teaql.data.checker;
 
+import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.util.StrUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,9 @@ public class CheckException extends RuntimeException {
   }
 
   public CheckException(List<CheckResult> pErrors) {
-    this(StrUtil.join(";", pErrors));
+    this(
+        StrUtil.join(
+            ";", CollStreamUtil.toList(pErrors, CheckResult::getNaturalLanguageStatement)));
     this.violates = pErrors;
   }
 }
