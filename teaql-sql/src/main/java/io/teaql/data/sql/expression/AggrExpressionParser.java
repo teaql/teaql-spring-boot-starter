@@ -33,7 +33,11 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
     String sqlColumn =
         ExpressionHelper.toSql(
             userContext, expressions.get(0), idTable, parameters, sqlColumnResolver);
-    AggrFunction aggrFunction = (AggrFunction) operator;
+    return genAggrSQL((AggrFunction) operator, sqlColumn);
+  }
+
+  public String genAggrSQL(AggrFunction operator, String sqlColumn) {
+    AggrFunction aggrFunction = operator;
     switch (aggrFunction) {
       case SELF:
         return sqlColumn;
