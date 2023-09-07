@@ -23,7 +23,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     }
     if (value instanceof LocalDate) {
       return StrUtil.format(
-          "TO_TIMESTAMP('{}', 'yyyy-mm-dd hh:mi:ss')",
+          "TO_DATE('{}', 'yyyy-mm-dd')",
           LocalDateTimeUtil.formatNormal((LocalDateTime) value));
     }
     return super.getSqlValue(value);
