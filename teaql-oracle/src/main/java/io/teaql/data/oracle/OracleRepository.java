@@ -24,7 +24,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     if (value instanceof LocalDate) {
       return StrUtil.format(
           "TO_DATE('{}', 'yyyy-mm-dd')",
-          LocalDateTimeUtil.formatNormal((LocalDateTime) value));
+          LocalDateTimeUtil.formatNormal((LocalDate) value));
     }
     return super.getSqlValue(value);
   }
