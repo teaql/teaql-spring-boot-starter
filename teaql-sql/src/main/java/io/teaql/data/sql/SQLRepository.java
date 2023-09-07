@@ -898,9 +898,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         .append(getTqlIdSpaceTable())
         .append(" (\n")
         .append("type_name varchar(100) PRIMARY KEY,\n")
-        .append("current_level bigint);\n");
+        .append("current_level bigint)\n");
     String createIdSpaceSql = sb.toString();
-    ctx.info(createIdSpaceSql);
+    ctx.info(createIdSpaceSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
         DbUtil.use(dataSource).execute(createIdSpaceSql);
@@ -1037,11 +1037,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         // update version
         String sql =
             StrUtil.format(
-                "UPDATE {} SET version = {} where id = '{}';\n",
+                "UPDATE {} SET version = {} where id = '{}'",
                 tableName(entityDescriptor.getType()),
                 -version,
                 genIdForCandidateCode(code));
-        ctx.info(sql);
+        ctx.info( sql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
           try {
             DbUtil.use(dataSource).execute(sql);
@@ -1054,12 +1054,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
       String sql =
           StrUtil.format(
-              "INSERT INTO {} ({}) VALUES ({});\n",
+              "INSERT INTO {} ({}) VALUES ({})",
               tableName(entityDescriptor.getType()),
               CollectionUtil.join(columns, ","),
               CollectionUtil.join(
                   oneConstant, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
-      ctx.info(sql);
+      ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
           DbUtil.use(dataSource).execute(sql);
@@ -1138,10 +1138,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       // update version
       String sql =
           StrUtil.format(
-              "UPDATE {} SET version = {} where id = '1';\n",
+              "UPDATE {} SET version = {} where id = '1'\n",
               tableName(entityDescriptor.getType()),
               -version);
-      ctx.info(sql);
+      ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
           DbUtil.use(dataSource).execute(sql);
@@ -1162,12 +1162,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     String sql =
         StrUtil.format(
-            "INSERT INTO {} ({}) VALUES ({});\n",
+            "INSERT INTO {} ({}) VALUES ({})\n",
             tableName(entityDescriptor.getType()),
             CollectionUtil.join(columns, ","),
             CollectionUtil.join(
                 rootRow, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
-    ctx.info(sql);
+    ctx.info(sql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
         DbUtil.use(dataSource).execute(sql);
@@ -1266,8 +1266,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   private void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
     String alterColumnSql =
-        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {};", tableName, columnName, type);
-    ctx.info(alterColumnSql);
+        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {}", tableName, columnName, type);
+    ctx.info(alterColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
         DbUtil.use(dataSource).execute(alterColumnSql);
@@ -1280,8 +1280,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   private void addColumn(
       UserContext ctx, String tableName, String preColumnName, String columnName, String type) {
     String addColumnSql =
-        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {};", tableName, columnName, type);
-    ctx.info(addColumnSql);
+        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {}", tableName, columnName, type);
+    ctx.info(addColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
         DbUtil.use(dataSource).execute(addColumnSql);
@@ -1305,9 +1305,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                   return dbColumn;
                 })
             .collect(Collectors.joining(",\n")));
-    sb.append(");\n");
+    sb.append(")\n");
     String createTableSql = sb.toString();
-    ctx.info(createTableSql);
+    ctx.info(createTableSql + ";");
 
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
