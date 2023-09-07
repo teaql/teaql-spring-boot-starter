@@ -1041,7 +1041,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 tableName(entityDescriptor.getType()),
                 -version,
                 genIdForCandidateCode(code));
-        ctx.info( sql + ";");
+        ctx.info(sql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
           try {
             DbUtil.use(dataSource).execute(sql);
@@ -1057,8 +1057,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
               "INSERT INTO {} ({}) VALUES ({})",
               tableName(entityDescriptor.getType()),
               CollectionUtil.join(columns, ","),
-              CollectionUtil.join(
-                  oneConstant, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
+              CollectionUtil.join(oneConstant, ",", value -> getSqlValue(value)));
       ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
@@ -1165,8 +1164,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             "INSERT INTO {} ({}) VALUES ({})\n",
             tableName(entityDescriptor.getType()),
             CollectionUtil.join(columns, ","),
-            CollectionUtil.join(
-                rootRow, ",", a -> StrUtil.wrapIfMissing(String.valueOf(a), "'", "'")));
+            CollectionUtil.join(rootRow, ",", value -> getSqlValue(value)));
     ctx.info(sql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
@@ -1175,6 +1173,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         throw new RepositoryException(pE);
       }
     }
+  }
+
+  protected String getSqlValue(Object value) {
+    return StrUtil.wrapIfMissing(String.valueOf(value), "'", "'");
   }
 
   private Object getRootPropertyValue(UserContext ctx, PropertyDescriptor property) {
