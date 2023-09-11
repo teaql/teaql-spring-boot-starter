@@ -14,7 +14,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
     for (CheckResult error : errors) {
       translate(error);
     }
-    return null;
+    return errors;
   }
 
   private void translate(CheckResult error) {
