@@ -36,6 +36,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   public static final String MULTI_TABLE = "MULTI_TABLE";
 
   private final EntityDescriptor entityDescriptor;
+
+  public DataSource getDataSource() {
+    return dataSource;
+  }
+
   private final DataSource dataSource;
   private String versionTableName;
   private List<String> primaryTableNames = new ArrayList<>();
@@ -880,7 +885,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return String.format("select * from information_schema.columns where table_name = '%s'", table);
   }
 
-  private void ensureIdSpaceTable(UserContext ctx) {
+  protected void ensureIdSpaceTable(UserContext ctx) {
     String sql = findIdSpaceTableSql();
     List<Map<String, Object>> dbTableInfo;
     try {
@@ -910,11 +915,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  private String findIdSpaceTableSql() {
+  protected String findIdSpaceTableSql() {
     return findTableColumnsSql(dataSource, getTqlIdSpaceTable());
   }
 
-  private RsHandler<List<Map<String, Object>>> mapList() {
+  protected RsHandler<List<Map<String, Object>>> mapList() {
     return rs -> {
       List<Map<String, Object>> ret = new ArrayList<>();
       ResultSetMetaData metaData = rs.getMetaData();
@@ -1234,7 +1239,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return StrUtil.unWrap(columnName, '\"');
   }
 
-  private String calculateDBType(Map<String, Object> columnInfo) {
+  protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = (String) columnInfo.get("data_type");
     switch (dataType) {
       case "bigint":
