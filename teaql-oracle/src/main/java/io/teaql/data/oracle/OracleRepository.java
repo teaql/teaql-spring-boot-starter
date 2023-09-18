@@ -27,7 +27,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   protected String getSqlValue(Object value) {
     if (value instanceof LocalDateTime) {
       return StrUtil.format(
-          "TO_TIMESTAMP('{}', 'yyyy-mm-dd hh:mi:ss')",
+          "TO_TIMESTAMP('{}', 'yyyy-mm-dd hh24:mi:ss')",
           LocalDateTimeUtil.formatNormal((LocalDateTime) value));
     }
     if (value instanceof LocalDate) {
@@ -37,7 +37,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     }
     return super.getSqlValue(value);
   }
-
+  @Override
   protected void ensureIdSpaceTable(UserContext ctx) {
     String sql = findIdSpaceTableSql();
     List<Map<String, Object>> dbTableInfo;
@@ -68,4 +68,12 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     }
   }
 
+  @Override
+  protected String findTableColumnsSql(DataSource dataSource, String table) {
+    try {
+      return String.format("SELECT * FROM ALL_TABLES WHERE OWNER=UPPER('%s') AND TABLE_NAME=UPPER('%s')", dataSource.getConnection().getSchema(), table);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
