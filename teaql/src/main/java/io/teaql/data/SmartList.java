@@ -3,10 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -94,5 +91,13 @@ public class SmartList<T extends Entity> implements Iterable<T> {
       return size();
     }
     return aggregationResults.get(0).toInt();
+  }
+
+  public <R> List<R> toList(Function<T, R> function) {
+    return CollStreamUtil.toList(data, function);
+  }
+
+  public <R> Set<R> toSet(Function<T, R> function) {
+    return CollStreamUtil.toSet(data, function);
   }
 }
