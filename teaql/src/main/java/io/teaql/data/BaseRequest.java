@@ -338,7 +338,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     throw new RepositoryException("不支持的operator:" + operator);
   }
 
-  private static SearchCriteria internalCreateSearchCriteria(
+  private SearchCriteria internalCreateSearchCriteria(
       String property, Operator operator, Object[] values) {
     if (operator.hasOneOperator()) {
       return new OneOperatorCriteria(operator, new PropertyReference(property));
@@ -351,31 +351,38 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       }
       return new Between(
           new PropertyReference(property),
-          new Parameter(property, values[0]),
-          new Parameter(property, values[1]));
+          new Parameter(property, values[0], operator),
+          new Parameter(property, values[1], operator));
     }
     return null;
   }
 
-  private Operator refineOperator(Operator pOperator, Object[] pValues) {
-    boolean multiValue = ArrayUtil.length(pValues) > 1;
+  public Operator refineOperator(Operator pOperator, Object value) {
+    int itemCount = ObjectUtil.length(Parameter.flatValues(value));
+    boolean tooManyItem = itemCount > 20;
+    boolean multiValue = itemCount > 1;
     switch (pOperator) {
       case EQUAL:
       case IN:
-        if (multiValue) {
+      case IN_LARGE:
+        if (tooManyItem) {
+          return Operator.IN_LARGE;
+        } else if (multiValue) {
           return Operator.IN;
         } else {
           return Operator.EQUAL;
         }
+      case NOT_IN_LARGE:
       case NOT_EQUAL:
       case NOT_IN:
-        if (multiValue) {
+        if (tooManyItem) {
+          return Operator.NOT_IN_LARGE;
+        } else if (multiValue) {
           return Operator.NOT_IN;
         } else {
           return Operator.NOT_EQUAL;
         }
     }
-
     return pOperator;
   }
 
@@ -460,7 +467,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
   protected BaseRequest<T> matchType(String... types) {
-    appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types)));
+    appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types, Operator.IN)));
     return this;
   }
 

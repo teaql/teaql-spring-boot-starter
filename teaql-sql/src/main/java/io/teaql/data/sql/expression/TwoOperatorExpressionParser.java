@@ -48,27 +48,31 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
         getSuffix((Operator) operator));
   }
 
-  private Object getSuffix(Operator operator) {
+  public Object getSuffix(Operator operator) {
     switch (operator) {
       case IN:
       case NOT_IN:
+      case IN_LARGE:
+      case NOT_IN_LARGE:
         return ")";
       default:
         return "";
     }
   }
 
-  private Object getPrefix(Operator operator) {
+  public Object getPrefix(Operator operator) {
     switch (operator) {
       case IN:
       case NOT_IN:
+      case IN_LARGE:
+      case NOT_IN_LARGE:
         return "(";
       default:
         return "";
     }
   }
 
-  private String getOp(Operator operator) {
+  public String getOp(Operator operator) {
     switch (operator) {
       case EQUAL:
         return "=";
@@ -92,8 +96,12 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
         return "<=";
       case IN:
         return "IN";
+      case IN_LARGE:
+        return "= ANY";
       case NOT_IN:
         return "NOT IN";
+      case NOT_IN_LARGE:
+        return "<> ALL";
       default:
         throw new RepositoryException("不支持的运算符:" + operator);
     }

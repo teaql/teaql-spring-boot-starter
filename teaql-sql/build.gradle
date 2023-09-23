@@ -19,4 +19,5 @@ publishing {
 
 dependencies {
     api project(':teaql')
+    implementation 'org.springframework:spring-jdbc'
 }

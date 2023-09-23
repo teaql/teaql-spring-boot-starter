@@ -2,7 +2,6 @@ package io.teaql.data.sql;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.db.sql.NamedSql;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.UserContext;
 import java.text.SimpleDateFormat;
@@ -10,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 
 public class SQLLogger {
 
@@ -98,9 +98,12 @@ public class SQLLogger {
 
   public static <T> void logNamedSQL(
       UserContext userContext, String sql, Map<String, Object> paramMap, List<T> result) {
-    NamedSql namedSql = new NamedSql(sql, paramMap);
-    String finalSQL = namedSql.getSql();
-    logSQLAndParameters(userContext, finalSQL, namedSql.getParams(), showResult(result));
+    String finalSQL = NamedParameterUtils.substituteNamedParameters(sql, null);
+    logSQLAndParameters(
+        userContext,
+        finalSQL,
+        NamedParameterUtils.buildValueArray(sql, paramMap),
+        showResult(result));
   }
 
   public static void logSQLAndParameters(

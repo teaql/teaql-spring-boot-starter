@@ -5,6 +5,7 @@ import io.teaql.data.Parameter;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.sql.SQLRepository;
+import java.util.List;
 import java.util.Map;
 
 public class ParameterParser implements SQLExpressionParser<Parameter> {
@@ -30,7 +31,7 @@ public class ParameterParser implements SQLExpressionParser<Parameter> {
     return StrUtil.format(":{}", key);
   }
 
-  private Object fixValue(Operator pOperator, Object pValue) {
+  public Object fixValue(Operator pOperator, Object pValue) {
     switch (pOperator) {
       case CONTAIN:
       case NOT_CONTAIN:
@@ -41,6 +42,10 @@ public class ParameterParser implements SQLExpressionParser<Parameter> {
       case END_WITH:
       case NOT_END_WITH:
         return "%" + pValue;
+      case IN_LARGE:
+      case NOT_IN_LARGE:
+        List flatValues = Parameter.flatValues(pValue);
+        return flatValues.toArray(new Object[flatValues.size()]);
     }
     return pValue;
   }

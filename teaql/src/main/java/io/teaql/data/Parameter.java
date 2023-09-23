@@ -1,7 +1,6 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.criteria.Operator;
@@ -26,7 +25,7 @@ public class Parameter implements Expression {
     }
   }
 
-  public Parameter(String name, Object value, boolean multiValue) {
+  private Parameter(String name, Object value, boolean multiValue) {
     this.name = name;
     List values = flatValues(value);
     if (multiValue) {
@@ -37,7 +36,7 @@ public class Parameter implements Expression {
     }
   }
 
-  public Parameter(String name, Object value) {
+  private Parameter(String name, Object value) {
     this(name, value, true);
   }
 
@@ -49,13 +48,13 @@ public class Parameter implements Expression {
     return name;
   }
 
-  private List flatValues(Object value) {
+  public static List flatValues(Object value) {
     List ret = new ArrayList();
     visit(ret, value);
     return ret;
   }
 
-  private void visit(List ret, Object pValue) {
+  private static void visit(List ret, Object pValue) {
     if (ObjectUtil.isEmpty(pValue)) {
       return;
     }

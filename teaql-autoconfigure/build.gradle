@@ -1,7 +1,6 @@
 dependencies {
     api project(':teaql')
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
-    implementation 'org.springframework:spring-jdbc'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
 }

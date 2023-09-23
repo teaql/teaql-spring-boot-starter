@@ -14,9 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UserContext implements NaturalLanguageTranslator {
+public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
+
+  public static final String REQUEST_HOLDER = "$request:requestHolder";
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {
@@ -222,10 +224,14 @@ public class UserContext implements NaturalLanguageTranslator {
   }
 
   public void init(Object request) {
-    Class<? extends UserContextInitializer> contextInitializer = config().getContextInitializer();
-    if (contextInitializer != null) {
-      UserContextInitializer initializer = ReflectUtil.newInstanceIfPossible(contextInitializer);
-      initializer.init(this, request);
+    List<UserContextInitializer> initializers =
+        getResolver().getBeans(UserContextInitializer.class);
+    if (initializers != null) {
+      for (UserContextInitializer initializer : initializers) {
+        if (initializer.support(request)) {
+          initializer.init(this, request);
+        }
+      }
     }
   }
 
@@ -258,5 +264,33 @@ public class UserContext implements NaturalLanguageTranslator {
 
   public void setResolver(TQLResolver pResolver) {
     resolver = pResolver;
+  }
+
+  public RequestHolder getRequestHolder() {
+    RequestHolder requestHolder = (RequestHolder) getObj(REQUEST_HOLDER);
+    if (requestHolder == null) {
+      throw new IllegalStateException("user context缺少request holder");
+    }
+    return requestHolder;
+  }
+
+  @Override
+  public String getHeader(String name) {
+    return getRequestHolder().getHeader(name);
+  }
+
+  @Override
+  public byte[] getPart(String name) {
+    return getRequestHolder().getPart(name);
+  }
+
+  @Override
+  public String getParameter(String name) {
+    return getRequestHolder().getParameter(name);
+  }
+
+  @Override
+  public byte[] getBodyBytes() {
+    return getRequestHolder().getBodyBytes();
   }
 }

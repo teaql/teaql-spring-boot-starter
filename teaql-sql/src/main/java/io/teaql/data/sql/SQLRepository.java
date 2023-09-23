@@ -5,10 +5,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.*;
-import cn.hutool.db.DbUtil;
-import cn.hutool.db.handler.NumberHandler;
-import cn.hutool.db.handler.RsHandler;
-import cn.hutool.log.level.Level;
 import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
@@ -26,6 +22,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     implements SQLColumnResolver {
@@ -42,6 +44,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   }
 
   private final DataSource dataSource;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
   private String versionTableName;
   private List<String> primaryTableNames = new ArrayList<>();
   private String thisPrimaryTableName;
@@ -55,8 +58,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   public SQLRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     this.entityDescriptor = entityDescriptor;
     this.dataSource = dataSource;
+    this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     initSQLMeta(entityDescriptor);
-    DbUtil.setShowSqlGlobal(false, false, false, Level.TRACE);
     initExpressionParsers(entityDescriptor, dataSource);
   }
 
@@ -162,16 +165,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
               updatePrimaryTable(userContext, sqlEntity, k, columns, l);
             } else {
               try {
-                DbUtil.use(dataSource)
-                    .execute(
-                        StrUtil.format(
-                            "REPLACE INTO {} SET {}",
-                            k,
-                            columns.stream()
-                                .map(c -> c + " = ?")
-                                .collect(Collectors.joining(" , "))),
-                        l.toArray(new Object[0]));
-              } catch (SQLException pE) {
+                jdbcTemplate
+                    .getJdbcTemplate()
+                    .update(prepareSubsidiaryTableSql(k, columns), l.toArray(new Object[0]));
+              } catch (DataAccessException pE) {
                 throw new RepositoryException(pE);
               }
             }
@@ -184,6 +181,13 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
+  public String prepareSubsidiaryTableSql(String tableName, List<String> tableColumns) {
+    return StrUtil.format(
+        "REPLACE INTO {} SET {}",
+        tableName,
+        tableColumns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
+  }
+
   private void updateVersionTableVersion(UserContext userContext, SQLEntity sqlEntity) {
     String updateSql =
         StrUtil.format(
@@ -193,10 +197,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             ID,
             VERSION);
     Object[] parameters = {sqlEntity.getVersion() + 1, sqlEntity.getId(), sqlEntity.getVersion()};
-    int update = 0;
+    int update;
     try {
-      update = DbUtil.use(dataSource).execute(updateSql, parameters);
-    } catch (SQLException pE) {
+      update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
@@ -214,10 +218,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             k,
             columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
     Object[] parameters = l.toArray(new Object[0]);
-    int update = 0;
+    int update;
     try {
-      update = DbUtil.use(dataSource).execute(updateSql, parameters);
-    } catch (SQLException pE) {
+      update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
@@ -246,10 +250,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             k,
             columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
     Object[] parameters = l.toArray(new Object[0]);
-    int update = 0;
+    int update;
     try {
-      update = DbUtil.use(dataSource).execute(updateSql, parameters);
-    } catch (SQLException pE) {
+      update = jdbcTemplate.getJdbcTemplate().update(updateSql, parameters);
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
@@ -325,8 +329,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                   StrUtil.repeatAndJoin("?", columns.size(), ","));
           int[] rets;
           try {
-            rets = DbUtil.use(dataSource).executeBatch(sql, v);
-          } catch (SQLException pE) {
+            rets = jdbcTemplate.getJdbcTemplate().batchUpdate(sql, v);
+          } catch (DataAccessException pE) {
             throw new RepositoryException(pE);
           }
           int i = 0;
@@ -400,8 +404,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             "UPDATE {} SET version = ? WHERE id = ? AND version = ?", this.versionTableName);
     int[] rets;
     try {
-      rets = DbUtil.use(dataSource).executeBatch(updateSql, args);
-    } catch (SQLException pE) {
+      rets = jdbcTemplate.getJdbcTemplate().batchUpdate(updateSql, args);
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     int i = 0;
@@ -433,8 +437,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             "UPDATE {} SET version = ? WHERE id = ? AND version = ?", this.versionTableName);
     int[] rets;
     try {
-      rets = DbUtil.use(dataSource).executeBatch(updateSql, args);
-    } catch (SQLException pE) {
+      rets = jdbcTemplate.getJdbcTemplate().batchUpdate(updateSql, args);
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     int i = 0;
@@ -461,13 +465,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
     Map<String, Object> params = new HashMap<>();
-    // 准备sql，以及参数
     String sql = buildDataSQL(userContext, request, params);
     List<T> results = new ArrayList<>();
     if (!ObjectUtil.isEmpty(sql)) {
       try {
-        results = DbUtil.use(dataSource).query(sql, getMapper(userContext, request), params);
-      } catch (SQLException pE) {
+        results = jdbcTemplate.query(sql, params, getMapper(userContext, request));
+      } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
       SQLLogger.logNamedSQL(userContext, sql, params, results);
@@ -513,9 +516,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     userContext.info("{}", parameters);
     List<AggregationItem> aggregationItems;
     try {
-      aggregationItems =
-          DbUtil.use(dataSource).query(sql, getAggregationMapper(request), parameters);
-    } catch (SQLException pE) {
+      aggregationItems = jdbcTemplate.query(sql, parameters, getAggregationMapper(request));
+    } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
     AggregationResult result = new AggregationResult();
@@ -524,23 +526,19 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return result;
   }
 
-  private RsHandler<List<AggregationItem>> getAggregationMapper(SearchRequest<T> request) {
-    return (rs) -> {
-      List<AggregationItem> list = new ArrayList<>();
-      while (rs.next()) {
-        AggregationItem item = new AggregationItem();
-        Aggregations aggregations = request.getAggregations();
-        List<SimpleNamedExpression> functions = aggregations.getAggregates();
-        List<SimpleNamedExpression> dimensions = aggregations.getDimensions();
-        for (SimpleNamedExpression function : functions) {
-          item.addValue(function, rs.getObject(function.name()));
-        }
-        for (SimpleNamedExpression dimension : dimensions) {
-          item.addDimension(dimension, rs.getObject(dimension.name()));
-        }
-        list.add(item);
+  private RowMapper<AggregationItem> getAggregationMapper(SearchRequest<T> request) {
+    return (rs, index) -> {
+      AggregationItem item = new AggregationItem();
+      Aggregations aggregations = request.getAggregations();
+      List<SimpleNamedExpression> functions = aggregations.getAggregates();
+      List<SimpleNamedExpression> dimensions = aggregations.getDimensions();
+      for (SimpleNamedExpression function : functions) {
+        item.addValue(function, rs.getObject(function.name()));
       }
-      return list;
+      for (SimpleNamedExpression dimension : dimensions) {
+        item.addDimension(dimension, rs.getObject(dimension.name()));
+      }
+      return item;
     };
   }
 
@@ -583,35 +581,30 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return collectTablesFromProperties(userContext, request.aggregationProperties(userContext));
   }
 
-  private RsHandler<List<T>> getMapper(UserContext pUserContext, SearchRequest<T> pRequest) {
-    return (rs) -> {
-      List<T> list = new ArrayList<>();
-      while (rs.next()) {
-        Class<? extends T> returnType = pRequest.returnType();
-        T entity = ReflectUtil.newInstance(returnType);
-
-        for (PropertyDescriptor property : this.allProperties) {
-          setProperty(pUserContext, entity, property, rs);
-        }
-
-        List<SimpleNamedExpression> simpleDynamicProperties = pRequest.getSimpleDynamicProperties();
-        for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
-          String name = simpleDynamicProperty.name();
-          entity.addDynamicProperty(name, rs.getObject(name));
-        }
-
-        if (entity.getVersion() < 0) {
-          if (entity instanceof BaseEntity) {
-            ((BaseEntity) entity).set$status(EntityStatus.PERSISTED_DELETED);
-          }
-        } else {
-          if (entity instanceof BaseEntity) {
-            ((BaseEntity) entity).set$status(EntityStatus.PERSISTED);
-          }
-        }
-        list.add(entity);
+  private RowMapper<T> getMapper(UserContext pUserContext, SearchRequest<T> pRequest) {
+    return (rs, rowIndex) -> {
+      Class<? extends T> returnType = pRequest.returnType();
+      T entity = ReflectUtil.newInstance(returnType);
+      for (PropertyDescriptor property : this.allProperties) {
+        setProperty(pUserContext, entity, property, rs);
       }
-      return list;
+
+      List<SimpleNamedExpression> simpleDynamicProperties = pRequest.getSimpleDynamicProperties();
+      for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
+        String name = simpleDynamicProperty.name();
+        entity.addDynamicProperty(name, rs.getObject(name));
+      }
+
+      if (entity.getVersion() < 0) {
+        if (entity instanceof BaseEntity) {
+          ((BaseEntity) entity).set$status(EntityStatus.PERSISTED_DELETED);
+        }
+      } else {
+        if (entity instanceof BaseEntity) {
+          ((BaseEntity) entity).set$status(EntityStatus.PERSISTED);
+        }
+      }
+      return entity;
     };
   }
 
@@ -870,7 +863,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
           String sql = findTableColumnsSql(dataSource, table);
           List<Map<String, Object>> dbTableInfo;
           try {
-            dbTableInfo = DbUtil.use(dataSource).query(sql, mapList());
+            dbTableInfo = jdbcTemplate.queryForList(sql, Collections.emptyMap());
           } catch (Exception exception) {
             dbTableInfo = ListUtil.empty();
           }
@@ -889,7 +882,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     String sql = findIdSpaceTableSql();
     List<Map<String, Object>> dbTableInfo;
     try {
-      dbTableInfo = DbUtil.use(dataSource).query(sql, mapList());
+      dbTableInfo = jdbcTemplate.queryForList(sql, Collections.emptyMap());
     } catch (Exception exception) {
       dbTableInfo = ListUtil.empty();
     }
@@ -898,6 +891,18 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       return;
     }
 
+    String createIdSpaceSql = getIdSpaceSql();
+    ctx.info(createIdSpaceSql + ";");
+    if (ctx.config() != null && ctx.config().isEnsureTable()) {
+      try {
+        jdbcTemplate.getJdbcTemplate().execute(createIdSpaceSql);
+      } catch (DataAccessException pE) {
+        throw new RepositoryException(pE);
+      }
+    }
+  }
+
+  public String getIdSpaceSql() {
     StringBuilder sb = new StringBuilder();
     sb.append("CREATE TABLE ")
         .append(getTqlIdSpaceTable())
@@ -905,30 +910,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         .append("type_name varchar(100) PRIMARY KEY,\n")
         .append("current_level bigint)\n");
     String createIdSpaceSql = sb.toString();
-    ctx.info(createIdSpaceSql + ";");
-    if (ctx.config() != null && ctx.config().isEnsureTable()) {
-      try {
-        DbUtil.use(dataSource).execute(createIdSpaceSql);
-      } catch (SQLException pE) {
-        throw new RepositoryException(pE);
-      }
-    }
+    return createIdSpaceSql;
   }
 
   protected String findIdSpaceTableSql() {
     return findTableColumnsSql(dataSource, getTqlIdSpaceTable());
-  }
-
-  protected RsHandler<List<Map<String, Object>>> mapList() {
-    return rs -> {
-      List<Map<String, Object>> ret = new ArrayList<>();
-      ResultSetMetaData metaData = rs.getMetaData();
-      while (rs.next()) {
-        Map<String, Object> oneRow = getOneRow(rs, metaData);
-        ret.add(oneRow);
-      }
-      return ret;
-    };
   }
 
   private Map<String, Object> getOneRow(ResultSet rs, ResultSetMetaData metaData)
@@ -954,40 +940,46 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     AtomicLong current = new AtomicLong();
     try {
-      DbUtil.use(dataSource)
-          .tx(
-              db -> {
-                String type = CollectionUtil.getLast(types);
-                Number dbCurrent = null;
-                try {
-                  dbCurrent =
-                      db.query(
-                          StrUtil.format(
-                              "SELECT current_level from {} WHERE type_name = '{}' for update",
-                              getTqlIdSpaceTable(),
-                              type),
-                          new NumberHandler());
-                } catch (Exception e) {
-
-                }
-
-                if (dbCurrent == null) {
-                  current.set(1l);
-                  db.execute(
+      final DataSourceTransactionManager transactionManager =
+          new DataSourceTransactionManager(dataSource);
+      TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+      transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+      transactionTemplate.executeWithoutResult(
+          tx -> {
+            String type = CollectionUtil.getLast(types);
+            Number dbCurrent = null;
+            try {
+              dbCurrent =
+                  jdbcTemplate.queryForObject(
                       StrUtil.format(
-                          "INSERT INTO {} VALUES ('{}', {})", getTqlIdSpaceTable(), type, current));
-                  return;
-                }
-                dbCurrent = NumberUtil.add(dbCurrent, 1);
-                db.execute(
-                    StrUtil.format(
-                        "UPDATE {} SET current_level = {} WHERE type_name = '{}'",
-                        getTqlIdSpaceTable(),
-                        dbCurrent,
-                        type));
-                current.set(dbCurrent.longValue());
-              });
-    } catch (SQLException pE) {
+                          "SELECT current_level from {} WHERE type_name = '{}' for update",
+                          getTqlIdSpaceTable(),
+                          type),
+                      Collections.emptyMap(),
+                      Long.class);
+            } catch (Exception e) {
+
+            }
+
+            if (dbCurrent == null) {
+              current.set(1l);
+              jdbcTemplate.execute(
+                  StrUtil.format(
+                      "INSERT INTO {} VALUES ('{}', {})", getTqlIdSpaceTable(), type, current),
+                  null);
+              return;
+            }
+            dbCurrent = NumberUtil.add(dbCurrent, 1);
+            jdbcTemplate.execute(
+                StrUtil.format(
+                    "UPDATE {} SET current_level = {} WHERE type_name = '{}'",
+                    getTqlIdSpaceTable(),
+                    dbCurrent,
+                    type),
+                null);
+            current.set(dbCurrent.longValue());
+          });
+    } catch (Exception pE) {
       throw new RepositoryException(pE);
     }
     return current.get();
@@ -1023,13 +1015,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       Map<String, Object> dbRootRow = null;
       try {
         dbRootRow =
-            DbUtil.use(dataSource)
-                .query(
-                    StrUtil.format(
-                        "SELECT * FROM {} WHERE id = {}",
-                        tableName(entityDescriptor.getType()),
-                        genIdForCandidateCode(code)),
-                    oneRowMap());
+            jdbcTemplate.queryForMap(
+                StrUtil.format(
+                    "SELECT * FROM {} WHERE id = {}",
+                    tableName(entityDescriptor.getType()),
+                    genIdForCandidateCode(code)),
+                Collections.emptyMap());
       } catch (Exception e) {
 
       }
@@ -1049,8 +1040,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         ctx.info(sql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
           try {
-            DbUtil.use(dataSource).execute(sql);
-          } catch (SQLException pE) {
+            jdbcTemplate.execute(sql, null);
+          } catch (DataAccessException pE) {
             throw new RepositoryException(pE);
           }
         }
@@ -1066,21 +1057,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
-          DbUtil.use(dataSource).execute(sql);
-        } catch (SQLException pE) {
+          jdbcTemplate.getJdbcTemplate().execute(sql);
+        } catch (DataAccessException pE) {
           throw new RepositoryException(pE);
         }
       }
     }
-  }
-
-  private RsHandler<Map<String, Object>> oneRowMap() {
-    return rs -> {
-      while (rs.next()) {
-        return getOneRow(rs, rs.getMetaData());
-      }
-      return null;
-    };
   }
 
   private long genIdForCandidateCode(String code) {
@@ -1125,11 +1107,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     Map<String, Object> dbRootRow = null;
     try {
       dbRootRow =
-          DbUtil.use(dataSource)
-              .query(
-                  StrUtil.format(
-                      "SELECT * FROM {} WHERE id = 1", tableName(entityDescriptor.getType())),
-                  oneRowMap());
+          jdbcTemplate.queryForMap(
+              StrUtil.format(
+                  "SELECT * FROM {} WHERE id = 1", tableName(entityDescriptor.getType())),
+              Collections.emptyMap());
     } catch (Exception e) {
 
     }
@@ -1148,8 +1129,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
-          DbUtil.use(dataSource).execute(sql);
-        } catch (SQLException pE) {
+          jdbcTemplate.execute(sql, null);
+        } catch (DataAccessException pE) {
           throw new RepositoryException(pE);
         }
       }
@@ -1173,8 +1154,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(sql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        DbUtil.use(dataSource).execute(sql);
-      } catch (SQLException pE) {
+        jdbcTemplate.execute(sql, null);
+      } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
     }
@@ -1277,8 +1258,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(alterColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        DbUtil.use(dataSource).execute(alterColumnSql);
-      } catch (SQLException pE) {
+        jdbcTemplate.execute(alterColumnSql, null);
+      } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
     }
@@ -1291,8 +1272,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(addColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        DbUtil.use(dataSource).execute(addColumnSql);
-      } catch (SQLException pE) {
+        jdbcTemplate.execute(addColumnSql, null);
+      } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
     }
@@ -1318,8 +1299,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        DbUtil.use(dataSource).execute(createTableSql);
-      } catch (SQLException pE) {
+        jdbcTemplate.execute(createTableSql, null);
+      } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
     }

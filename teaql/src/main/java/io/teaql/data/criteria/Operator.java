@@ -19,25 +19,29 @@ public enum Operator implements PropertyFunction {
   IS_NULL,
   IN,
   NOT_IN,
+  IN_LARGE,
+  NOT_IN_LARGE,
   BETWEEN;
 
-  public boolean hasOneOperator(){
+  public boolean hasOneOperator() {
     return this == IS_NULL || this == IS_NOT_NULL;
   }
 
-  public boolean hasTwoOperator(){
+  public boolean hasTwoOperator() {
     return this != IS_NULL && this != IS_NOT_NULL && this != BETWEEN;
   }
 
-  public boolean hasMultiValue(){
+  public boolean hasMultiValue() {
     return this == IN || this == NOT_IN;
   }
 
-  public boolean isBetween(){
+  public boolean isBetween() {
     return this == BETWEEN;
   }
+
   static final String IS_NULL_EXPR = "__is_null__";
   static final String IS_NOT_NULL_EXPR = "__is_not_null__";
+
   public static Operator operatorByValue(String value) {
 
     if (IS_NULL_EXPR.equalsIgnoreCase(value)) {
@@ -48,6 +52,4 @@ public enum Operator implements PropertyFunction {
     }
     return null;
   }
-
-
 }

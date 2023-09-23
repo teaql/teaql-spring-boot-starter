@@ -1,7 +1,6 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
-
 import java.util.List;
 
 public class SubQuerySearchCriteria implements SearchCriteria, PropertyAware {

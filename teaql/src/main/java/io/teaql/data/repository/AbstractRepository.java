@@ -6,9 +6,7 @@ import cn.hutool.core.comparator.CompareUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.*;
-import io.teaql.data.criteria.EQ;
-import io.teaql.data.criteria.IN;
-import io.teaql.data.criteria.TwoOperatorCriteria;
+import io.teaql.data.criteria.*;
 import io.teaql.data.event.EntityCreatedEvent;
 import io.teaql.data.event.EntityDeletedEvent;
 import io.teaql.data.event.EntityRecoverEvent;
@@ -187,7 +185,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
 
     // parent request add id criteria
     TempRequest parentTemp = new TempRequest(parentRequest);
-    parentTemp.appendSearchCriteria(new IN(new PropertyReference(ID), new Parameter(ID, parents)));
+    parentTemp.appendSearchCriteria(parentTemp.createBasicSearchCriteria(ID, Operator.IN, parents));
     Repository repository = userContext.resolveRepository(parentTemp.getTypeName());
     SmartList parentItems = repository.executeForList(userContext, parentTemp);
 
@@ -216,7 +214,8 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       childTempRequest.setPartitionProperty(reverseProperty.getName());
     }
     childTempRequest.appendSearchCriteria(
-        getSearchCriteriaOfCollectChildren(dataSet, reverseProperty));
+        childTempRequest.createBasicSearchCriteria(
+            reverseProperty.getName(), Operator.IN, dataSet));
     SmartList children = repository.executeForList(userContext, childTempRequest);
 
     Map<Long, T> longTMap = dataSet.mapById();
@@ -230,18 +229,6 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
         }
       }
     }
-  }
-
-  private TwoOperatorCriteria getSearchCriteriaOfCollectChildren(
-      SmartList<T> results, PropertyDescriptor reverseProperty) {
-    if (results.size() == 1) {
-      return new EQ(
-          new PropertyReference(reverseProperty.getName()),
-          new Parameter(reverseProperty.getName(), results, false));
-    }
-    return new IN(
-        new PropertyReference(reverseProperty.getName()),
-        new Parameter(reverseProperty.getName(), results));
   }
 
   public PropertyDescriptor findProperty(String propertyName) {
@@ -279,8 +266,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       TempRequest t = new TempRequest(aggregateRequest);
       t.groupBy(property);
       if (ids.size() < preferIdInCount()) {
-        t.appendSearchCriteria(
-            new IN(new PropertyReference(property), new Parameter(property, ids)));
+        t.appendSearchCriteria(t.createBasicSearchCriteria(property, Operator.IN, ids));
       } else {
         t.appendSearchCriteria(new SubQuerySearchCriteria(property, request, ID));
       }
@@ -379,7 +365,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
             t.addSimpleDynamicProperty(dimension.name(), dimension.getExpression());
           }
           t.appendSearchCriteria(
-              new IN(new PropertyReference(ID), new Parameter(ID, propagateDimensionValues)));
+              t.createBasicSearchCriteria(ID, Operator.IN, propagateDimensionValues));
           SmartList orderByResults = t.executeForList(userContext);
           appendResult(userContext, result, t, toBeEnhancedDimension, orderByResults);
         });

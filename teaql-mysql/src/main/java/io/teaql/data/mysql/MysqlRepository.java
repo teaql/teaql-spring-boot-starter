@@ -17,6 +17,8 @@ public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
   public MysqlRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
     registerExpressionParser(MysqlAggrExpressionParser.class);
+    registerExpressionParser(MysqlParameterParser.class);
+    registerExpressionParser(MysqlTwoOperatorExpressionParser.class);
   }
 
   @Override

@@ -3,6 +3,8 @@ package io.teaql.data.sql.expression;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.*;
 import io.teaql.data.criteria.IN;
+import io.teaql.data.criteria.InLarge;
+import io.teaql.data.criteria.Operator;
 import io.teaql.data.criteria.RawSql;
 import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
@@ -56,8 +58,8 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
         dependsOnValues.add(propertyValue);
       }
     }
-    Parameter parameter = new Parameter(propertyName, dependsOnValues);
-    IN in = new IN(new PropertyReference(propertyName), parameter);
+    Parameter parameter = new Parameter(propertyName, dependsOnValues, Operator.IN_LARGE);
+    InLarge in = new InLarge(new PropertyReference(propertyName), parameter);
     return ExpressionHelper.toSql(userContext, in, idTable, parameters, sqlColumnResolver);
   }
 
