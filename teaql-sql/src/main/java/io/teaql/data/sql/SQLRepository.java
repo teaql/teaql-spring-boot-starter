@@ -963,20 +963,22 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
             if (dbCurrent == null) {
               current.set(1l);
-              jdbcTemplate.execute(
-                  StrUtil.format(
-                      "INSERT INTO {} VALUES ('{}', {})", getTqlIdSpaceTable(), type, current),
-                  null);
+              jdbcTemplate
+                  .getJdbcTemplate()
+                  .execute(
+                      StrUtil.format(
+                          "INSERT INTO {} VALUES ('{}', {})", getTqlIdSpaceTable(), type, current));
               return;
             }
             dbCurrent = NumberUtil.add(dbCurrent, 1);
-            jdbcTemplate.execute(
-                StrUtil.format(
-                    "UPDATE {} SET current_level = {} WHERE type_name = '{}'",
-                    getTqlIdSpaceTable(),
-                    dbCurrent,
-                    type),
-                null);
+            jdbcTemplate
+                .getJdbcTemplate()
+                .execute(
+                    StrUtil.format(
+                        "UPDATE {} SET current_level = {} WHERE type_name = '{}'",
+                        getTqlIdSpaceTable(),
+                        dbCurrent,
+                        type));
             current.set(dbCurrent.longValue());
           });
     } catch (Exception pE) {
@@ -1040,7 +1042,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         ctx.info(sql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
           try {
-            jdbcTemplate.execute(sql, null);
+            jdbcTemplate.getJdbcTemplate().execute(sql);
           } catch (DataAccessException pE) {
             throw new RepositoryException(pE);
           }
@@ -1129,7 +1131,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       ctx.info(sql + ";");
       if (ctx.config() != null && ctx.config().isEnsureTable()) {
         try {
-          jdbcTemplate.execute(sql, null);
+          jdbcTemplate.getJdbcTemplate().execute(sql);
         } catch (DataAccessException pE) {
           throw new RepositoryException(pE);
         }
@@ -1154,7 +1156,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(sql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        jdbcTemplate.execute(sql, null);
+        jdbcTemplate.getJdbcTemplate().execute(sql);
       } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
@@ -1258,7 +1260,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(alterColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        jdbcTemplate.execute(alterColumnSql, null);
+        jdbcTemplate.getJdbcTemplate().execute(alterColumnSql);
       } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
@@ -1272,7 +1274,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     ctx.info(addColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        jdbcTemplate.execute(addColumnSql, null);
+        jdbcTemplate.getJdbcTemplate().execute(addColumnSql);
       } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
@@ -1299,7 +1301,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
-        jdbcTemplate.execute(createTableSql, null);
+        jdbcTemplate.getJdbcTemplate().execute(createTableSql);
       } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
