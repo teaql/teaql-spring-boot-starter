@@ -149,9 +149,13 @@ public class BaseEntity implements Entity {
     return additionalInfo;
   }
 
-  @JsonAnySetter
   public void setAdditionalInfo(Map<String, Object> pAdditionalInfo) {
     additionalInfo = pAdditionalInfo;
+  }
+
+  @JsonAnySetter
+  public void putAdditional(String propertyName, Object value) {
+    additionalInfo.put(propertyName, value);
   }
 
   @Override
