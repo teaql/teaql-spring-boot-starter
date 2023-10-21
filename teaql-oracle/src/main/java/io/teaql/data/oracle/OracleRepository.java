@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.Entity;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLRepository;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,10 +43,10 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
 
   @Override
   protected String findTableColumnsSql(DataSource dataSource, String table) {
-    try {
+    try (Connection connection = dataSource.getConnection()) {
       return String.format(
           "SELECT * FROM ALL_TABLES WHERE OWNER=UPPER('%s') AND TABLE_NAME=UPPER('%s')",
-          dataSource.getConnection().getSchema(), table);
+          connection.getSchema(), table);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
