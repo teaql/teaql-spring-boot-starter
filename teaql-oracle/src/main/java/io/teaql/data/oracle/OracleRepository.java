@@ -45,7 +45,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     try (Connection connection = dataSource.getConnection()) {
       return String.format(
-          "SELECT * FROM ALL_TABLES WHERE OWNER=UPPER('%s') AND TABLE_NAME=UPPER('%s')",
+          "SELECT TABLE_NAME, COLUMN_NAME FROM USER_TAB_COLUMNS where TABLE_NAME=UPPER('%s')",
           connection.getSchema(), table);
     } catch (SQLException e) {
       throw new RuntimeException(e);
