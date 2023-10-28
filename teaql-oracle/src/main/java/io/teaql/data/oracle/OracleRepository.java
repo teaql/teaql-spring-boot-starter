@@ -53,7 +53,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   @Override
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     return String.format(
-        "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM USER_TAB_COLUMNS where TABLE_NAME=UPPER('%s')", table);
+        "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_PRECISION, DATA_SCALE, DATA_LENGTH FROM USER_TAB_COLUMNS where TABLE_NAME=UPPER('%s')", table);
   }
 
   @Override
@@ -63,7 +63,9 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     for (Map<String, Object> column : tableInfo) {
       Map<String, Object> lowercaseColumn = new HashMap<>();
       for (Map.Entry<String, Object> field: column.entrySet()) {
-        lowercaseColumn.put(field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
+        if (field.getValue() != null) {
+          lowercaseColumn.put(field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
+        }
       }
       lowercaseTableInfo.add(lowercaseColumn);
     }
@@ -73,6 +75,15 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = (String) columnInfo.get("data_type");
     switch (dataType) {
+      case "number":
+        if ("0".equals(columnInfo.get("data_scale"))) {
+          return StrUtil.format(
+                  "number({})", columnInfo.get("data_precision"));
+        }
+        return StrUtil.format(
+                "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
+      case "varchar2":
+        return StrUtil.format("varchar({})", columnInfo.get("data_length"));
       case "bigint":
         return "bigint";
       case "tinyint":
@@ -92,9 +103,12 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
                 "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
       case "text":
         return "text";
+      case "clob":
+        return "clob";
       case "time without time zone":
         return "time";
       case "timestamp":
+      case "timestamp(6)":
       case "timestamp without time zone":
         return "timestamp";
       default:
