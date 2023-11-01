@@ -3,10 +3,9 @@ package io.teaql.data.oracle;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.teaql.data.Entity;
-import io.teaql.data.RepositoryException;
-import io.teaql.data.UserContext;
+import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
@@ -114,5 +113,13 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
       default:
         throw new RepositoryException("未处理的类型:" + dataType);
     }
+  }
+
+  protected String prepareLimit(SearchRequest request) {
+    Slice slice = request.getSlice();
+    if (ObjectUtil.isEmpty(slice)) {
+      return null;
+    }
+    return StrUtil.format("OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
   }
 }

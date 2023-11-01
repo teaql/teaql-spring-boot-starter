@@ -801,7 +801,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return NamingCase.toCamelCase(table);
   }
 
-  private String prepareLimit(SearchRequest request) {
+  protected String prepareLimit(SearchRequest request) {
     Slice slice = request.getSlice();
     if (ObjectUtil.isEmpty(slice)) {
       return null;
