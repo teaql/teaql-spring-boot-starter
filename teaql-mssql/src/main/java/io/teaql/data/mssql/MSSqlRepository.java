@@ -3,16 +3,13 @@ package io.teaql.data.mssql;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.teaql.data.Entity;
-import io.teaql.data.RepositoryException;
-import io.teaql.data.SearchRequest;
-import io.teaql.data.Slice;
+import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLRepository;
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
+import javax.sql.DataSource;
 
 public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
   public MSSqlRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
@@ -22,10 +19,10 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
   @Override
   protected String getSqlValue(Object value) {
     if (value instanceof LocalDateTime) {
-      return StrUtil.format("'{}'",LocalDateTimeUtil.formatNormal((LocalDateTime) value));
+      return StrUtil.format("'{}'", LocalDateTimeUtil.formatNormal((LocalDateTime) value));
     }
     if (value instanceof LocalDate) {
-      return StrUtil.format("'{}'",LocalDateTimeUtil.formatNormal((LocalDate) value));
+      return StrUtil.format("'{}'", LocalDateTimeUtil.formatNormal((LocalDate) value));
     }
     return super.getSqlValue(value);
   }
@@ -36,11 +33,10 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     switch (dataType) {
       case "number":
         if ("0".equals(columnInfo.get("data_scale"))) {
-          return StrUtil.format(
-                  "number({})", columnInfo.get("data_precision"));
+          return StrUtil.format("number({})", columnInfo.get("data_precision"));
         }
         return StrUtil.format(
-                "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
+            "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
       case "varchar2":
         return StrUtil.format("varchar({})", columnInfo.get("data_length"));
       case "bigint":
@@ -61,7 +57,7 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
       case "decimal":
       case "numeric":
         return StrUtil.format(
-                "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+            "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
       case "text":
         return "text";
       case "clob":
@@ -83,7 +79,20 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     if (ObjectUtil.isEmpty(slice)) {
       return null;
     }
-//    request.getOrderBy().isEmpty()
-    return StrUtil.format("OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
+    //    request.getOrderBy().isEmpty()
+    return StrUtil.format(
+        "OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
+  }
+
+  @Override
+  public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
+    Slice slice = request.getSlice();
+    if (slice != null) {
+      OrderBys orderBy = request.getOrderBy();
+      if (orderBy.isEmpty()) {
+        orderBy.addOrderBy(new OrderBy(BaseEntity.ID_PROPERTY));
+      }
+    }
+    return super.loadInternal(userContext, request);
   }
 }
