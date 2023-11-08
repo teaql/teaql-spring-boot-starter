@@ -1254,7 +1254,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  private void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
+  protected void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
     String alterColumnSql =
         StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {}", tableName, columnName, type);
     ctx.info(alterColumnSql + ";");

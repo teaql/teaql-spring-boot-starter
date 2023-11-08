@@ -44,6 +44,8 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
       case "tinyint":
       case "boolean":
         return "boolean";
+      case "bit":
+        return "bit";
       case "varchar":
       case "character varying":
         return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
@@ -79,7 +81,6 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     if (ObjectUtil.isEmpty(slice)) {
       return null;
     }
-    //    request.getOrderBy().isEmpty()
     return StrUtil.format(
         "OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
   }
