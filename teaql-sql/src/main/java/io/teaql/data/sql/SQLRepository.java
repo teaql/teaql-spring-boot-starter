@@ -1205,7 +1205,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       String dbColumnName = getPureColumnName(columnName);
       Map<String, Object> field = fields.get(dbColumnName);
       if (field == null) {
-        addColumn(ctx, tableName, preColumnName, columnName, type);
+        addColumn(ctx, preColumnName, column);
         continue;
       }
 
@@ -1276,10 +1276,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return alterColumnSql;
   }
 
-  private void addColumn(
-      UserContext ctx, String tableName, String preColumnName, String columnName, String type) {
-    String addColumnSql =
-        StrUtil.format("ALTER TABLE {} ADD COLUMN {} {}", tableName, columnName, type);
+  private void addColumn(UserContext ctx, String preColumnName, SQLColumn column) {
+    String addColumnSql = generateAddColumnSQL(ctx, preColumnName, column);
     ctx.info(addColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
@@ -1288,6 +1286,16 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         throw new RepositoryException(pE);
       }
     }
+  }
+
+  protected String generateAddColumnSQL(UserContext ctx, String preColumnName, SQLColumn column) {
+    String addColumnSql =
+        StrUtil.format(
+            "ALTER TABLE {} ADD COLUMN {} {}",
+            column.getTableName(),
+            column.getColumnName(),
+            column.getType());
+    return addColumnSql;
   }
 
   private void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
