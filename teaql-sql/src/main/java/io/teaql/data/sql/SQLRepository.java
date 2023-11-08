@@ -1266,7 +1266,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  protected String generateAlterColumnSQL(UserContext pCtx, SQLColumn column) {
+  protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
     String alterColumnSql =
         StrUtil.format(
             "ALTER TABLE {} ALTER COLUMN {} TYPE {}",
