@@ -1214,7 +1214,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         continue;
       }
 
-      alterColumn(ctx, tableName, columnName, type);
+      alterColumn(ctx, column);
     }
   }
 
@@ -1254,9 +1254,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  protected void alterColumn(UserContext ctx, String tableName, String columnName, String type) {
-    String alterColumnSql =
-        StrUtil.format("ALTER TABLE {} ALTER COLUMN {} TYPE {}", tableName, columnName, type);
+  protected void alterColumn(UserContext ctx, SQLColumn column) {
+    String alterColumnSql = generateAlterColumnSQL(ctx, column);
     ctx.info(alterColumnSql + ";");
     if (ctx.config() != null && ctx.config().isEnsureTable()) {
       try {
@@ -1265,6 +1264,16 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         throw new RepositoryException(pE);
       }
     }
+  }
+
+  protected String generateAlterColumnSQL(UserContext pCtx, SQLColumn column) {
+    String alterColumnSql =
+        StrUtil.format(
+            "ALTER TABLE {} ALTER COLUMN {} TYPE {}",
+            column.getTableName(),
+            column.getColumnName(),
+            column.getType());
+    return alterColumnSql;
   }
 
   private void addColumn(
