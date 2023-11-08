@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -95,5 +96,27 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
       }
     }
     return super.loadInternal(userContext, request);
+  }
+
+  @Override
+  protected String generateAddColumnSQL(UserContext ctx, String preColumnName, SQLColumn column) {
+    String addColumnSql =
+            StrUtil.format(
+                    "ALTER TABLE {} ADD {} {}",
+                    column.getTableName(),
+                    column.getColumnName(),
+                    column.getType());
+    return addColumnSql;
+  }
+
+  @Override
+  protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
+    String alterColumnSql =
+            StrUtil.format(
+                    "ALTER TABLE {} ALTER COLUMN {} {}",
+                    column.getTableName(),
+                    column.getColumnName(),
+                    column.getType());
+    return alterColumnSql;
   }
 }
