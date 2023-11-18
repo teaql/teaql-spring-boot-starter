@@ -485,10 +485,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     List<String> tables = collectAggregationTables(userContext, request);
     Map<String, Object> parameters = new HashMap();
-
-    if (ObjectUtil.isEmpty(tables)) {
-      tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
-    }
     String idTable = tables.get(0);
     userContext.put(MULTI_TABLE, tables.size() > 1);
 
@@ -501,7 +497,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
     String sql =
-        StrUtil.format("SELECT {} FROM {}", selectSql, leftJoinTables(userContext, tables));
+        StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
 
     if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
       sql = StrUtil.format("{} WHERE {}", sql, whereSql);
@@ -635,10 +631,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     // collect tables from the request
     List<String> tables = collectDataTables(userContext, request);
 
-    if (ObjectUtil.isEmpty(tables)) {
-      tables = new ArrayList<>(ListUtil.of(thisPrimaryTableName));
-    }
-
     // pick the first the table as the id table(all tables have id column)
     String idTable = tables.get(0);
     userContext.put(MULTI_TABLE, tables.size() > 1);
@@ -657,7 +649,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       return null;
     }
 
-    String tableSQl = leftJoinTables(userContext, tables);
+    String tableSQl = joinTables(userContext, tables);
 
     // selects
     String selectSql = collectSelectSql(userContext, request, idTable, parameters);
@@ -719,7 +711,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  public String leftJoinTables(UserContext userContext, List<String> tables) {
+  public String joinTables(UserContext userContext, List<String> tables) {
     List<String> sortedTables = new ArrayList<>();
     for (String table : tables) {
       if (primaryTableNames.contains(table)) {
@@ -746,7 +738,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       }
       sb.append(
           StrUtil.format(
-              " LEFT JOIN {} AS {} ON {}.{} = {}.{}",
+              " {} JOIN {} AS {} ON {}.{} = {}.{}",
+              primaryTableNames.contains(sortedTable)? "INNER": "LEFT",
               sortedTable,
               tableAlias(sortedTable),
               tableAlias(sortedTable),
@@ -794,6 +787,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         tables.add(sqlColumn.getTableName());
       }
     }
+    //ensure this primary table to ensure type
+    tables.add(thisPrimaryTableName);
     return ListUtil.toList(tables);
   }
 
