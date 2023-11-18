@@ -16,9 +16,10 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     try (Connection connection = dataSource.getConnection()) {
       String databaseName = connection.getCatalog();
+      String schemaName = connection.getSchema();
       return String.format(
-          "select * from information_schema.columns where table_name = '%s' and table_schema = '%s'",
-          table, databaseName);
+          "select * from information_schema.columns where table_name = '%s' and table_schema = '%s' and table_catalog = '%s'",
+          table.toUpperCase(), schemaName, databaseName);
     } catch (SQLException pE) {
       throw new RuntimeException(pE);
     }
