@@ -19,6 +19,9 @@ public class BaseEntity implements Entity {
   private EntityStatus $status = EntityStatus.NEW;
 
   @JsonIgnore
+  private String subType;
+
+  @JsonIgnore
   private Map<String, PropertyChangeEvent> updatedProperties = new ConcurrentHashMap<>();
 
   @JsonIgnore private Map<String, Object> additionalInfo = new ConcurrentHashMap<>();
@@ -52,6 +55,27 @@ public class BaseEntity implements Entity {
   @Override
   public void setVersion(Long version) {
     this.version = version;
+  }
+
+  public String getSubType() {
+    return subType;
+  }
+
+  public void setSubType(String pSubType) {
+    subType = pSubType;
+  }
+
+  @Override
+  public String runtimeType() {
+    if (subType == null) {
+      return Entity.super.runtimeType();
+    }
+    return subType;
+  }
+
+  @Override
+  public void setRuntimeType(String runtimeType) {
+    setSubType(runtimeType);
   }
 
   @Override
@@ -262,4 +286,5 @@ public class BaseEntity implements Entity {
   public void clearUpdatedProperties() {
     this.updatedProperties.clear();
   }
+  
 }

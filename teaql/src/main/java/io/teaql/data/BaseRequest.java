@@ -49,6 +49,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   // group by, with aggregations
   Map<String, SearchRequest> propagateDimensions = new HashMap<>();
 
+  Map<String, SearchRequest> enhanceChildren = new HashMap<>();
+
   public BaseRequest(Class<T> pReturnType) {
     returnType = pReturnType;
   }
@@ -573,5 +575,17 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public void setSlice(Slice slice) {
     this.slice = slice;
+  }
+
+  @Override
+  public Map<String, SearchRequest> enhanceChildren() {
+    return enhanceChildren;
+  }
+
+  public void enhanceSelf(BaseRequest<T> childRequest) {
+    if (childRequest.getTypeName().equals(this.getTypeName())) {
+      return;
+    }
+    enhanceChildren.put(childRequest.getTypeName(), childRequest);
   }
 }

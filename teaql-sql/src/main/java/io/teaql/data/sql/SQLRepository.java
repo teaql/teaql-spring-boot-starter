@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     implements SQLColumnResolver {
+  public static final String TYPE_ALIAS = "_type_";
   private String childType = "_child_type";
   private String childSqlType = "VARCHAR(100)";
   private String tqlIdSpaceTable = "teaql_id_space";
@@ -496,8 +497,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
-    String sql =
-        StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
+    String sql = StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
 
     if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
       sql = StrUtil.format("{} WHERE {}", sql, whereSql);
@@ -584,7 +584,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       for (PropertyDescriptor property : this.allProperties) {
         setProperty(pUserContext, entity, property, rs);
       }
-
+      setRealType(entity, rs);
       List<SimpleNamedExpression> simpleDynamicProperties = pRequest.getSimpleDynamicProperties();
       for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
         String name = simpleDynamicProperty.name();
@@ -602,6 +602,13 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       }
       return entity;
     };
+  }
+
+  private void setRealType(T entity, ResultSet rs) {
+    try {
+      entity.setRuntimeType(rs.getString(TYPE_ALIAS));
+    } catch (SQLException pE) {
+    }
   }
 
   private void setProperty(
@@ -739,7 +746,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       sb.append(
           StrUtil.format(
               " {} JOIN {} AS {} ON {}.{} = {}.{}",
-              primaryTableNames.contains(sortedTable)? "INNER": "LEFT",
+              primaryTableNames.contains(sortedTable) ? "INNER" : "LEFT",
               sortedTable,
               tableAlias(sortedTable),
               tableAlias(sortedTable),
@@ -764,9 +771,29 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     if (simpleDynamicProperties != null) {
       allSelects.addAll(simpleDynamicProperties);
     }
-    return allSelects.stream()
-        .map(e -> ExpressionHelper.toSql(userContext, e, idTable, pParameters, this))
-        .collect(Collectors.joining(", "));
+    String selects =
+        allSelects.stream()
+            .map(e -> ExpressionHelper.toSql(userContext, e, idTable, pParameters, this))
+            .collect(Collectors.joining(", "));
+
+    String typeSQL = getTypeSQL(userContext);
+    if (ObjectUtil.isNotEmpty(typeSQL)) {
+      selects = selects + ", " + typeSQL;
+    }
+    return selects;
+  }
+
+  protected String getTypeSQL(UserContext userContext) {
+    String typeSQL = null;
+    if (getEntityDescriptor().hasChildren()) {
+      typeSQL = StrUtil.format("{} AS {}", getChildType(), TYPE_ALIAS);
+      if (userContext.getBool(MULTI_TABLE, false)) {
+        typeSQL =
+            StrUtil.format(
+                "{}.{} AS {}", tableAlias(thisPrimaryTableName), getChildType(), TYPE_ALIAS);
+      }
+    }
+    return typeSQL;
   }
 
   private List<String> collectDataTables(UserContext userContext, SearchRequest<T> request) {
@@ -787,7 +814,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         tables.add(sqlColumn.getTableName());
       }
     }
-    //ensure this primary table to ensure type
+    // ensure this primary table to ensure type
     tables.add(thisPrimaryTableName);
     return ListUtil.toList(tables);
   }

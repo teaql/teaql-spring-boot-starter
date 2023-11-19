@@ -17,6 +17,10 @@ public interface Entity {
     return this.getClass().getSimpleName();
   }
 
+  default String runtimeType() {return typeName();};
+
+  default void setRuntimeType(String runtimeType) {}
+
   default Entity save(UserContext userContext) {
     userContext.checkAndFix(this);
     userContext.saveGraph(this);

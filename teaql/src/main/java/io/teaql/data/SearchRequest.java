@@ -1,7 +1,6 @@
 package io.teaql.data;
 
 import cn.hutool.core.util.StrUtil;
-
 import java.util.*;
 
 public interface SearchRequest<T extends Entity> {
@@ -33,6 +32,8 @@ public interface SearchRequest<T extends Entity> {
   Slice getSlice();
 
   Map<String, SearchRequest> enhanceRelations();
+
+  Map<String, SearchRequest> enhanceChildren();
 
   List<SimpleAggregation> getDynamicAggregateAttributes();
 

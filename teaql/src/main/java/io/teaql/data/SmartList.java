@@ -53,6 +53,10 @@ public class SmartList<T extends Entity> implements Iterable<T> {
     data.add(pValue);
   }
 
+  public void set(int index, T pValue) {
+    data.set(index, pValue);
+  }
+
   public List<T> getData() {
     return data;
   }
