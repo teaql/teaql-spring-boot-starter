@@ -591,7 +591,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         entity.addDynamicProperty(name, rs.getObject(name));
       }
 
-      if (entity.getVersion() < 0) {
+      if (entity.getVersion() != null && entity.getVersion() < 0) {
         if (entity instanceof BaseEntity) {
           ((BaseEntity) entity).set$status(EntityStatus.PERSISTED_DELETED);
         }
