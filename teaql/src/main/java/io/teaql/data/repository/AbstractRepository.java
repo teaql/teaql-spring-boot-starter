@@ -145,16 +145,11 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     for (T t : dataSet) {
       itemLocation.put(t.getId(), i++);
     }
-    Map<String, List<T>> itemsByType = dataSet.groupBy(item -> item.runtimeType());
     childrenRequest.forEach(
         (type, childRequest) -> {
-          List<T> subItems = itemsByType.get(type);
-          if (ObjectUtil.isEmpty(subItems)) {
-            return;
-          }
           TempRequest tempRequest = new TempRequest(childRequest);
           tempRequest.appendSearchCriteria(
-              tempRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.IN, subItems));
+              tempRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.IN, dataSet));
           SmartList childrenItems = tempRequest.executeForList(userContext);
           for (Object item : childrenItems) {
             T subItem = (T) item;
