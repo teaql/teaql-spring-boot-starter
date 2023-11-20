@@ -683,9 +683,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       }
 
       return StrUtil.format(
-          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}.{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}",
+          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}",
           selectSql,
-          tableAlias(partitionTable),
+          userContext.getBool(MULTI_TABLE, false) ? tableAlias(partitionTable) + "." : "",
           sqlColumn.getColumnName(),
           orderBySql,
           tableSQl,
