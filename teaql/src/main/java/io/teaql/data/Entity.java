@@ -45,7 +45,7 @@ public interface Entity {
 
   boolean needPersist();
 
-  default Object getProperty(String propertyName) {
+  default <T> T getProperty(String propertyName) {
     return BeanUtil.getProperty(this, propertyName);
   }
 

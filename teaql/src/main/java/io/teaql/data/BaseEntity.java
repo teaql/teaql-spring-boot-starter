@@ -198,10 +198,10 @@ public class BaseEntity implements Entity {
   }
 
   @Override
-  public Object getProperty(String propertyName) {
+  public <P> P getProperty(String propertyName) {
     Entity o = this.relationCache.get(propertyName);
     if (o != null) {
-      return o;
+      return (P) o;
     }
     return Entity.super.getProperty(propertyName);
   }
