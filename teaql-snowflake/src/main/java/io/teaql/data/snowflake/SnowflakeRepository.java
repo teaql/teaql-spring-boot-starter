@@ -82,7 +82,7 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
       Map<String, Object> upperCase = new HashMap<>();
       for (Map.Entry<String, Object> field: column.entrySet()) {
         if (field.getValue() != null) {
-          upperCase.put(field.getKey().toUpperCase(), field.getValue().toString().toUpperCase());
+          upperCase.put(field.getKey().toLowerCase(), field.getValue().toString().toUpperCase());
         }
       }
       upperCaseTableInfo.add(upperCase);
