@@ -1043,7 +1043,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 StrUtil.format(
                     "SELECT * FROM {} WHERE id = {}",
                     tableName(entityDescriptor.getType()),
-                    genIdForCandidateCode(code)),
+                    getConstantPropertyValue(ctx, entityDescriptor.findIdProperty(), i, code)),
                 Collections.emptyMap());
       } catch (Exception e) {
 
@@ -1060,7 +1060,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 "UPDATE {} SET version = {} where id = '{}'",
                 tableName(entityDescriptor.getType()),
                 -version,
-                genIdForCandidateCode(code));
+                getConstantPropertyValue(ctx, entityDescriptor.findIdProperty(), i, code));
         ctx.info(sql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
           try {
@@ -1095,9 +1095,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   private Object getConstantPropertyValue(
       UserContext ctx, PropertyDescriptor property, int index, String identifier) {
-    if (property.isId()) {
-      return genIdForCandidateCode(identifier);
-    }
     if (property.isVersion()) {
       return 1l;
     }
@@ -1124,7 +1121,14 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       return NamingCase.toPascalCase(identifier);
     }
 
-    return CollectionUtil.get(candidates, index);
+    if (ObjectUtil.isNotEmpty(candidates)) {
+      return CollectionUtil.get(candidates, index);
+    }
+
+    if (property.isId()) {
+      return genIdForCandidateCode(identifier);
+    }
+    return null;
   }
 
   private void ensureRoot(UserContext ctx) {
