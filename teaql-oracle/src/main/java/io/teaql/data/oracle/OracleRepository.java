@@ -25,6 +25,15 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   }
 
   @Override
+  protected String getPartitionSQL(){
+
+    return 
+          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) rank_value from {} {})  t where t.rank_value >= {} and t.rank_value < {}";
+
+  }
+
+
+  @Override
   protected String getSqlValue(Object value) {
     if (value instanceof LocalDateTime) {
       return StrUtil.format(
