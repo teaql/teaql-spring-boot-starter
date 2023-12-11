@@ -375,12 +375,15 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     Map<Object, Number> simpleMap = aggregation.toSimpleMap();
     simpleMap.forEach(
         (parentId, value) -> {
-          if(parentId instanceof BigDecimal bigDecimalParentId){
-            T parent = idEntityMap.get(bigDecimalParentId);
+          if(parentId instanceof Number numberParentId){
+            T parent = idEntityMap.get(numberParentId.longValue());
             parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
             return;
           }
-          T parent = idEntityMap.get(bigDecimalParentId);
+          T parent = idEntityMap.get(parentId);
+          if(parent==null){
+            throw new IllegalArgumentException("Not able to find parent object from idEntityMap by key: " +parentId +", with class" +parentId.getClass().getSimpleName() )
+          }
           parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
           
         });
