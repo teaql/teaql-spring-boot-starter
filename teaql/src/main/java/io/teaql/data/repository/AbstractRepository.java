@@ -375,8 +375,14 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     Map<Object, Number> simpleMap = aggregation.toSimpleMap();
     simpleMap.forEach(
         (parentId, value) -> {
-          T parent = idEntityMap.get(parentId);
+          if(parentId instanceof BigDecimal bigDecimalParentId){
+            T parent = idEntityMap.get(bigDecimalParentId);
+            parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
+            return;
+          }
+          T parent = idEntityMap.get(bigDecimalParentId);
           parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
+          
         });
   }
 
