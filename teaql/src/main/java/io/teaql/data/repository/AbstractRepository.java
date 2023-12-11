@@ -382,7 +382,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
           }
           T parent = idEntityMap.get(parentId);
           if(parent==null){
-            throw new IllegalArgumentException("Not able to find parent object from idEntityMap by key: " +parentId +", with class" +parentId.getClass().getSimpleName() )
+            throw new IllegalArgumentException("Not able to find parent object from idEntityMap by key: " +parentId +", with class" +parentId.getClass().getSimpleName() );
           }
           parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
           
