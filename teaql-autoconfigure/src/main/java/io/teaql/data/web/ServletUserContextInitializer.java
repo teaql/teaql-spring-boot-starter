@@ -3,12 +3,12 @@ package io.teaql.data.web;
 import cn.hutool.core.io.IoUtil;
 import io.teaql.data.RequestHolder;
 import io.teaql.data.UserContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
 
 public class ServletUserContextInitializer implements UserContextInitializer {
 

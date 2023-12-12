@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 }
 
 ext {
