@@ -75,7 +75,11 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
     try {
       referId = resultSet.getObject(pProperty.getName());
     } catch (SQLException pE) {
-      throw new RepositoryException(pE);
+      try {
+          referId = resultSet.getObject(pProperty.getName().toUpperCase());
+        } catch (SQLException pE2) {
+          throw new RepositoryException(pE2);
+        }
     }
     if (referId == null) {
       return null;
