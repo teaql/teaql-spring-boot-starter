@@ -954,6 +954,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return oneRow;
   }
 
+  protected String getSQLForUpdateWhenPrepareId(){
+
+    return "SELECT current_level from {} WHERE type_name = '{}' for update";
+
+  }
+
   @Override
   public Long prepareId(UserContext userContext, T entity) {
     if (entity.getId() != null) {
@@ -978,7 +984,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
               dbCurrent =
                   jdbcTemplate.queryForObject(
                       StrUtil.format(
-                          "SELECT current_level from {} WHERE type_name = '{}' for update",
+                          getSQLForUpdateWhenPrepareId(),
                           getTqlIdSpaceTable(),
                           type),
                       Collections.emptyMap(),

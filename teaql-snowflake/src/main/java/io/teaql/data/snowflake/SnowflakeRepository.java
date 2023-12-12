@@ -39,6 +39,13 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
   }
 
   @Override
+  protected String getSQLForUpdateWhenPrepareId(){
+
+    return "SELECT current_level from {} WHERE type_name = '{}'";
+    
+  }
+
+  @Override
   protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = ((String) columnInfo.get("data_type")).toLowerCase();
     switch (dataType) {
