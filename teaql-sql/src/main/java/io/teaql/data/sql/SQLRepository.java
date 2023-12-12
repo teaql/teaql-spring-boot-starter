@@ -11,6 +11,7 @@ import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
 import io.teaql.data.meta.Relation;
 import io.teaql.data.repository.AbstractRepository;
+import io.teaql.data.repository.StreamEnhancer;
 import io.teaql.data.sql.expression.ExpressionHelper;
 import io.teaql.data.sql.expression.SQLExpressionParser;
 import java.sql.ResultSet;
@@ -21,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -478,6 +481,24 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     SmartList<T> smartList = new SmartList<>(results);
     return smartList;
+  }
+
+  @Override
+  public Stream<T> executeForStream(
+      UserContext userContext, SearchRequest<T> request, int enhanceBatch) {
+    Map<String, Object> params = new HashMap<>();
+    String sql = buildDataSQL(userContext, request, params);
+    if (ObjectUtil.isEmpty(sql)) {
+      return Stream.empty();
+    }
+    Stream<T> stream = jdbcTemplate.queryForStream(sql, params, getMapper(userContext, request));
+    return (Stream<T>)
+        StreamSupport.stream(
+                new StreamEnhancer(userContext, this, stream, request, enhanceBatch), false)
+            .onClose(
+                () -> {
+                  stream.close();
+                });
   }
 
   protected AggregationResult aggregateInternal(UserContext userContext, SearchRequest<T> request) {

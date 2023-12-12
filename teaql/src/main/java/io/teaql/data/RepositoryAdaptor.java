@@ -5,8 +5,8 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
-
 import java.util.*;
+import java.util.stream.Stream;
 
 public class RepositoryAdaptor {
 
@@ -132,5 +132,15 @@ public class RepositoryAdaptor {
       UserContext userContext, SearchRequest<T> request) {
     Repository<T> repository = userContext.resolveRepository(request.getTypeName());
     return repository.aggregation(userContext, request);
+  }
+
+  public static <T extends Entity> Stream<T> executeForStream(UserContext userContext, SearchRequest request) {
+    Repository<T> repository = userContext.resolveRepository(request.getTypeName());
+    return repository.executeForStream(userContext, request);
+  }
+
+  public static <T extends Entity> Stream<T> executeForStream(UserContext userContext, SearchRequest request, int enhanceBatch) {
+    Repository<T> repository = userContext.resolveRepository(request.getTypeName());
+    return repository.executeForStream(userContext, request, enhanceBatch);
   }
 }

@@ -16,6 +16,7 @@ import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractRepository<T extends Entity> implements Repository<T> {
 
@@ -131,7 +132,14 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     return smartList;
   }
 
-  private void enhanceChildren(
+  public Stream<T> executeForStream(UserContext userContext, SearchRequest<T> request, int enhanceBatch) {
+    SmartList<T> smartList = loadInternal(userContext, request);
+    enhanceChildren(userContext, smartList, request);
+    enhanceRelations(userContext, smartList, request);
+    return smartList.stream();
+  }
+
+  public void enhanceChildren(
       UserContext userContext, SmartList<T> dataSet, SearchRequest<T> request) {
     if (dataSet == null || dataSet.isEmpty()) {
       return;

@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.meta.EntityDescriptor;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public interface Repository<T extends Entity> {
 
@@ -13,6 +14,13 @@ public interface Repository<T extends Entity> {
   Collection<T> save(UserContext userContext, Collection<T> entities);
 
   SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request);
+
+  default Stream<T> executeForStream(UserContext userContext, SearchRequest<T> request) {
+    return executeForStream(userContext, request, 1000);
+  }
+
+  Stream<T> executeForStream(
+      UserContext userContext, SearchRequest<T> request, int enhanceBatchSize);
 
   AggregationResult aggregation(UserContext userContext, SearchRequest<T> request);
 

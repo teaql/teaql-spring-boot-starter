@@ -20,5 +20,6 @@ publishing {
 dependencies {
     api 'cn.hutool:hutool-all:5.8.15'
     api 'com.doublechaintech:named-data-lib:1.0.4'
+    implementation 'org.slf4j:slf4j-api'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 }

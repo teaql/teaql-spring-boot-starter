@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
@@ -60,6 +61,15 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
 
   public <T extends Entity> SmartList<T> executeForList(SearchRequest searchRequest) {
     return RepositoryAdaptor.executeForList(this, searchRequest);
+  }
+
+  public <T extends Entity> Stream<T> executeForStream(SearchRequest searchRequest) {
+    return RepositoryAdaptor.executeForStream(this, searchRequest);
+  }
+
+  public <T extends Entity> Stream<T> executeForStream(
+      SearchRequest searchRequest, int enhanceBatch) {
+    return RepositoryAdaptor.executeForStream(this, searchRequest, enhanceBatch);
   }
 
   public void delete(Entity pEntity) {
