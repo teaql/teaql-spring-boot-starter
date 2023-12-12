@@ -60,8 +60,8 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
       } catch (SQLException pE) {
         try {
           value = rs.getObject(getName().toUpperCase());
-        } catch (SQLException pE) {
-          throw new RepositoryException(pE);
+        } catch (SQLException pE2) {
+          throw new RepositoryException(pE2);
         }
         
       }
