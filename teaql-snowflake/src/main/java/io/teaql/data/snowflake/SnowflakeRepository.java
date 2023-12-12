@@ -39,6 +39,13 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
   }
 
   @Override
+  protected String getSQLForUpdateWhenPrepareId(){
+
+    return "SELECT current_level from {} WHERE type_name = '{}'";
+    
+  }
+
+  @Override
   protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = ((String) columnInfo.get("data_type")).toLowerCase();
     switch (dataType) {
@@ -56,12 +63,19 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
       case "integer":
         return "integer";
       case "number":
+        if (!columnInfo.get("numeric_scale").equals("0")) {
+          return StrUtil.format(
+                  "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+        }
         return "number";
       case "decimal":
       case "numeric":
         return StrUtil.format(
                 "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
       case "text":
+        if ("100".equals(columnInfo.get("character_maximum_length"))) {
+          return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
+        }
         return "text";
       case "time without time zone":
         return "time";

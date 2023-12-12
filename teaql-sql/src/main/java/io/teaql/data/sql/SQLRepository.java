@@ -652,7 +652,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     return true;
   }
+  protected String getPartitionSQL(){
 
+    return 
+          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}";
+
+  }
   public String buildDataSQL(
       UserContext userContext, SearchRequest request, Map<String, Object> parameters) {
 
@@ -703,8 +708,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         whereSql = "WHERE " + whereSql;
       }
 
-      return StrUtil.format(
-          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}",
+      return StrUtil.format(getPartitionSQL(),
           selectSql,
           userContext.getBool(MULTI_TABLE, false) ? tableAlias(partitionTable) + "." : "",
           sqlColumn.getColumnName(),
@@ -971,6 +975,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return oneRow;
   }
 
+  protected String getSQLForUpdateWhenPrepareId(){
+
+    return "SELECT current_level from {} WHERE type_name = '{}' for update";
+
+  }
+
   @Override
   public Long prepareId(UserContext userContext, T entity) {
     if (entity.getId() != null) {
@@ -995,7 +1005,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
               dbCurrent =
                   jdbcTemplate.queryForObject(
                       StrUtil.format(
-                          "SELECT current_level from {} WHERE type_name = '{}' for update",
+                          getSQLForUpdateWhenPrepareId(),
                           getTqlIdSpaceTable(),
                           type),
                       Collections.emptyMap(),

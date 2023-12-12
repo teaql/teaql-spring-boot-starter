@@ -59,7 +59,7 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
       int columnCount = resultSet.getMetaData().getColumnCount();
       for (int i = 0; i < columnCount; i++) {
         String columnLabel = resultSet.getMetaData().getColumnLabel(i + 1);
-        if (columnLabel.equals(name)){
+        if (columnLabel.equalsIgnoreCase(name)){
           return true;
         }
       }
@@ -75,7 +75,11 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
     try {
       referId = resultSet.getObject(pProperty.getName());
     } catch (SQLException pE) {
-      throw new RepositoryException(pE);
+      try {
+          referId = resultSet.getObject(pProperty.getName().toUpperCase());
+        } catch (SQLException pE2) {
+          throw new RepositoryException(pE2);
+        }
     }
     if (referId == null) {
       return null;
