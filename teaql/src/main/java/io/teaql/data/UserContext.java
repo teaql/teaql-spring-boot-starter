@@ -28,7 +28,7 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
         return repository;
       }
     }
-    throw new RepositoryException("Repository for:" + type + " not defined.");
+    throw new RepositoryException("Repository for '" + type + "' is not defined.");
   }
 
   public DataConfigProperties config() {
