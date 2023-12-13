@@ -54,17 +54,8 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
       Entity o = createRefer(this, rs, targetType);
       entity.setProperty(getName(), o);
     } else {
-      Object value;
-      try {
-        value = rs.getObject(getName());
-      } catch (SQLException pE) {
-        try {
-          value = rs.getObject(getName().toUpperCase());
-        } catch (SQLException pE2) {
-          throw new RepositoryException(pE2);
-        }
-        
-      }
+      Object value = ResultSetTool.getValue(rs,columnName);
+      
       entity.setProperty(getName(), Convert.convert(targetType, value));
     }
   }
@@ -86,12 +77,8 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
 
   private Entity createRefer(PropertyDescriptor pProperty, ResultSet resultSet, Class targetType) {
     BaseEntity o = (BaseEntity) ReflectUtil.newInstance(targetType);
-    Object referId;
-    try {
-      referId = resultSet.getObject(pProperty.getName());
-    } catch (SQLException pE) {
-      throw new RepositoryException(pE);
-    }
+    Object referId = ResultSetTool.getValue(resultSet,pProperty.getName());
+    
     if (referId == null) {
       return null;
     }

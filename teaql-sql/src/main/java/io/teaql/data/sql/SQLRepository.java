@@ -550,10 +550,14 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       List<SimpleNamedExpression> functions = aggregations.getAggregates();
       List<SimpleNamedExpression> dimensions = aggregations.getDimensions();
       for (SimpleNamedExpression function : functions) {
-        item.addValue(function, rs.getObject(function.name()));
+        
+        item.addValue(function, ResultSetTool.getValue(rs,function.name()));
+
       }
       for (SimpleNamedExpression dimension : dimensions) {
-        item.addDimension(dimension, rs.getObject(dimension.name()));
+        
+        item.addDimension(dimension, ResultSetTool.getValue(rs,dimension.name()));
+        
       }
       return item;
     };
@@ -609,7 +613,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       List<SimpleNamedExpression> simpleDynamicProperties = pRequest.getSimpleDynamicProperties();
       for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
         String name = simpleDynamicProperty.name();
-        entity.addDynamicProperty(name, rs.getObject(name));
+        entity.addDynamicProperty(name, ResultSetTool.getValue(rs,name));
       }
 
       if (entity.getVersion() != null && entity.getVersion() < 0) {

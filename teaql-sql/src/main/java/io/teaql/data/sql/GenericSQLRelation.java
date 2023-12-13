@@ -71,16 +71,8 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
 
   private Entity createRefer(PropertyDescriptor pProperty, ResultSet resultSet, Class targetType) {
     BaseEntity o = (BaseEntity) ReflectUtil.newInstance(targetType);
-    Object referId;
-    try {
-      referId = resultSet.getObject(pProperty.getName());
-    } catch (SQLException pE) {
-      try {
-          referId = resultSet.getObject(pProperty.getName().toUpperCase());
-        } catch (SQLException pE2) {
-          throw new RepositoryException(pE2);
-        }
-    }
+    Object referId = ResultSetTool.getValue(resultSet,pProperty.getName()) ;
+    
     if (referId == null) {
       return null;
     }
