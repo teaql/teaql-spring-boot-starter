@@ -21,7 +21,8 @@ public class ResultSetTool {
         ResultSetMetaData metaData = resultSet.getMetaData();
 
         for(int i=0;i<metaData.getColumnCount();i++){
-            String columnNameInRs=metaData.getColumnName(i);
+
+            String columnNameInRs=metaData.getColumnName(i+1);
             if(columnNameInRs.equalsIgnoreCase(columnNameInRs)){
                 return resultSet.getObject(i+1);
             }
