@@ -2,6 +2,7 @@ package io.teaql.data;
 
 import cn.hutool.core.util.StrUtil;
 import java.util.*;
+import java.util.stream.Stream;
 
 public interface SearchRequest<T extends Entity> {
   default String getTypeName() {
@@ -53,7 +54,21 @@ public interface SearchRequest<T extends Entity> {
     return userContext.executeForList(this);
   }
 
-  default AggregationResult aggregation(UserContext userContext){
+  default Stream<T> executeForStream(UserContext userContext) {
+    if (userContext == null) {
+      throw new RepositoryException("userContext is null");
+    }
+    return userContext.executeForStream(this);
+  }
+
+  default Stream<T> executeForStream(UserContext userContext, int enhanceBatchSize) {
+    if (userContext == null) {
+      throw new RepositoryException("userContext is null");
+    }
+    return userContext.executeForStream(this, enhanceBatchSize);
+  }
+
+  default AggregationResult aggregation(UserContext userContext) {
     if (userContext == null) {
       throw new RepositoryException("userContext is null");
     }
