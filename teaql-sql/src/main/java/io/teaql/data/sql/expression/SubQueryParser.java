@@ -36,6 +36,8 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
       SQLRepository subRepository = (SQLRepository) repository;
       TempRequest tempRequest = new TempRequest(dependsOn.returnType(), dependsOn.getTypeName());
 
+      tempRequest.setOrderBy(dependsOn.getOrderBy());
+
       tempRequest.setSlice(dependsOn.getSlice());
 
       // 只选择依赖的属性以及条件
