@@ -23,7 +23,7 @@ public class ResultSetTool {
     for (int i = 0; i < metaData.getColumnCount(); i++) {
 
       String columnNameInRs = metaData.getColumnName(i + 1);
-      if (columnNameInRs.equalsIgnoreCase(columnNameInRs)) {
+      if (columnNameInRs.equalsIgnoreCase(columnName)) {
         return resultSet.getObject(i + 1);
       }
     }
