@@ -7,29 +7,27 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 public class ResultSetTool {
-    //ResultSetTool.getValue(rs,columnName)
 
-    public static Object getValue(ResultSet resultSet, String columnName)  {
-        try{
-            return getValueInternal(resultSet,columnName);
-        }catch (Exception e){
-            throw new RepositoryException(e);
-        }
-
+  public static Object getValue(ResultSet resultSet, String columnName) {
+    try {
+      return getValueInternal(resultSet, columnName);
+    } catch (Exception e) {
+      throw new RepositoryException(e);
     }
-    protected static Object getValueInternal(ResultSet resultSet, String columnName) throws SQLException {
-        ResultSetMetaData metaData = resultSet.getMetaData();
+  }
 
-        for(int i=0;i<metaData.getColumnCount();i++){
+  protected static Object getValueInternal(ResultSet resultSet, String columnName)
+      throws SQLException {
+    ResultSetMetaData metaData = resultSet.getMetaData();
 
-            String columnNameInRs=metaData.getColumnName(i+1);
-            if(columnNameInRs.equalsIgnoreCase(columnNameInRs)){
-                return resultSet.getObject(i+1);
-            }
-        }
+    for (int i = 0; i < metaData.getColumnCount(); i++) {
 
-        throw new IllegalArgumentException("Column '"+columnName+"' is not found in ResultSet");
-
+      String columnNameInRs = metaData.getColumnName(i + 1);
+      if (columnNameInRs.equalsIgnoreCase(columnNameInRs)) {
+        return resultSet.getObject(i + 1);
+      }
     }
 
+    throw new IllegalArgumentException("Column '" + columnName + "' is not found in ResultSet");
+  }
 }

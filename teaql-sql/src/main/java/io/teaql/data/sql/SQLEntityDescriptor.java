@@ -9,12 +9,17 @@ import io.teaql.data.meta.SimplePropertyType;
 public class SQLEntityDescriptor extends EntityDescriptor {
   public SQLEntityDescriptor addSimpleProperty(
       String propertyName, Class type, String tableName, String columnName, String columnType) {
-    GenericSQLProperty property = new GenericSQLProperty(tableName, columnName, columnType);
+    GenericSQLProperty property = createPropertyDescriptor(tableName, columnName, columnType);
     property.setName(propertyName);
     property.setType(new SimplePropertyType(type));
     property.setOwner(this);
     getProperties().add(property);
     return this;
+  }
+
+  protected GenericSQLProperty createPropertyDescriptor(
+      String tableName, String columnName, String columnType) {
+    return new GenericSQLProperty(tableName, columnName, columnType);
   }
 
   public SQLEntityDescriptor addObjectProperty(
@@ -26,14 +31,11 @@ public class SQLEntityDescriptor extends EntityDescriptor {
       String tableName,
       String columnName,
       String columnType) {
-    GenericSQLRelation relation = new GenericSQLRelation();
+    GenericSQLRelation relation = createRelationDescriptor(tableName, columnName, columnType);
     relation.setOwner(this);
     relation.setName(propertyName);
     relation.setType(new SimplePropertyType(parentClass));
     relation.setRelationKeeper(this);
-    relation.setTableName(tableName);
-    relation.setColumnName(columnName);
-    relation.setColumnType(columnType);
     getProperties().add(relation);
 
     // parent增加一个反向的关系
@@ -49,5 +51,14 @@ public class SQLEntityDescriptor extends EntityDescriptor {
 
     refer.getProperties().add(reverse);
     return this;
+  }
+
+  protected GenericSQLRelation createRelationDescriptor(
+      String tableName, String columnName, String columnType) {
+    GenericSQLRelation relation = new GenericSQLRelation();
+    relation.setTableName(tableName);
+    relation.setColumnName(columnName);
+    relation.setColumnType(columnType);
+    return relation;
   }
 }
