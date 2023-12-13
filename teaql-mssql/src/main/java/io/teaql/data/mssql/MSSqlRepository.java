@@ -10,6 +10,7 @@ import io.teaql.data.sql.SQLRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
@@ -85,17 +86,27 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     return StrUtil.format(
         "OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
   }
-
+  protected void ensureOrderByWhenNoOrderByClause(SearchRequest<T> request){
+     Slice slice = request.getSlice();
+     if (slice == null) {
+        return;
+     }
+     OrderBys orderBy = request.getOrderBy();
+     if (orderBy.isEmpty()) {
+       orderBy.addOrderBy(new OrderBy(BaseEntity.ID_PROPERTY));
+     }
+  }
   @Override
   public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
-    Slice slice = request.getSlice();
-    if (slice != null) {
-      OrderBys orderBy = request.getOrderBy();
-      if (orderBy.isEmpty()) {
-        orderBy.addOrderBy(new OrderBy(BaseEntity.ID_PROPERTY));
-      }
-    }
+
+    ensureOrderByWhenNoOrderByClause(request);
     return super.loadInternal(userContext, request);
+  }
+  @Override
+  public Stream<T> executeForStream(
+      UserContext userContext, SearchRequest<T> request, int enhanceBatchSize){
+    ensureOrderByWhenNoOrderByClause(request);
+    return super.executeForStream(userContext, request,enhanceBatchSize);
   }
 
   @Override
