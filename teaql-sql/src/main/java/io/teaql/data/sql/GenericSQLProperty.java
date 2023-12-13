@@ -54,7 +54,7 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
       Entity o = createRefer(this, rs, targetType);
       entity.setProperty(getName(), o);
     } else {
-      Object value = ResultSetTool.getValue(rs,columnName);
+      Object value = ResultSetTool.getValue(rs,getName());
       
       entity.setProperty(getName(), Convert.convert(targetType, value));
     }
