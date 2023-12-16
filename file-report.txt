@@ -1,0 +1,157 @@
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/BaseEntity.java
+Line 1:     // 多次变化记录最开始的值为old值
+Line 2:     // 值在多次变化后，实际没有变化
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/Constant.java
+Line 1:  * @author Jackytin 常量表达式
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/BaseRequest.java
+Line 1:   // 动态属性
+Line 2:   // 尝试load 对象本身（存储自身的所有的表）
+Line 3:   // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及1对1关系的self
+Line 4:   // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及所有关系的self
+Line 5:     throw new RepositoryException("不支持的operator:" + operator);
+Line 6:         throw new RepositoryException("Between需要下限和上限两个参数");
+Line 7:     // 对于重复添加同一名称的聚合，忽略掉它
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/DynamicSearchHelper.java
+Line 1:         // 单个文本
+Line 2:         // value是一个对象，支持一个字段的排序
+Line 3:         // value是一个数组，支持一个到多个排序
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/Entity.java
+Line 1: // 实体接口
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/Expression.java
+Line 1:  * @author Jackytin 表达式，顶级接口
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/FunctionApply.java
+Line 1:       throw new RepositoryException("FunctionApply的expressions不能为空");
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/PropertyAware.java
+Line 1:  *     <p>描述与某一组属性相关
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/RepositoryAdaptor.java
+Line 1:     // 收集所有的需要保存的对象
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/SimpleNamedExpression.java
+Line 1:       throw new RepositoryException("SimpleNamedExpression 的expression不能为空");
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/UserContext.java
+Line 1:       throw new IllegalStateException("user context缺少request holder");
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/checker/Checker.java
+Line 1: /** 在保存entity之前会用checker来检查或设置一些默认值 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/meta/PropertyDescriptor.java
+Line 1: /** Entity所包含的属性的元信息 */
+Line 2:    * 这个属性所属，一个EntityDescriptor引用一组PropertyDescriptor
+Line 3:    * 每个PropertyDescriptor也会反过来引用EntityDescriptor（双向关联）
+Line 4:   /** 该属性在其owner中的名称，在每个owner */
+Line 5:   /** 属性类型 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/meta/EntityDescriptor.java
+Line 1:  * Entity元信息定义
+Line 2:   /** 元信息的简单名称 */
+Line 3:   /** 所包含的属性 */
+Line 4:   /** 对应的java 对象的class */
+Line 5:   /** 继承结构 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/meta/EntityMetaFactory.java
+Line 1: /** 所有的entity元信息注册或解析 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/meta/Relation.java
+Line 1: /** 关系作为一个特殊的属性类型 */
+Line 2:   /** 关系是双向的，用此来表示反向关系（即从另一个EntityDescriptor的一个关系属性来表示） */
+Line 3:   /** 关系由某一个entity来维护 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/meta/SimplePropertyType.java
+Line 1: /** 基本的属性类型 */
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql/src/main/java/io/teaql/data/web/WebAction.java
+Line 1:     webAction.setName("查看");
+Line 2:     return modifyWebAction("更新", url);
+Line 3:     return modifyWebAction("删除", url, warningMessage);
+Line 4:     return modifyWebAction("审核", url, warningMessage);
+Line 5:     return modifyWebAction("作废", url, warningMessage);
+Line 6:     webAction.setName("修改");
+Line 7:     webAction.setName("新增" + odName);
+Line 8:     webAction.setName("删除");
+Line 9:     webAction.setName("批量上传");
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-oracle/src/main/java/io/teaql/data/oracle/OracleRepository.java
+Line 1:         throw new RepositoryException("未处理的类型:" + dataType);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLData.java
+Line 1: // SQLData 代表着存在数据库一行一列中的值，
+Line 2: // 在持久化Entity时，每个属性都被拆分为一组SQLData（save or update
+Line 3:   // 表名
+Line 4:   // 列名
+Line 5:   // 可以持久化的值
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLEntityDescriptor.java
+Line 1:     // parent增加一个反向的关系
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLLogger.java
+Line 1:       // 超过了
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLEntity.java
+Line 1: // 持久化Entity时，Entity会被转化为SQLEntity
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-mssql/src/main/java/io/teaql/data/mssql/MSSqlRepository.java
+Line 1:         throw new RepositoryException("未处理的类型:" + dataType);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-snowflake/src/main/java/io/teaql/data/snowflake/SnowflakeRepository.java
+Line 1:         throw new RepositoryException("未处理的类型:" + dataType);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLRepositorySchemaHelper.java
+Line 1:   // ensure 所有的表
+Line 2:   // ensure这个itemDescriptor以及依赖的所有表
+Line 3:     // parent 存在时ensure parent
+Line 4:     // 我持有的所有relation, 先解析引用的
+Line 5:     // 解析自已
+Line 6:     // 只有是sqlRepository才能ensure
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/SQLRepository.java
+Line 1:       // 如果没有更新version table属性，此处我们只更新version table的版本
+Line 2:     // version表已更新
+Line 3:     // 增加version列的修改
+Line 4:     l.add(sqlEntity.getVersion() + 1); // 版本加1
+Line 5:     // 只更新有变化的属性
+Line 6:       // id只能在新建时设置， version由系统维护，不能更改
+Line 7:     throw new RepositoryException("SQLRepository 目前只支持SQLProperty");
+Line 8:                       // 版本+1 然后取反。即version的绝对值表示修改次数，版本为负表示已被删除
+Line 9:                       // 版本取反加1。即version的绝对值表示修改次数，版本为负表示已被删除
+Line 10:     throw new RepositoryException("SQLRepository 目前只支持SQLProperty");
+Line 11:         "SQLRepository属性[" + pProperty.getName() + "]错误，目前只支持SQLProperty");
+Line 12:     // 排序
+Line 13:     // 表格不存在
+Line 14:         throw new RepositoryException("未处理的类型:" + dataType);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/AggrExpressionParser.java
+Line 1:       throw new RepositoryException("AggrExpression的operator只能是" + AggrFunction.class);
+Line 2:       throw new RepositoryException("AggrExpression的需要1个操作数");
+Line 3:     throw new RepositoryException("不支持的聚合函数:" + aggrFunction);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/ExpressionHelper.java
+Line 1:       throw new RepositoryException("目前还不支持表达式类型:" + expression.getClass());
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/OneOperatorExpressionParser.java
+Line 1:       throw new RepositoryException("不支持的运算符:" + operator);
+Line 2:       throw new RepositoryException(operator + "运算符只能有左值");
+Line 3:         throw new RepositoryException("不支持的运算符:" + operator);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/SQLExpressionParser.java
+Line 1:     throw new RepositoryException("尚未实现");
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/SubQueryParser.java
+Line 1:       // 只选择依赖的属性以及条件
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/TwoOperatorExpressionParser.java
+Line 1:       throw new RepositoryException("不支持的运算符:" + operator);
+Line 2:       throw new RepositoryException(operator + "运算符需要左右值");
+Line 3:         throw new RepositoryException("不支持的运算符:" + operator);
+----------------------
+File Name: /Users/Philip/githome/teaql-spring-boot-starter/teaql-sql/src/main/java/io/teaql/data/sql/expression/TypeCriteriaParser.java
+Line 1:       // 没有子类型,忽略此条件
+----------------------
