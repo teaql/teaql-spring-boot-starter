@@ -29,11 +29,14 @@ import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import reactor.core.publisher.Mono;
 
 @Configuration
 public class TQLAutoConfiguration {
+
+  public static final String TQL_CONTEXT = "TQL_CONTEXT";
 
   @Bean
   @ConfigurationProperties(prefix = "teaql")
@@ -74,6 +77,12 @@ public class TQLAutoConfiguration {
     return tqlResolver;
   }
 
+  @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  public TQLContextResponseUpdater userContextResponseSetter() {
+    return new TQLContextResponseUpdater();
+  }
+
   @Configuration
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   public static class TQLContextResolver implements HandlerMethodArgumentResolver {
@@ -98,16 +107,21 @@ public class TQLAutoConfiguration {
       Class<? extends UserContext> contextType = config.getContextClass();
       UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
       userContext.init(webRequest.getNativeRequest());
+      mavContainer.addAttribute(TQL_CONTEXT, userContext);
       return userContext;
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public WebMvcConfigurer webMvcConfigurer(TQLContextResolver tqlResolver) {
+    public WebMvcConfigurer tqlConfigure(
+        TQLContextResolver tqlResolver, TQLContextResponseUpdater userContextResponseSetter) {
       return new WebMvcConfigurer() {
         @Override
         public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
           resolvers.add(tqlResolver);
+        }
+
+        public void addInterceptors(InterceptorRegistry registry) {
+          registry.addInterceptor(userContextResponseSetter);
         }
       };
     }

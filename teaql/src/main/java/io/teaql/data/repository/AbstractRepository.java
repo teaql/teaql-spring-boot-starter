@@ -545,7 +545,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       return CompareUtil.compare((Comparable) p0, (Comparable) p1) < 0 ? p1 : p0;
     }
 
-    throw new RepositoryException("unsupported AggrFunction" + aggr);
+    throw new RepositoryException("un mergeable AggrFunction" + aggr);
   }
 
   @Override

@@ -49,6 +49,8 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
         return StrUtil.format("sum({})", sqlColumn);
       case COUNT:
         return StrUtil.format("count({})", sqlColumn);
+      case AVG:
+        return StrUtil.format("avg({})", sqlColumn);
       case GBK:
         return StrUtil.format("convert_to({},'GBK')", sqlColumn);
     }

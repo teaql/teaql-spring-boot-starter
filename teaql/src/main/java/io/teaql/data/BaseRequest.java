@@ -468,6 +468,30 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     addAggregate(retName, propertyName, AggrFunction.SUM);
   }
 
+  public void min(String propertyName) {
+    min(propertyName, propertyName);
+  }
+
+  public void min(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.MIN);
+  }
+
+  public void max(String propertyName) {
+    max(propertyName, propertyName);
+  }
+
+  public void max(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.MAX);
+  }
+
+  public void avg(String propertyName) {
+    avg(propertyName, propertyName);
+  }
+
+  public void avg(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.AVG);
+  }
+
   protected BaseRequest<T> matchType(String... types) {
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types, Operator.IN)));
     return this;

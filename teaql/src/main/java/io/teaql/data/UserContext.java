@@ -8,10 +8,7 @@ import io.teaql.data.checker.Checker;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -20,6 +17,8 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
   public static final String REQUEST_HOLDER = "$request:requestHolder";
+
+  public static final String RESPONSE_HEADERS = "$response:headers";
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {
@@ -302,5 +301,18 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   @Override
   public byte[] getBodyBytes() {
     return getRequestHolder().getBodyBytes();
+  }
+
+  public Map<String, String> getResponseHeaders() {
+    Map<String, String> headers = (Map<String, String>) getObj(RESPONSE_HEADERS);
+    if (headers == null) {
+      headers = new HashMap<>();
+      put(RESPONSE_HEADERS, headers);
+    }
+    return headers;
+  }
+
+  public void setResponseHeader(String headerName, String headerValue) {
+    getResponseHeaders().put(headerName, headerValue);
   }
 }
