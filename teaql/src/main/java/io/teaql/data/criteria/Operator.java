@@ -21,7 +21,9 @@ public enum Operator implements PropertyFunction {
   NOT_IN,
   IN_LARGE,
   NOT_IN_LARGE,
-  BETWEEN;
+  BETWEEN
+  SOUNDS_LIKE
+  ;
 
   public boolean hasOneOperator() {
     return this == IS_NULL || this == IS_NOT_NULL;

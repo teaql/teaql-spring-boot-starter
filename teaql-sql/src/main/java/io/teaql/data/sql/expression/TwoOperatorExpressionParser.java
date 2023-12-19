@@ -102,6 +102,8 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
         return "NOT IN";
       case NOT_IN_LARGE:
         return "<> ALL";
+      case SOUNDS_LIKE:
+        return "=";
       default:
         throw new RepositoryException("不支持的运算符:" + operator);
     }
