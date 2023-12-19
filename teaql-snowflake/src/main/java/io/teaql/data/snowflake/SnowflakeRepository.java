@@ -6,6 +6,7 @@ import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
+import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,6 +21,9 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
     super(entityDescriptor, dataSource);
   }
 
+  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
+    return new ArrayList<>();
+  }
   @Override
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     try (Connection connection = dataSource.getConnection()) {

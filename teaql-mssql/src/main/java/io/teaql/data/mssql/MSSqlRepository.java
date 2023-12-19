@@ -6,9 +6,12 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
+import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -18,6 +21,10 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     super(entityDescriptor, dataSource);
   }
 
+  @Override
+  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
+    return new ArrayList<>();
+  }
   @Override
   protected String getSqlValue(Object value) {
     if (value instanceof LocalDateTime) {

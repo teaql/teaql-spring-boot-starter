@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
+import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,6 +21,10 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 public class OracleRepository<T extends Entity> extends SQLRepository<T> {
+  @Override
+  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
+    return new ArrayList<>();
+  }
   public OracleRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
   }

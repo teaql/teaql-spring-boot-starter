@@ -1055,8 +1055,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return current.get();
   }
 
-  record SQLConstraint(
-      String name, String tableName, String columnName, String fTableName, String fColumnName) {}
+
 
   private void ensureIndexAndForeignKey(UserContext ctx) {
     List<SQLConstraint> constraints = fetchFKs(ctx);
