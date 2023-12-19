@@ -124,6 +124,9 @@ public class BaseEntity implements Entity {
 
   @Override
   public void addDynamicProperty(String propertyName, Object value) {
+    if(value==null){
+      return;
+    }
     this.additionalInfo.put(dynamicPropertyNameOf(propertyName), value);
   }
 
