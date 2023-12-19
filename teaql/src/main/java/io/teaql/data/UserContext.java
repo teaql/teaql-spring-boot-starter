@@ -13,12 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class UserContext implements NaturalLanguageTranslator, RequestHolder {
+  public static final String X_CLASS = "X-Class";
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
   public static final String REQUEST_HOLDER = "$request:requestHolder";
 
-  public static final String RESPONSE_HEADERS = "$response:headers";
+  public static final String RESPONSE_HOLDER = "$response:responseHolder";
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {
@@ -278,9 +279,17 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   public RequestHolder getRequestHolder() {
     RequestHolder requestHolder = (RequestHolder) getObj(REQUEST_HOLDER);
     if (requestHolder == null) {
-      throw new IllegalStateException("user context缺少request holder");
+      throw new IllegalStateException("user context missing request holder");
     }
     return requestHolder;
+  }
+
+  public ResponseHolder getResponseHolder() {
+    ResponseHolder responseHolder = (ResponseHolder) getObj(RESPONSE_HOLDER);
+    if (responseHolder == null) {
+      throw new IllegalStateException("user context missing response holder");
+    }
+    return responseHolder;
   }
 
   @Override
@@ -303,16 +312,7 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
     return getRequestHolder().getBodyBytes();
   }
 
-  public Map<String, String> getResponseHeaders() {
-    Map<String, String> headers = (Map<String, String>) getObj(RESPONSE_HEADERS);
-    if (headers == null) {
-      headers = new HashMap<>();
-      put(RESPONSE_HEADERS, headers);
-    }
-    return headers;
-  }
-
   public void setResponseHeader(String headerName, String headerValue) {
-    getResponseHeaders().put(headerName, headerValue);
+    getResponseHolder().setHeader(headerName, headerValue);
   }
 }

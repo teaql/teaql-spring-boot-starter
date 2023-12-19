@@ -22,21 +22,17 @@ import javax.sql.DataSource;
 
 public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   @Override
-  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-    return new ArrayList<>();
-  }
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
+
   public OracleRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
   }
 
   @Override
-  protected String getPartitionSQL(){
+  protected String getPartitionSQL() {
 
-    return 
-          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) rank_value from {} {})  t where t.rank_value >= {} and t.rank_value < {}";
-
+    return "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) rank_value from {} {})  t where t.rank_value >= {} and t.rank_value < {}";
   }
-
 
   @Override
   protected String getSqlValue(Object value) {
@@ -66,35 +62,37 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
   @Override
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     return String.format(
-        "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_PRECISION, DATA_SCALE, DATA_LENGTH FROM USER_TAB_COLUMNS where TABLE_NAME=UPPER('%s')", table);
+        "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_PRECISION, DATA_SCALE, DATA_LENGTH FROM USER_TAB_COLUMNS where TABLE_NAME=UPPER('%s')",
+        table);
   }
 
   @Override
   protected void ensure(
-          UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
+      UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
     List<Map<String, Object>> lowercaseTableInfo = new ArrayList<>();
     for (Map<String, Object> column : tableInfo) {
       Map<String, Object> lowercaseColumn = new HashMap<>();
-      for (Map.Entry<String, Object> field: column.entrySet()) {
+      for (Map.Entry<String, Object> field : column.entrySet()) {
         if (field.getValue() != null) {
-          lowercaseColumn.put(field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
+          lowercaseColumn.put(
+              field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
         }
       }
       lowercaseTableInfo.add(lowercaseColumn);
     }
     super.ensure(ctx, lowercaseTableInfo, table, columns);
   }
+
   @Override
   protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = (String) columnInfo.get("data_type");
     switch (dataType) {
       case "number":
         if ("0".equals(columnInfo.get("data_scale"))) {
-          return StrUtil.format(
-                  "number({})", columnInfo.get("data_precision"));
+          return StrUtil.format("number({})", columnInfo.get("data_precision"));
         }
         return StrUtil.format(
-                "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
+            "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
       case "varchar2":
         return StrUtil.format("varchar({})", columnInfo.get("data_length"));
       case "bigint":
@@ -113,7 +111,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
       case "decimal":
       case "numeric":
         return StrUtil.format(
-                "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+            "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
       case "text":
         return "text";
       case "clob":
@@ -134,6 +132,7 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     if (ObjectUtil.isEmpty(slice)) {
       return null;
     }
-    return StrUtil.format("OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
+    return StrUtil.format(
+        "OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
   }
 }

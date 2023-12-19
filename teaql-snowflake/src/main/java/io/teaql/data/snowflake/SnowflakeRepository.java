@@ -21,9 +21,9 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
     super(entityDescriptor, dataSource);
   }
 
-  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-    return new ArrayList<>();
-  }
+  @Override
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
+
   @Override
   protected String findTableColumnsSql(DataSource dataSource, String table) {
     try (Connection connection = dataSource.getConnection()) {
@@ -43,10 +43,9 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
   }
 
   @Override
-  protected String getSQLForUpdateWhenPrepareId(){
+  protected String getSQLForUpdateWhenPrepareId() {
 
     return "SELECT current_level from {} WHERE type_name = '{}'";
-    
   }
 
   @Override
@@ -69,13 +68,15 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
       case "number":
         if (!columnInfo.get("numeric_scale").equals("0")) {
           return StrUtil.format(
-                  "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+              "numeric({},{})",
+              columnInfo.get("numeric_precision"),
+              columnInfo.get("numeric_scale"));
         }
         return "number";
       case "decimal":
       case "numeric":
         return StrUtil.format(
-                "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
+            "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
       case "text":
         if ("100".equals(columnInfo.get("character_maximum_length"))) {
           return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
@@ -94,11 +95,11 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
 
   @Override
   protected void ensure(
-          UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
+      UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
     List<Map<String, Object>> upperCaseTableInfo = new ArrayList<>();
     for (Map<String, Object> column : tableInfo) {
       Map<String, Object> upperCase = new HashMap<>();
-      for (Map.Entry<String, Object> field: column.entrySet()) {
+      for (Map.Entry<String, Object> field : column.entrySet()) {
         if (field.getValue() != null) {
           upperCase.put(field.getKey().toLowerCase(), field.getValue().toString().toUpperCase());
         }

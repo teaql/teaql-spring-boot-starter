@@ -22,9 +22,8 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
   }
 
   @Override
-  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-    return new ArrayList<>();
-  }
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
+
   @Override
   protected String getSqlValue(Object value) {
     if (value instanceof LocalDateTime) {
@@ -93,48 +92,51 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     return StrUtil.format(
         "OFFSET {} ROWS FETCH NEXT {} ROWS ONLY", slice.getOffset(), slice.getSize());
   }
-  protected void ensureOrderByWhenNoOrderByClause(SearchRequest<T> request){
-     Slice slice = request.getSlice();
-     if (slice == null) {
-        return;
-     }
-     OrderBys orderBy = request.getOrderBy();
-     if (orderBy.isEmpty()) {
-       orderBy.addOrderBy(new OrderBy(BaseEntity.ID_PROPERTY));
-     }
+
+  protected void ensureOrderByWhenNoOrderByClause(SearchRequest<T> request) {
+    Slice slice = request.getSlice();
+    if (slice == null) {
+      return;
+    }
+    OrderBys orderBy = request.getOrderBy();
+    if (orderBy.isEmpty()) {
+      orderBy.addOrderBy(new OrderBy(BaseEntity.ID_PROPERTY));
+    }
   }
+
   @Override
   public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
 
     ensureOrderByWhenNoOrderByClause(request);
     return super.loadInternal(userContext, request);
   }
+
   @Override
   public Stream<T> executeForStream(
-      UserContext userContext, SearchRequest<T> request, int enhanceBatchSize){
+      UserContext userContext, SearchRequest<T> request, int enhanceBatchSize) {
     ensureOrderByWhenNoOrderByClause(request);
-    return super.executeForStream(userContext, request,enhanceBatchSize);
+    return super.executeForStream(userContext, request, enhanceBatchSize);
   }
 
   @Override
   protected String generateAddColumnSQL(UserContext ctx, String preColumnName, SQLColumn column) {
     String addColumnSql =
-            StrUtil.format(
-                    "ALTER TABLE {} ADD {} {}",
-                    column.getTableName(),
-                    column.getColumnName(),
-                    column.getType());
+        StrUtil.format(
+            "ALTER TABLE {} ADD {} {}",
+            column.getTableName(),
+            column.getColumnName(),
+            column.getType());
     return addColumnSql;
   }
 
   @Override
   protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
     String alterColumnSql =
-            StrUtil.format(
-                    "ALTER TABLE {} ALTER COLUMN {} {}",
-                    column.getTableName(),
-                    column.getColumnName(),
-                    column.getType());
+        StrUtil.format(
+            "ALTER TABLE {} ALTER COLUMN {} {}",
+            column.getTableName(),
+            column.getColumnName(),
+            column.getType());
     return alterColumnSql;
   }
 }

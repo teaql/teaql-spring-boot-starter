@@ -1055,9 +1055,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return current.get();
   }
 
-
-
-  private void ensureIndexAndForeignKey(UserContext ctx) {
+  protected void ensureIndexAndForeignKey(UserContext ctx) {
     List<SQLConstraint> constraints = fetchFKs(ctx);
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
     for (Relation ownRelation : ownRelations) {

@@ -18,9 +18,7 @@ import javax.sql.DataSource;
 
 public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
   @Override
-  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-    return new ArrayList<>();
-  }
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
 
   public MysqlRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);

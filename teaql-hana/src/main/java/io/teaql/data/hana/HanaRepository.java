@@ -12,9 +12,8 @@ import java.util.List;
 public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
 
   @Override
-  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-    return new ArrayList<>();
-  }
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
+
   public HanaRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
   }

@@ -21,24 +21,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import reactor.core.publisher.Mono;
 
 @Configuration
 public class TQLAutoConfiguration {
-
-  public static final String TQL_CONTEXT = "TQL_CONTEXT";
-
   @Bean
   @ConfigurationProperties(prefix = "teaql")
   public DataConfigProperties dataConfig() {
@@ -78,12 +78,6 @@ public class TQLAutoConfiguration {
     return tqlResolver;
   }
 
-  @Bean
-  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-  public TQLContextResponseUpdater userContextResponseSetter() {
-    return new TQLContextResponseUpdater();
-  }
-
   @Configuration
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   public static class TQLContextResolver implements HandlerMethodArgumentResolver {
@@ -107,24 +101,43 @@ public class TQLAutoConfiguration {
         throws Exception {
       Class<? extends UserContext> contextType = config.getContextClass();
       UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
-      userContext.init(webRequest.getNativeRequest());
-      webRequest.setAttribute(TQL_CONTEXT, userContext, RequestAttributes.SCOPE_REQUEST);
+      userContext.init(webRequest);
       return userContext;
     }
 
     @Bean
-    public WebMvcConfigurer tqlConfigure(
-        TQLContextResolver tqlResolver, TQLContextResponseUpdater userContextResponseSetter) {
+    public WebMvcConfigurer tqlConfigure(TQLContextResolver tqlResolver) {
       return new WebMvcConfigurer() {
         @Override
         public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
           resolvers.add(tqlResolver);
         }
-
-        public void addInterceptors(InterceptorRegistry registry) {
-          registry.addInterceptor(userContextResponseSetter);
-        }
       };
+    }
+  }
+
+  @ControllerAdvice
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  public static class XClassSetter implements ResponseBodyAdvice {
+    @Override
+    public boolean supports(MethodParameter returnType, Class converterType) {
+      return true;
+    }
+
+    @Override
+    public Object beforeBodyWrite(
+        Object body,
+        MethodParameter returnType,
+        MediaType selectedContentType,
+        Class selectedConverterType,
+        ServerHttpRequest request,
+        ServerHttpResponse response) {
+      String xClass = response.getHeaders().getFirst(UserContext.X_CLASS);
+      if (ObjectUtil.isEmpty(xClass) && body != null) {
+        response.getHeaders().set(UserContext.X_CLASS, body.getClass().getName());
+      }
+
+      return body;
     }
   }
 
