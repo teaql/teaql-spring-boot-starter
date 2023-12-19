@@ -498,31 +498,31 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   }
 
 
-  public void stdDev(String retName, String propertyName) {
+  public void standardDeviation(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.STDDEV);
   }
-  public void stdDevPop(String retName, String propertyName) {
+  public void squareRootOfPopulationStandardDeviation(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.STDDEV_POP);
   }
-  public void varSamp(String retName, String propertyName) {
+  public void sampleVariance(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.VAR_SAMP);
   }
-  public void varPop(String retName, String propertyName) {
+  public void samplePopulationVariance(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.VAR_POP);
   }
-  public void stdDev(String propertyName) {
+  public void standardDeviation(String propertyName) {
     stdDev(propertyName, propertyName);
   }
 
-  public void stdDevPop(String propertyName) {
+  public void squareRootOfPopulationStandardDeviation(String propertyName) {
     stdDevPop(propertyName, propertyName);
   }
 
-  public void varSamp(String propertyName) {
+  public void sampleVariance(String propertyName) {
     varSamp(propertyName, propertyName);
   }
 
-  public void varPop(String propertyName) {
+  public void samplePopulationVariance(String propertyName) {
     varPop(propertyName, propertyName);
   }
   
