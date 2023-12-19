@@ -33,8 +33,8 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
     if (CollectionUtil.size(expressions) != 2) {
       throw new RepositoryException(operator + "运算符需要左右值");
     }
-    Expression left = expressions.get(0);
-    Expression right = expressions.get(1);
+    Expression left = twoOperatorCriteria.first();
+    Expression right = twoOperatorCriteria.second();
     String leftSQL =
         ExpressionHelper.toSql(userContext, left, idTable, parameters, sqlColumnResolver);
     String rightSQL =
@@ -102,8 +102,6 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
         return "NOT IN";
       case NOT_IN_LARGE:
         return "<> ALL";
-      case SOUNDS_LIKE:
-        return "=";
       default:
         throw new RepositoryException("不支持的运算符:" + operator);
     }

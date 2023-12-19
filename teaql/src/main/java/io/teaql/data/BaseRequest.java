@@ -342,6 +342,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   private SearchCriteria internalCreateSearchCriteria(
       String property, Operator operator, Object[] values) {
+    if (operator == Operator.SOUNDS_LIKE) {
+      return new EQ(
+          new FunctionApply(Operator.SOUNDS_LIKE, new PropertyReference(property)),
+          new FunctionApply(Operator.SOUNDS_LIKE, new Parameter(property, values, operator)));
+    }
     if (operator.hasOneOperator()) {
       return new OneOperatorCriteria(operator, new PropertyReference(property));
     } else if (operator.hasTwoOperator()) {

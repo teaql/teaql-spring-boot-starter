@@ -3,6 +3,7 @@ package io.teaql.data.sql;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.*;
 import io.teaql.data.*;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -304,22 +306,36 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     Map<String, List<Object[]>> rows = new HashMap<>();
     for (SQLEntity entity : sqlEntities) {
       Map<String, List> tableColumnValues = entity.getTableColumnValues();
-      tableColumnValues.forEach(
-          (k, v) -> {
-            List<Object[]> values = rows.get(k);
-            if (values == null) {
-              values = new ArrayList<>();
-              rows.put(k, values);
-            }
-            // for auxiliary tables, we only save the row if there is values except id
-            if (auxiliaryTableNames.contains(k) && entity.allNullExceptID(v)) {
-              return;
-            }
-            values.add(v.toArray(new Object[0]));
-          });
+      for (Map.Entry<String, List> entry : tableColumnValues.entrySet()) {
+        String k = entry.getKey();
+        List v = entry.getValue();
+        List<Object[]> values = rows.get(k);
+        if (values == null) {
+          values = new ArrayList<>();
+          rows.put(k, values);
+        }
+        // for auxiliary tables, we only save the row if there is values except id
+        if (auxiliaryTableNames.contains(k) && entity.allNullExceptID(v)) {
+          continue;
+        }
+        values.add(v.toArray(new Object[0]));
+      }
     }
 
-    rows.forEach(
+    // sort tables, we will insert version table first.
+    TreeMap<String, List<Object[]>> sorted =
+        MapUtil.sort(
+            rows,
+            (table1, table2) -> {
+              if (table1.equals(versionTableName)) {
+                return -1;
+              }
+              if (table2.equals(versionTableName)) {
+                return 1;
+              }
+              return 0;
+            });
+    sorted.forEach(
         (k, v) -> {
           if (v.isEmpty()) {
             return;
@@ -550,14 +566,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       List<SimpleNamedExpression> functions = aggregations.getAggregates();
       List<SimpleNamedExpression> dimensions = aggregations.getDimensions();
       for (SimpleNamedExpression function : functions) {
-        
-        item.addValue(function, ResultSetTool.getValue(rs,function.name()));
 
+        item.addValue(function, ResultSetTool.getValue(rs, function.name()));
       }
       for (SimpleNamedExpression dimension : dimensions) {
-        
-        item.addDimension(dimension, ResultSetTool.getValue(rs,dimension.name()));
-        
+
+        item.addDimension(dimension, ResultSetTool.getValue(rs, dimension.name()));
       }
       return item;
     };
@@ -613,7 +627,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       List<SimpleNamedExpression> simpleDynamicProperties = pRequest.getSimpleDynamicProperties();
       for (SimpleNamedExpression simpleDynamicProperty : simpleDynamicProperties) {
         String name = simpleDynamicProperty.name();
-        entity.addDynamicProperty(name, ResultSetTool.getValue(rs,name));
+        entity.addDynamicProperty(name, ResultSetTool.getValue(rs, name));
       }
 
       if (entity.getVersion() != null && entity.getVersion() < 0) {
@@ -656,12 +670,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     return true;
   }
-  protected String getPartitionSQL(){
 
-    return 
-          "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}";
+  protected String getPartitionSQL() {
 
+    return "SELECT * FROM (SELECT {}, (row_number() over(partition by {}{} {})) as _rank from {} {}) as t where t._rank >= {} and t._rank < {}";
   }
+
   public String buildDataSQL(
       UserContext userContext, SearchRequest request, Map<String, Object> parameters) {
 
@@ -712,7 +726,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         whereSql = "WHERE " + whereSql;
       }
 
-      return StrUtil.format(getPartitionSQL(),
+      return StrUtil.format(
+          getPartitionSQL(),
           selectSql,
           userContext.getBool(MULTI_TABLE, false) ? tableAlias(partitionTable) + "." : "",
           sqlColumn.getColumnName(),
@@ -979,10 +994,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return oneRow;
   }
 
-  protected String getSQLForUpdateWhenPrepareId(){
+  protected String getSQLForUpdateWhenPrepareId() {
 
     return "SELECT current_level from {} WHERE type_name = '{}' for update";
-
   }
 
   @Override
@@ -1008,10 +1022,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             try {
               dbCurrent =
                   jdbcTemplate.queryForObject(
-                      StrUtil.format(
-                          getSQLForUpdateWhenPrepareId(),
-                          getTqlIdSpaceTable(),
-                          type),
+                      StrUtil.format(getSQLForUpdateWhenPrepareId(), getTqlIdSpaceTable(), type),
                       Collections.emptyMap(),
                       Long.class);
             } catch (Exception e) {
@@ -1044,7 +1055,113 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return current.get();
   }
 
-  private void ensureIndexAndForeignKey(UserContext ctx) {}
+  record SQLConstraint(
+      String name, String tableName, String columnName, String fTableName, String fColumnName) {}
+
+  private void ensureIndexAndForeignKey(UserContext ctx) {
+    List<SQLConstraint> constraints = fetchFKs(ctx);
+    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+    for (Relation ownRelation : ownRelations) {
+      ensureForeignKeyForRelation(ctx, constraints, ownRelation);
+    }
+  }
+
+  private void ensureForeignKeyForRelation(
+      UserContext ctx, List<SQLConstraint> constraints, Relation relation) {
+    if (relation instanceof GenericSQLRelation sqlRelation) {
+      String tableName = sqlRelation.getTableName();
+      String columnName = sqlRelation.getColumnName();
+      EntityDescriptor owner = relation.getReverseProperty().getOwner();
+      String fTableName = tableName(owner.getType());
+      String fColumnName = "id";
+      ensureFK(ctx, constraints, tableName, columnName, fTableName, fColumnName);
+    }
+    for (String table : allTableNames) {
+      if (table.equals(versionTableName)) {
+        continue;
+      }
+      ensureFK(ctx, constraints, table, "id", versionTableName, "id");
+    }
+  }
+
+  private void ensureFK(
+      UserContext ctx,
+      List<SQLConstraint> constraints,
+      String tableName,
+      String columnName,
+      String fTableName,
+      String fColumnName) {
+    Optional<SQLConstraint> sqlConstraint =
+        constraints.stream()
+            .filter(
+                constraint ->
+                    ObjectUtil.equals(tableName, constraint.tableName())
+                        && ObjectUtil.equals(columnName, constraint.columnName())
+                        && ObjectUtil.equals(fTableName, constraint.fTableName())
+                        && ObjectUtil.equals(fColumnName, constraint.fColumnName()))
+            .findFirst();
+    if (sqlConstraint.isEmpty()) {
+      String pkSql =
+          prepareCreatePKSQL(
+              new SQLConstraint(
+                  StrUtil.format("FK_{}_{}", tableName, columnName),
+                  tableName,
+                  columnName,
+                  fTableName,
+                  fColumnName));
+      if (ObjectUtil.isEmpty(pkSql)) {
+        return;
+      }
+      ctx.info(pkSql + ";");
+      if (ctx.config() != null && ctx.config().isEnsureTable()) {
+        try {
+          jdbcTemplate.getJdbcTemplate().execute(pkSql);
+        } catch (DataAccessException pE) {
+          throw new RepositoryException(pE);
+        }
+      }
+    }
+  }
+
+  protected String prepareCreatePKSQL(SQLConstraint constraint) {
+    return StrUtil.format(
+        """
+ALTER TABLE {}
+    ADD CONSTRAINT {}
+    FOREIGN KEY ({})
+    REFERENCES {}({})
+        ON DELETE CASCADE;
+ """,
+        constraint.tableName(),
+        constraint.name(),
+        constraint.columnName(),
+        constraint.fTableName(),
+        constraint.fColumnName());
+  }
+
+  protected List<SQLConstraint> fetchFKs(UserContext ctx) {
+    return jdbcTemplate.query(
+        fetchFKsSQL(), Collections.emptyMap(), new BeanPropertyRowMapper<>(SQLConstraint.class));
+  }
+
+  protected String fetchFKsSQL() {
+    return """
+            SELECT
+                tc.constraint_name AS name
+                tc.table_name AS tableName
+                kcu.column_name AS columnName
+                ccu.table_name AS fTableName,
+                ccu.column_name AS fColumnName
+            FROM
+                information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                  ON tc.constraint_name = kcu.constraint_name
+                JOIN information_schema.constraint_column_usage AS ccu
+                  ON ccu.constraint_name = tc.constraint_name
+            WHERE
+                tc.constraint_type = 'FOREIGN KEY'
+            """;
+  }
 
   public void ensureInitData(UserContext ctx) {
     if (entityDescriptor.isRoot()) {
