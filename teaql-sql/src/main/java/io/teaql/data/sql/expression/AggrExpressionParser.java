@@ -51,6 +51,14 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
         return StrUtil.format("count({})", sqlColumn);
       case AVG:
         return StrUtil.format("avg({})", sqlColumn);
+      case STDDEV:
+        return StrUtil.format("stddev({})", sqlColumn);
+      case STDDEV_POP:
+        return StrUtil.format("stddev_pop({})", sqlColumn);
+      case VAR_SAMP:
+        return StrUtil.format("var_samp({})", sqlColumn);
+      case VAR_POP:
+        return StrUtil.format("var_pop({})", sqlColumn);
       case GBK:
         return StrUtil.format("convert_to({},'GBK')", sqlColumn);
     }

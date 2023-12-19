@@ -10,6 +10,7 @@ public enum AggrFunction implements PropertyFunction {
   GBK,
   STDDEV,
   STDDEV_POP,
+  VAR_SAMP,
   VAR_POP,
   BIT_AND,
   BIT_OR,
