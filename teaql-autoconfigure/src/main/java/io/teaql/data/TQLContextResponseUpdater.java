@@ -16,10 +16,7 @@ public class TQLContextResponseUpdater implements HandlerInterceptor {
       Object handler,
       ModelAndView modelAndView)
       throws Exception {
-    if (modelAndView == null) {
-      return;
-    }
-    UserContext ctx = (UserContext) modelAndView.getModel().get(TQL_CONTEXT);
+    UserContext ctx = (UserContext) request.getAttribute(TQL_CONTEXT);
     if (ctx == null) {
       return;
     }

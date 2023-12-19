@@ -23,6 +23,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.reactive.BindingContext;
@@ -107,7 +108,7 @@ public class TQLAutoConfiguration {
       Class<? extends UserContext> contextType = config.getContextClass();
       UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
       userContext.init(webRequest.getNativeRequest());
-      mavContainer.addAttribute(TQL_CONTEXT, userContext);
+      webRequest.setAttribute(TQL_CONTEXT, userContext, RequestAttributes.SCOPE_REQUEST);
       return userContext;
     }
 

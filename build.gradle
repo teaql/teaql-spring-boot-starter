@@ -34,7 +34,7 @@ subprojects {
 
 allprojects {
     group 'io.teaql'
-    version '1.97-SNAPSHOT'
+    version '1.98-SNAPSHOT'
     publishing {
         repositories {
             maven {
