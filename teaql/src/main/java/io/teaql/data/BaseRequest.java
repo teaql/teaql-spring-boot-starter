@@ -511,19 +511,19 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     addAggregate(retName, propertyName, AggrFunction.VAR_POP);
   }
   public void standardDeviation(String propertyName) {
-    stdDev(propertyName, propertyName);
+    standardDeviation(propertyName, propertyName);
   }
 
   public void squareRootOfPopulationStandardDeviation(String propertyName) {
-    stdDevPop(propertyName, propertyName);
+    squareRootOfPopulationStandardDeviation(propertyName, propertyName);
   }
 
   public void sampleVariance(String propertyName) {
-    varSamp(propertyName, propertyName);
+    sampleVariance(propertyName, propertyName);
   }
 
   public void samplePopulationVariance(String propertyName) {
-    varPop(propertyName, propertyName);
+    samplePopulationVariance(propertyName, propertyName);
   }
   
 
