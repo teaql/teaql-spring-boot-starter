@@ -497,6 +497,37 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     addAggregate(retName, propertyName, AggrFunction.AVG);
   }
 
+
+  public void stdDev(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.STDDEV);
+  }
+  public void stdDevPop(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.STDDEV_POP);
+  }
+  public void varSamp(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.VAR_SAMP);
+  }
+  public void varPop(String retName, String propertyName) {
+    addAggregate(retName, propertyName, AggrFunction.VAR_POP);
+  }
+  public void stdDev(String propertyName) {
+    stdDev(propertyName, propertyName);
+  }
+
+  public void stdDevPop(String propertyName) {
+    stdDevPop(propertyName, propertyName);
+  }
+
+  public void varSamp(String propertyName) {
+    varSamp(propertyName, propertyName);
+  }
+
+  public void varPop(String propertyName) {
+    varPop(propertyName, propertyName);
+  }
+  
+
+
   protected BaseRequest<T> matchType(String... types) {
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types, Operator.IN)));
     return this;

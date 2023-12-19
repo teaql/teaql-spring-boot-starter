@@ -8,4 +8,11 @@ public enum AggrFunction implements PropertyFunction {
   COUNT,
   SUM,
   GBK,
+  STDDEV,
+  STDDEV_POP,
+  VAR_POP,
+  BIT_AND,
+  BIT_OR,
+  BIT_XOR,
+  
 }
