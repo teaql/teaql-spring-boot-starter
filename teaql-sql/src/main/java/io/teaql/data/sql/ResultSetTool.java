@@ -26,6 +26,10 @@ public class ResultSetTool {
       if (columnNameInRs.equalsIgnoreCase(columnName)) {
         return resultSet.getObject(i + 1);
       }
+      String columnLabelInRs = metaData.getColumnLabel(i + 1);
+      if (columnName.equalsIgnoreCase(columnLabelInRs)) {
+        return resultSet.getObject(i + 1);
+      }
     }
 
     throw new IllegalArgumentException("Column '" + columnName + "' is not found in ResultSet");
