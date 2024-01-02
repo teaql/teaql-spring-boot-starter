@@ -6,11 +6,8 @@ import cn.hutool.core.util.ReflectUtil;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.EntityStatus;
-import io.teaql.data.RepositoryException;
 import io.teaql.data.meta.PropertyDescriptor;
-
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 public class GenericSQLProperty extends PropertyDescriptor implements SQLProperty {
@@ -46,39 +43,42 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
 
   @Override
   public void setPropertyValue(Entity entity, ResultSet rs) {
-    if (!findName(rs, getName())){
+    if (!findName(rs, getName())) {
       return;
     }
     Class targetType = getType().javaType();
     if (Entity.class.isAssignableFrom(targetType)) {
-      Entity o = createRefer(this, rs, targetType);
+      Entity o = createRefer(rs);
       entity.setProperty(getName(), o);
     } else {
-      Object value = ResultSetTool.getValue(rs,getName());
-      
+      Object value = getValue(rs);
       entity.setProperty(getName(), Convert.convert(targetType, value));
     }
   }
 
-  private boolean findName(ResultSet resultSet, String name) {
-    try{
-    int columnCount = resultSet.getMetaData().getColumnCount();
-    for (int i = 0; i < columnCount; i++) {
-      String columnLabel = resultSet.getMetaData().getColumnLabel(i + 1);
-      if (columnLabel.equalsIgnoreCase(name)){
-        return true;
+  protected Object getValue(ResultSet rs) {
+    return ResultSetTool.getValue(rs, getName());
+  }
+
+  protected boolean findName(ResultSet resultSet, String name) {
+    try {
+      int columnCount = resultSet.getMetaData().getColumnCount();
+      for (int i = 0; i < columnCount; i++) {
+        String columnLabel = resultSet.getMetaData().getColumnLabel(i + 1);
+        if (columnLabel.equalsIgnoreCase(name)) {
+          return true;
+        }
       }
-    }
-    }catch (Exception e){
+    } catch (Exception e) {
 
     }
     return false;
   }
 
-  private Entity createRefer(PropertyDescriptor pProperty, ResultSet resultSet, Class targetType) {
-    BaseEntity o = (BaseEntity) ReflectUtil.newInstance(targetType);
-    Object referId = ResultSetTool.getValue(resultSet,pProperty.getName());
-    
+  private Entity createRefer(ResultSet rs) {
+    BaseEntity o = (BaseEntity) ReflectUtil.newInstance(getType().javaType());
+    Object referId = getValue(rs);
+
     if (referId == null) {
       return null;
     }
