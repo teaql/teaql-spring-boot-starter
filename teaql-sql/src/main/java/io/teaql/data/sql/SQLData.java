@@ -1,15 +1,15 @@
 package io.teaql.data.sql;
 
-// SQLData 代表着存在数据库一行一列中的值，
-// 在持久化Entity时，每个属性都被拆分为一组SQLData（save or update
+// SQLData the column value in one row，
+// we will calculate the slq data（save or update entity)
 public class SQLData {
-  // 表名
+  // table name
   String tableName;
 
-  // 列名
+  // column name
   String columnName;
 
-  // 可以持久化的值
+  // persist column value
   Object value;
 
   public String getTableName() {

@@ -350,7 +350,7 @@ public class DynamicSearchHelper {
             return;
         }
 
-        // 单个文本
+        // single text
         if (fieldValue.isTextual()) {
             if (!baseRequest.isOneOfSelfField(fieldValue.asText())) {
                 return;
@@ -358,12 +358,12 @@ public class DynamicSearchHelper {
             this.addOrderBy(baseRequest, fieldValue.asText(), false);
             return;
         }
-        // value是一个对象，支持一个字段的排序
+
         if (fieldValue.isObject()) {
             addSingleJsonOrderBy(baseRequest, fieldValue);
             return;
         }
-        // value是一个数组，支持一个到多个排序
+        // value is array
         if (fieldValue.isArray()) {
             fieldValue
                     .elements()

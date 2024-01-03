@@ -28,10 +28,10 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
     List<Expression> expressions = twoOperatorCriteria.getExpressions();
     PropertyFunction operator = twoOperatorCriteria.getOperator();
     if (!(operator instanceof Operator)) {
-      throw new RepositoryException("不支持的运算符:" + operator);
+      throw new RepositoryException("unsupported operator:" + operator);
     }
     if (CollectionUtil.size(expressions) != 2) {
-      throw new RepositoryException(operator + "运算符需要左右值");
+      throw new RepositoryException(operator + " should have 2 expressions");
     }
     Expression left = twoOperatorCriteria.first();
     Expression right = twoOperatorCriteria.second();
@@ -103,7 +103,7 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
       case NOT_IN_LARGE:
         return "<> ALL";
       default:
-        throw new RepositoryException("不支持的运算符:" + operator);
+        throw new RepositoryException("unsupported operator:" + operator);
     }
   }
 }

@@ -40,7 +40,7 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
 
       tempRequest.setSlice(dependsOn.getSlice());
 
-      // 只选择依赖的属性以及条件
+      // select depends on property
       tempRequest.selectProperty(dependsOnPropertyName);
       tempRequest.appendSearchCriteria(dependsOn.getSearchCriteria());
       String subQuery = subRepository.buildDataSQL(userContext, tempRequest, parameters);

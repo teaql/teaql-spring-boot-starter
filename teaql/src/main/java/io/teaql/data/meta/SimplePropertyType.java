@@ -1,6 +1,6 @@
 package io.teaql.data.meta;
 
-/** 基本的属性类型 */
+/** basic java property type */
 public class SimplePropertyType implements PropertyType {
 
   private Class javaType;

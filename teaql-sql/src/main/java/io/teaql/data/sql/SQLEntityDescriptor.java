@@ -38,7 +38,7 @@ public class SQLEntityDescriptor extends EntityDescriptor {
     relation.setRelationKeeper(this);
     getProperties().add(relation);
 
-    // parent增加一个反向的关系
+    //add one reverse relation on parent
     EntityDescriptor refer = factory.resolveEntityDescriptor(parentType);
     Relation reverse = new Relation();
     reverse.setOwner(refer);

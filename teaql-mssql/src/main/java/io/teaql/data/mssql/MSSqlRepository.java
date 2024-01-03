@@ -79,7 +79,7 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
       case "timestamp without time zone":
         return "timestamp";
       default:
-        throw new RepositoryException("未处理的类型:" + dataType);
+        throw new RepositoryException("unsupported type:" + dataType);
     }
   }
 

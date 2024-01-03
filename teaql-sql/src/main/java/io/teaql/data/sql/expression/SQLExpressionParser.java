@@ -27,7 +27,7 @@ public interface SQLExpressionParser<T extends Expression> {
       T expression,
       Map<String, Object> parameters,
       SQLRepository sqlRepository) {
-    throw new RepositoryException("尚未实现");
+    throw new RepositoryException("not implemented");
   }
 
   default String nextPropertyKey(Map<String, Object> parameters, String propertyName) {

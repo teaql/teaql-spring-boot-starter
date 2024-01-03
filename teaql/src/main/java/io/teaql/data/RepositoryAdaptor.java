@@ -16,7 +16,7 @@ public class RepositoryAdaptor {
     }
     Map<String, List<Entity>> entities = new HashMap<>();
 
-    // 收集所有的需要保存的对象
+    // collect the items to persist
     collect(userContext, entities, items, new ArrayList<>());
     for (Map.Entry<String, List<Entity>> entry : entities.entrySet()) {
       String type = entry.getKey();

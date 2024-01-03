@@ -8,7 +8,7 @@ public class SimpleNamedExpression implements Expression {
 
   public SimpleNamedExpression(String name, Expression expression) {
     if (expression == null) {
-      throw new RepositoryException("SimpleNamedExpression 的expression不能为空");
+      throw new RepositoryException("SimpleNamedExpression expression cannot be null");
     }
     this.name = name;
     this.expression = expression;

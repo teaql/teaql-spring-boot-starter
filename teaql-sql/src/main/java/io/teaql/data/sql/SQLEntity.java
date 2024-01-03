@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// 持久化Entity时，Entity会被转化为SQLEntity
+// slq repository will convert the Entity to sql entities
 public class SQLEntity {
   public static final String ID = "id";
   Long id;

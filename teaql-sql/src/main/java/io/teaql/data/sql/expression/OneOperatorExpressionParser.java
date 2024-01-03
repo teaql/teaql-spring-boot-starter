@@ -28,10 +28,10 @@ public class OneOperatorExpressionParser implements SQLExpressionParser<OneOpera
     List<Expression> expressions = criteria.getExpressions();
     PropertyFunction operator = criteria.getOperator();
     if (!(operator instanceof Operator)) {
-      throw new RepositoryException("不支持的运算符:" + operator);
+      throw new RepositoryException("unsupported operator:" + operator);
     }
     if (CollectionUtil.size(expressions) != 1) {
-      throw new RepositoryException(operator + "运算符只能有左值");
+      throw new RepositoryException(operator + " should have one expression");
     }
     Expression left = expressions.get(0);
     String leftSQL =
@@ -46,7 +46,7 @@ public class OneOperatorExpressionParser implements SQLExpressionParser<OneOpera
       case IS_NOT_NULL:
         return "IS NOT NULL";
       default:
-        throw new RepositoryException("不支持的运算符:" + operator);
+        throw new RepositoryException("unsupported operator:" + operator);
     }
   }
 }

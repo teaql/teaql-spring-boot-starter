@@ -2,7 +2,7 @@ package io.teaql.data.meta;
 
 import java.util.List;
 
-/** 所有的entity元信息注册或解析 */
+/** entity meta factory */
 public interface EntityMetaFactory {
   EntityDescriptor resolveEntityDescriptor(String type);
 

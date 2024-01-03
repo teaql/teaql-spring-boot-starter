@@ -1,7 +1,7 @@
 package io.teaql.data;
 
 /**
- * @author Jackytin 常量表达式
+ * @author Jackytin constant expression
  */
 public class Constant implements Expression {
   private Object value;

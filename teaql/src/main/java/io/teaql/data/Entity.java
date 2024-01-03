@@ -3,7 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.bean.BeanUtil;
 import java.util.List;
 
-// 实体接口
+// the super interface in TEAQL repository
 public interface Entity {
   Long getId();
 

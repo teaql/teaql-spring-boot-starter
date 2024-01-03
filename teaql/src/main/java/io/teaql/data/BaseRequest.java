@@ -33,7 +33,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   // enhance relations
   Map<String, SearchRequest> enhanceRelations = new HashMap<>();
 
-  // 动态属性
+  // dynamic attributes(aggregate properties)
   List<SimpleAggregation> dynamicAggregateAttributes = new ArrayList<>();
 
   // enhance lists and partition by parent
@@ -64,17 +64,17 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return returnType;
   }
 
-  // 尝试load 对象本身（存储自身的所有的表）
+  // load the item self
   public BaseRequest<T> selectSelf() {
     return this;
   }
 
-  // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及1对1关系的self
+  // the item self , with one - to - one relation
   public BaseRequest<T> selectAll() {
     return this;
   }
 
-  // 尝试load 对象本身（存储自身的所有的表）,以及引用的对象的self，以及所有关系的self
+  // the item self , with all relations
   public BaseRequest<T> selectAny() {
     return this;
   }
@@ -337,7 +337,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       }
       return searchCriteria;
     }
-    throw new RepositoryException("不支持的operator:" + operator);
+    throw new RepositoryException("unsupported operator:" + operator);
   }
 
   private SearchCriteria internalCreateSearchCriteria(
@@ -354,7 +354,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
           operator, new PropertyReference(property), new Parameter(property, values, operator));
     } else if (operator.isBetween()) {
       if (ArrayUtil.length(values) != 2) {
-        throw new RepositoryException("Between需要下限和上限两个参数");
+        throw new RepositoryException("Between need special lower and upper values");
       }
       return new Between(
           new PropertyReference(property),
@@ -396,7 +396,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   public void addAggregate(SimpleNamedExpression aggregate) {
     List<SimpleNamedExpression> aggregates = getAggregations().getAggregates();
     String aggregateName = aggregate.name();
-    // 对于重复添加同一名称的聚合，忽略掉它
+    // ignore the aggregate withe if exists
     for (SimpleNamedExpression simpleNamedExpression : aggregates) {
       String name = simpleNamedExpression.name();
       if (aggregateName.equals(name)) {

@@ -12,7 +12,7 @@ public class FunctionApply implements Expression {
 
   public FunctionApply(PropertyFunction operator, Expression... expressions) {
     if (ObjectUtil.isEmpty(expressions)) {
-      throw new RepositoryException("FunctionApply的expressions不能为空");
+      throw new RepositoryException("FunctionApply expressions cannot be empty");
     }
     this.operator = operator;
     this.expressions = new ArrayList<>(ListUtil.of(expressions));

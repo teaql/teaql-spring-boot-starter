@@ -180,7 +180,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             }
           });
 
-      // 如果没有更新version table属性，此处我们只更新version table的版本
+      // if we don't update version table yet, then update version in version table
       if (!versionTableUpdated.get()) {
         updateVersionTableVersion(userContext, sqlEntity);
       }
@@ -243,11 +243,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       String k,
       List<String> columns,
       List l) {
-    // version表已更新
+    // version table updated
     versionTableUpdated.set(true);
-    // 增加version列的修改
+    // version column updated
     columns.add(VERSION);
-    l.add(sqlEntity.getVersion() + 1); // 版本加1
+    l.add(sqlEntity.getVersion() + 1); // version +1
     l.add(sqlEntity.getId());
     l.add(sqlEntity.getVersion());
     String updateSql =
@@ -269,7 +269,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   }
 
   private SQLEntity convertToSQLEntityForUpdate(UserContext userContext, T entity) {
-    // 只更新有变化的属性
+    // update the updated properties only
     List<String> updatedProperties = entity.getUpdatedProperties();
     if (ObjectUtil.isEmpty(updatedProperties)) {
       return null;
@@ -279,7 +279,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     sqlEntity.setVersion(entity.getVersion());
     for (String updatedProperty : updatedProperties) {
       PropertyDescriptor property = findProperty(updatedProperty);
-      // id只能在新建时设置， version由系统维护，不能更改
+      // id ,version are maintained by the framework
       if (property.isId() || property.isVersion()) {
         continue;
       }
@@ -393,7 +393,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     if (property instanceof SQLProperty) {
       return ((SQLProperty) property).toDBRaw(propertyValue);
     }
-    throw new RepositoryException("SQLRepository 目前只支持SQLProperty");
+    throw new RepositoryException("SQLRepository only support SQLProperty");
   }
 
   private Object toSQLValue(Entity entity, PropertyDescriptor property) {
@@ -415,7 +415,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             .map(
                 e ->
                     new Object[] {
-                      // 版本+1 然后取反。即version的绝对值表示修改次数，版本为负表示已被删除
                       -(e.getVersion() + 1), e.getId(), e.getVersion()
                     })
             .collect(Collectors.toList());
@@ -448,7 +447,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             .map(
                 e ->
                     new Object[] {
-                      // 版本取反加1。即version的绝对值表示修改次数，版本为负表示已被删除
+                      // delete the version
                       (-e.getVersion() + 1), e.getId(), e.getVersion()
                     })
             .collect(Collectors.toList());
@@ -480,7 +479,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     if (property instanceof SQLProperty) {
       return ((SQLProperty) property).columns();
     }
-    throw new RepositoryException("SQLRepository 目前只支持SQLProperty");
+    throw new RepositoryException("SQLRepository only support SQLProperty");
   }
 
   public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
@@ -661,7 +660,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       return;
     }
     throw new RepositoryException(
-        "SQLRepository属性[" + pProperty.getName() + "]错误，目前只支持SQLProperty");
+        "SQLRepository property[" + pProperty.getName() + "]error，only support SQLProperty");
   }
 
   private boolean shouldHandle(PropertyDescriptor pProperty) {
@@ -710,7 +709,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       ensureOrderByForPartition(request);
     }
 
-    // 排序
+    // order by
     String orderBySql = prepareOrderBy(userContext, request, idTable, parameters);
     if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
       PropertyDescriptor partitionPropertyDescriptor = findProperty(partitionProperty);
@@ -1358,7 +1357,7 @@ ALTER TABLE {}
 
   protected void ensure(
       UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
-    // 表格不存在
+    // table not found
     if (tableInfo.isEmpty()) {
       createTable(ctx, table, columns);
       return;
@@ -1425,7 +1424,7 @@ ALTER TABLE {}
       case "timestamp without time zone":
         return "timestamp";
       default:
-        throw new RepositoryException("未处理的类型:" + dataType);
+        throw new RepositoryException("unsupported type:" + dataType);
     }
   }
 

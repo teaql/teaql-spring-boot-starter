@@ -3,7 +3,7 @@ package io.teaql.data;
 import java.util.Map;
 
 /**
- * @author Jackytin 表达式，顶级接口
+ * @author Jackytin the top-level concept in request
  */
 public interface Expression extends PropertyAware {
   private String nextPropertyKey(Map<String, Object> parameters, String propertyName) {

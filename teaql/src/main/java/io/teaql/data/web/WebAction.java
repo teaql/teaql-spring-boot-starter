@@ -60,7 +60,7 @@ public class WebAction {
 
   public static WebAction viewWebAction() {
     WebAction webAction = new WebAction();
-    webAction.setName("查看");
+    webAction.setName("VIEW DETAIL");
     webAction.setLevel("view");
     webAction.setExecute("switchview");
     webAction.setTarget("detail");
@@ -100,22 +100,22 @@ public class WebAction {
   }
 
   public static WebAction modifyWebAction(String url) {
-    return modifyWebAction("更新", url);
+    return modifyWebAction("UPDATE", url);
   }
 
   public static WebAction deleteWebAction(String url, String warningMessage) {
 
-    return modifyWebAction("删除", url, warningMessage);
+    return modifyWebAction("DELETE", url, warningMessage);
   }
 
   public static WebAction auditWebAction(String url, String warningMessage) {
 
-    return modifyWebAction("审核", url, warningMessage);
+    return modifyWebAction("AUDIT", url, warningMessage);
   }
 
   public static WebAction discardWebAction(String url, String warningMessage) {
 
-    return modifyWebAction("作废", url, warningMessage);
+    return modifyWebAction("DISCARD", url, warningMessage);
   }
 
   public static WebAction gotoAction(String name, String target, String url) {
@@ -139,7 +139,7 @@ public class WebAction {
 
   public static WebAction modifyWebAction() {
     WebAction webAction = new WebAction();
-    webAction.setName("修改");
+    webAction.setName("UPDATE");
     webAction.setLevel("modify");
     webAction.setExecute("switchview");
     webAction.setTarget("modify");
@@ -148,7 +148,7 @@ public class WebAction {
 
   public static WebAction addNewWebAction(String odName) {
     WebAction webAction = new WebAction();
-    webAction.setName("新增" + odName);
+    webAction.setName("NEW " + odName);
     webAction.setLevel("modify");
     webAction.setExecute("switchview");
     webAction.setTarget("addnew");
@@ -157,7 +157,7 @@ public class WebAction {
 
   public static WebAction deleteWebAction() {
     WebAction webAction = new WebAction();
-    webAction.setName("删除");
+    webAction.setName("DELETE");
     webAction.setLevel("delete");
     webAction.setExecute("switchview");
     webAction.setTarget("deleteview");
@@ -176,7 +176,7 @@ public class WebAction {
 
   public static WebAction batchUploadWebAction() {
     WebAction webAction = new WebAction();
-    webAction.setName("批量上传");
+    webAction.setName("BATCH UPLOAD");
     webAction.setLevel("modify");
     webAction.setExecute("switchview");
     webAction.setTarget("batchupload");

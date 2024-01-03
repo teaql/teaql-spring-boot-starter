@@ -24,7 +24,6 @@ public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
       SQLRepository sqlColumnResolver) {
     SQLColumn childType = sqlColumnResolver.getPropertyColumn(idTable, "_child_type");
     if (childType == null) {
-      // 没有子类型,忽略此条件
       return SearchCriteria.TRUE;
     }
     Parameter typeParameter = expression.getTypeParameter();

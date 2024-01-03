@@ -8,19 +8,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Entity所包含的属性的元信息 */
+/** property meta in entity meta */
 public class PropertyDescriptor {
 
   /**
-   * 这个属性所属，一个EntityDescriptor引用一组PropertyDescriptor
-   * 每个PropertyDescriptor也会反过来引用EntityDescriptor（双向关联）
+   * property owner,
    */
   private EntityDescriptor owner;
 
-  /** 该属性在其owner中的名称，在每个owner */
+  /**
+   *  property name
+   */
   private String name;
 
-  /** 属性类型 */
+  /** proeprty type */
   private PropertyType type;
 
   private Map<String, String> additionalInfo = new HashMap<>();

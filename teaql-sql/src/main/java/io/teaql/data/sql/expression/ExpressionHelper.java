@@ -34,7 +34,7 @@ public class ExpressionHelper {
       expressionClass = expressionClass.getSuperclass();
     }
     if (parser == null) {
-      throw new RepositoryException("目前还不支持表达式类型:" + expression.getClass());
+      throw new RepositoryException("no parse for expression type:" + expression.getClass());
     }
     return parser.toSql(userContext, expression, idTable, parameters, sqlRepository);
   }

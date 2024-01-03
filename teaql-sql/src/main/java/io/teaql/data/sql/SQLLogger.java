@@ -230,7 +230,6 @@ public class SQLLogger {
     }
     int length = value.length();
     if (length >= tabWidth * 8) {
-      // 超过了
       return value.substring(0, tabWidth * 8 - 2) + ".\t";
     }
 

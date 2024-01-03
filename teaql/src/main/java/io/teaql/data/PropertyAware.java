@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * @author Jackytin
- *     <p>描述与某一组属性相关
+ *     <p> the related properties
  */
 public interface PropertyAware {
 

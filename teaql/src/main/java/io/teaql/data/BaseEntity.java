@@ -219,11 +219,11 @@ public class BaseEntity implements Entity {
   public void handleUpdate(String propertyName, Object oldValue, Object newValue) {
     gotoNextStatus(EntityAction.UPDATE);
     PropertyChangeEvent propertyChangeEvent = updatedProperties.get(propertyName);
-    // 多次变化记录最开始的值为old值
+    // find the older value
     if (propertyChangeEvent != null) {
       oldValue = propertyChangeEvent.getOldValue();
     }
-    // 值在多次变化后，实际没有变化
+    // value changed back, then no changes
     if (ObjectUtil.equals(oldValue, newValue)) {
       updatedProperties.remove(propertyName);
       return;

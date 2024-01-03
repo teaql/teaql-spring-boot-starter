@@ -7,22 +7,22 @@ import io.teaql.data.Entity;
 import java.util.*;
 
 /**
- * Entity元信息定义
+ * Entity metadata
  *
  * @author jackytian
  */
 public class EntityDescriptor {
 
-  /** 元信息的简单名称 */
+  /** entity type name */
   private String type;
 
-  /** 所包含的属性 */
+  /** the properties */
   private List<PropertyDescriptor> properties = new ArrayList<>();
 
-  /** 对应的java 对象的class */
+  /** java type */
   private Class<? extends Entity> targetType;
 
-  /** 继承结构 */
+  /** parent entity descriptor */
   private EntityDescriptor parent;
 
   private Set<EntityDescriptor> children = new HashSet<>();

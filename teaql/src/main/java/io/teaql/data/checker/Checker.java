@@ -7,7 +7,7 @@ import io.teaql.data.BaseEntity;
 import io.teaql.data.UserContext;
 import java.time.LocalDateTime;
 
-/** 在保存entity之前会用checker来检查或设置一些默认值 */
+/** check or set (default) values for the entity before persist */
 public interface Checker<T extends BaseEntity> {
   String TEAQL_DATA_CHECK_RESULT = "teaql_data_check_result";
   String TEAQL_DATA_CHECKED_ITEMS = "teaql_data_checkedItems";

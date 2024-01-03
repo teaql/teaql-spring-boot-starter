@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class SQLRepositorySchemaHelper {
 
-  // ensure 所有的表
+  // ensure all tables of all the repositories
   public void ensureSchema(UserContext ctx, EntityMetaFactory entityMetaFactory) {
     List<EntityDescriptor> entityDescriptors = entityMetaFactory.allEntityDescriptors();
     Set<EntityDescriptor> handled = new HashSet<>();
@@ -22,7 +22,7 @@ public class SQLRepositorySchemaHelper {
     }
   }
 
-  // ensure这个itemDescriptor以及依赖的所有表
+  // ensure table schema of the entity, including its dependencies
   public void ensureSchema(UserContext ctx, EntityDescriptor entityDescriptor) {
     ensureSchema(ctx, new HashSet<>(), entityDescriptor);
   }
@@ -40,22 +40,22 @@ public class SQLRepositorySchemaHelper {
     }
     handled.add(entityDescriptor);
     EntityDescriptor parent = entityDescriptor.getParent();
-    // parent 存在时ensure parent
+    // parent not null, ensure parent
     if (parent != null) {
       ensureSchema(ctx, handled, parent);
     }
-    // 我持有的所有relation, 先解析引用的
+    // the relation dependencies
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
     for (Relation ownRelation : ownRelations) {
       PropertyDescriptor reverseProperty = ownRelation.getReverseProperty();
       EntityDescriptor owner = reverseProperty.getOwner();
       ensureSchema(ctx, handled, owner);
     }
-    // 解析自已
+    // ensure self
     String type = entityDescriptor.getType();
     Repository repository = ctx.resolveRepository(type);
 
-    // 只有是sqlRepository才能ensure
+    // now only sql repository need to ensure schema
     if (repository instanceof SQLRepository) {
       ((SQLRepository<?>) repository).ensureSchema(ctx);
     }
