@@ -1143,9 +1143,9 @@ ALTER TABLE {}
   protected String fetchFKsSQL() {
     return """
             SELECT
-                tc.constraint_name AS name
-                tc.table_name AS tableName
-                kcu.column_name AS columnName
+                tc.constraint_name AS name,
+                tc.table_name AS tableName,
+                kcu.column_name AS columnName,
                 ccu.table_name AS fTableName,
                 ccu.column_name AS fColumnName
             FROM
