@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+}
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            groupId = "${groupId}"
+            artifactId = 'teaql-graphql'
+            version = "${version}"
+            from components.java
+        }
+    }
+}
+
+dependencies {
+    api project(':teaql')
+    implementation 'com.graphql-java:graphql-java'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+}

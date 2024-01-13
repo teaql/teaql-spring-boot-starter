@@ -315,4 +315,12 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
   public void setResponseHeader(String headerName, String headerValue) {
     getResponseHolder().setHeader(headerName, headerValue);
   }
+
+  public Object graphql(String query) {
+    GraphqlService service = getBean(GraphqlService.class);
+    if (service == null) {
+      throw new TQLException("graphql service not found");
+    }
+    return service.execute(this, query);
+  }
 }

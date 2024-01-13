@@ -4,6 +4,8 @@ public class DataConfigProperties {
 
   private boolean ensureTable;
 
+  private String graphqlSchemaFile;
+
   private Class<? extends UserContext> contextClass = UserContext.class;
 
   public boolean isEnsureTable() {
@@ -20,5 +22,13 @@ public class DataConfigProperties {
 
   public void setContextClass(Class<? extends UserContext> pContextClass) {
     contextClass = pContextClass;
+  }
+
+  public String getGraphqlSchemaFile() {
+    return graphqlSchemaFile;
+  }
+
+  public void setGraphqlSchemaFile(String pGraphqlSchemaFile) {
+    graphqlSchemaFile = pGraphqlSchemaFile;
   }
 }
