@@ -32,6 +32,7 @@ public class GraphqlService implements io.teaql.data.GraphqlService {
             .scalar(ExtendedScalars.Date)
             .scalar(ExtendedScalars.Time)
             .scalar(ExtendedScalars.LocalTime)
+            .scalar(ExtendedScalars.Json)
             .build();
     SchemaGenerator schemaGenerator = new SchemaGenerator();
     TypeDefinitionRegistry typeDefinitionRegistry =
