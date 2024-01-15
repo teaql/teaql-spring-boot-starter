@@ -108,6 +108,9 @@ public class TeaqlDataFetcher implements DataFetcher {
   private DataFetcherResult<Object> refineResult(
       DataFetchingEnvironment environment, Map<Long, SmartList> fieldData, Long sourceId) {
     SmartList dataList = fieldData.get(sourceId);
+    if (dataList == null) {
+      return emptyResult();
+    }
     Entity first = dataList.first();
     if (first == null) {
       return emptyResult();
