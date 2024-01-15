@@ -7,6 +7,7 @@ import cn.hutool.core.map.MapUtil;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.*;
@@ -26,6 +27,11 @@ public class GraphqlService implements io.teaql.data.GraphqlService {
             .codeRegistry(
                 GraphQLCodeRegistry.newCodeRegistry()
                     .defaultDataFetcher(new TeaqlDataFetcherFactory()))
+            .scalar(ExtendedScalars.GraphQLBigDecimal)
+            .scalar(ExtendedScalars.GraphQLLong)
+            .scalar(ExtendedScalars.Date)
+            .scalar(ExtendedScalars.Time)
+            .scalar(ExtendedScalars.LocalTime)
             .build();
     SchemaGenerator schemaGenerator = new SchemaGenerator();
     TypeDefinitionRegistry typeDefinitionRegistry =

@@ -4,7 +4,7 @@ public class DataConfigProperties {
 
   private boolean ensureTable;
 
-  private String graphqlSchemaFile;
+  private String graphqlSchemaFile = "classpath:META-INF/graphql/schema.graphqls";
 
   private Class<? extends UserContext> contextClass = UserContext.class;
 

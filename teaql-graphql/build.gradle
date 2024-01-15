@@ -20,5 +20,6 @@ publishing {
 dependencies {
     api project(':teaql')
     implementation 'com.graphql-java:graphql-java'
+    implementation 'com.graphql-java:graphql-java-extended-scalars:21.0'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
 }
