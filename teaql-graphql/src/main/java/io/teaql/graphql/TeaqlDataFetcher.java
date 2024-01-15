@@ -227,7 +227,7 @@ public class TeaqlDataFetcher implements DataFetcher {
     SelectionSet selectionSet = field.getSelectionSet();
     List<Selection> selections = selectionSet.getSelections();
     // output type
-    String outputType = ((GraphQLObjectType) dataFetchingEnvironment.getFieldType()).getName();
+    String outputType = getOutputType(dataFetchingEnvironment.getFieldType());
     for (Selection selection : selections) {
       if (selection instanceof Field f) {
         String name = f.getName();
@@ -276,6 +276,16 @@ public class TeaqlDataFetcher implements DataFetcher {
       }
     }
     return request;
+  }
+
+  private String getOutputType(GraphQLType fieldType) {
+    if (fieldType instanceof GraphQLList l) {
+      return getOutputType(l.getWrappedType());
+    }
+    if (fieldType instanceof GraphQLObjectType o) {
+      return o.getName();
+    }
+    throw new TQLException("Unsupported field type: " + fieldType);
   }
 
   private String parentRequestType(DataFetchingEnvironment pDataFetchingEnvironment) {
