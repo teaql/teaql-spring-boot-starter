@@ -1,6 +1,10 @@
 package io.teaql.graphql;
 
+import cn.hutool.core.util.ClassUtil;
 import io.teaql.data.BaseRequest;
+import io.teaql.data.UserContext;
+import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.PropertyDescriptor;
 
 public interface GraphqlQuerySupport {
 
@@ -16,6 +20,14 @@ public interface GraphqlQuerySupport {
   // then parent request will select this property and pass thought to build this field search
   // request, the property name should be the property from parent to this field
   default String getRequestProperty(GraphqlFetcherParam param) {
+    UserContext userContext = param.userContext();
+    String parentType = param.parentType();
+    EntityDescriptor entityDescriptor = userContext.resolveEntityDescriptor(parentType);
+    PropertyDescriptor property = entityDescriptor.findProperty(param.field());
+    // simple fields
+    if (property != null && ClassUtil.isSimpleValueType(property.getType().javaType())) {
+      return param.field();
+    }
     return findFieldQuery(param).getRequestProperty();
   }
 
