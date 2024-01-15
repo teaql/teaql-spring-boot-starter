@@ -11,6 +11,6 @@ public class TeaqlDataFetcherFactory implements DataFetcherFactory {
     if (GraphQLTypeUtil.isList(type) || GraphQLTypeUtil.isObjectType(type)) {
       return new TeaqlDataFetcher(environment);
     }
-    return env -> PropertyDataFetcher.fetching(env.getFieldDefinition().getName());
+    return PropertyDataFetcher.fetching(environment.getFieldDefinition().getName());
   }
 }
