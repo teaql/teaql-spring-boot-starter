@@ -270,6 +270,7 @@ public class TeaqlDataFetcher implements DataFetcher {
                 .collect(Collectors.toSet());
         request.appendSearchCriteria(
             request.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.IN, value));
+        request.selectProperty(BaseEntity.ID_PROPERTY);
       } else {
         // load downstream nodes
         Repository repository = ctx.resolveRepository(parentRequestType);
@@ -277,6 +278,7 @@ public class TeaqlDataFetcher implements DataFetcher {
         String name = relation.getReverseProperty().getName();
         request.appendSearchCriteria(
             request.createBasicSearchCriteria(name, Operator.IN, parentList));
+        request.selectProperty(name);
       }
     }
     return request;
