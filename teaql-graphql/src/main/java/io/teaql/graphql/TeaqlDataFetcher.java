@@ -238,7 +238,7 @@ public class TeaqlDataFetcher implements DataFetcher {
             graphqlQueryFactory.getRequestProperty(new GraphqlFetcherParam(ctx, outputType, name));
         PropertyDescriptor property =
             ctx.resolveEntityDescriptor(outputType).findProperty(queryProperty);
-        if (!(property instanceof Relation)) {
+        if (property !=null && !(property instanceof Relation)) {
           request.selectProperty(queryProperty);
         }
       }

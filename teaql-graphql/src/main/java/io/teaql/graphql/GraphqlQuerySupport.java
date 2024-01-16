@@ -25,7 +25,7 @@ public interface GraphqlQuerySupport {
     EntityDescriptor entityDescriptor = userContext.resolveEntityDescriptor(parentType);
     PropertyDescriptor property = entityDescriptor.findProperty(param.field());
     // simple fields
-    if (property != null && ClassUtil.isSimpleValueType(property.getType().javaType())) {
+    if (property == null || ClassUtil.isSimpleValueType(property.getType().javaType())) {
       return param.field();
     }
     return findFieldQuery(param).getRequestProperty();
