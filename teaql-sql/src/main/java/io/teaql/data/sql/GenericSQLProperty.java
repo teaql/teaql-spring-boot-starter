@@ -21,6 +21,8 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
     columnType = pType;
   }
 
+  public GenericSQLProperty() {}
+
   @Override
   public List<SQLColumn> columns() {
     SQLColumn sqlColumn = new SQLColumn(tableName, columnName);
@@ -85,5 +87,29 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
     o.setId(((Number) referId).longValue());
     o.set$status(EntityStatus.REFER);
     return o;
+  }
+
+  public String getTableName() {
+    return tableName;
+  }
+
+  public void setTableName(String pTableName) {
+    tableName = pTableName;
+  }
+
+  public String getColumnName() {
+    return columnName;
+  }
+
+  public void setColumnName(String pColumnName) {
+    columnName = pColumnName;
+  }
+
+  public String getColumnType() {
+    return columnType;
+  }
+
+  public void setColumnType(String pColumnType) {
+    columnType = pColumnType;
   }
 }

@@ -170,4 +170,49 @@ public class EntityDescriptor {
     }
     return null;
   }
+
+  public PropertyDescriptor addSimpleProperty(String propertyName, Class type) {
+    PropertyDescriptor property = createPropertyDescriptor();
+    property.setName(propertyName);
+    property.setType(new SimplePropertyType(type));
+    property.setOwner(this);
+    getProperties().add(property);
+    return property;
+  }
+
+  protected PropertyDescriptor createPropertyDescriptor() {
+    return new PropertyDescriptor();
+  }
+
+  public Relation addObjectProperty(
+      EntityMetaFactory factory,
+      String propertyName,
+      String parentType,
+      String reverseName,
+      Class<? extends Entity> parentClass) {
+    Relation relation = createRelation();
+    relation.setOwner(this);
+    relation.setName(propertyName);
+    relation.setType(new SimplePropertyType(parentClass));
+    relation.setRelationKeeper(this);
+    getProperties().add(relation);
+
+    // add one reverse relation on parent
+    EntityDescriptor refer = factory.resolveEntityDescriptor(parentType);
+    Relation reverse = new Relation();
+    reverse.setOwner(refer);
+    reverse.setName(reverseName);
+    reverse.setType(new SimplePropertyType(this.getTargetType()));
+    reverse.setRelationKeeper(this);
+
+    relation.setReverseProperty(reverse);
+    reverse.setReverseProperty(relation);
+
+    refer.getProperties().add(reverse);
+    return relation;
+  }
+
+  protected Relation createRelation() {
+    return new Relation();
+  }
 }

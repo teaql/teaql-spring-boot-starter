@@ -4,9 +4,7 @@ import io.teaql.data.sql.GenericSQLProperty;
 import java.sql.ResultSet;
 
 public class HanaProperty extends GenericSQLProperty {
-  public HanaProperty(String pTableName, String pColumnName, String pType) {
-    super(pTableName, pColumnName, pType);
-  }
+  public HanaProperty() {}
 
   @Override
   protected boolean findName(ResultSet resultSet, String name) {

@@ -1,6 +1,7 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
 import cn.hutool.core.util.*;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
@@ -12,7 +13,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public class UserContext implements NaturalLanguageTranslator, RequestHolder {
+public class UserContext
+    implements NaturalLanguageTranslator, RequestHolder, OptNullBasicTypeFromObjectGetter<String> {
   public static final String X_CLASS = "X-Class";
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
@@ -179,60 +181,6 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
     return new EnglishTranslator();
   }
 
-  public Object getObj(String key) {
-    return getObj(key, null);
-  }
-
-  public Object getObj(String key, Object defaultValue) {
-    Object o = localStorage.get(key);
-    if (o != null) {
-      return o;
-    }
-    return defaultValue;
-  }
-
-  public String getStr(String key) {
-    return getStr(key, null);
-  }
-
-  public String getStr(String key, String defaultValue) {
-    Object obj = getObj(key);
-    if (obj == null) {
-      return defaultValue;
-    }
-    return ObjectUtil.toString(obj);
-  }
-
-  public Integer getInt(String key) {
-    return getInt(key, null);
-  }
-
-  public Integer getInt(String key, Integer defaultValue) {
-    Object obj = getObj(key);
-    if (obj == null) {
-      return defaultValue;
-    }
-    if (obj instanceof Number) {
-      return ((Number) obj).intValue();
-    }
-    return NumberUtil.parseInt(ObjectUtil.toString(obj));
-  }
-
-  public Boolean getBool(String key) {
-    return getBool(key, null);
-  }
-
-  public Boolean getBool(String key, Boolean defaultValue) {
-    Object obj = getObj(key);
-    if (obj == null) {
-      return defaultValue;
-    }
-    if (obj instanceof Boolean) {
-      return (Boolean) obj;
-    }
-    return BooleanUtil.toBooleanObject(ObjectUtil.toString(obj));
-  }
-
   public void init(Object request) {
     List<UserContextInitializer> initializers =
         getResolver().getBeans(UserContextInitializer.class);
@@ -322,5 +270,13 @@ public class UserContext implements NaturalLanguageTranslator, RequestHolder {
       throw new TQLException("graphql service not found");
     }
     return service.execute(this, query);
+  }
+
+  public Object getObj(String key, Object defaultValue) {
+    Object o = localStorage.get(key);
+    if (o != null) {
+      return o;
+    }
+    return defaultValue;
   }
 }

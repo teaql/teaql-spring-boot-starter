@@ -6,18 +6,12 @@ import io.teaql.data.sql.SQLEntityDescriptor;
 
 public class HanaEntityDescriptor extends SQLEntityDescriptor {
   @Override
-  protected GenericSQLProperty createPropertyDescriptor(
-      String tableName, String columnName, String columnType) {
-    return new HanaProperty(tableName, columnName, columnType);
+  protected GenericSQLProperty createPropertyDescriptor() {
+    return new HanaProperty();
   }
 
   @Override
-  protected GenericSQLRelation createRelationDescriptor(
-      String tableName, String columnName, String columnType) {
-    GenericSQLRelation relation = new HanaRelation();
-    relation.setTableName(tableName);
-    relation.setColumnName(columnName);
-    relation.setColumnType(columnType);
-    return relation;
+  protected GenericSQLRelation createRelation() {
+    return new HanaRelation();
   }
 }
