@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(':teaql')
+}
+
+test {
+    useJUnitPlatform()
+}
