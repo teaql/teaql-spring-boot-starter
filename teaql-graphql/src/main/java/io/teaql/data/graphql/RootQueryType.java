@@ -1,4 +1,4 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 public class RootQueryType extends BaseQueryContainer {
   @Override

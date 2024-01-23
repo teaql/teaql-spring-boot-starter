@@ -265,7 +265,7 @@ public class UserContext
   }
 
   public Object graphql(String query) {
-    GraphqlService service = getBean(GraphqlService.class);
+    GraphQLService service = getBean(GraphQLService.class);
     if (service == null) {
       throw new TQLException("graphql service not found");
     }

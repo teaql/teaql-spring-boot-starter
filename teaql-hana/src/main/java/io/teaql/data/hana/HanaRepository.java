@@ -17,8 +17,7 @@ import java.util.Map;
 public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
 
   @Override
-  protected void ensureIndexAndForeignKey(UserContext ctx) {
-  }
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
 
   public HanaRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
@@ -30,12 +29,11 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
       String databaseName = connection.getCatalog();
       String schemaName = connection.getSchema();
       return String.format(
-              "select * from table_columns where table_name = '%s' and schema_name = '%s'",
-              table.toUpperCase(), schemaName);
+          "select * from table_columns where table_name = '%s' and schema_name = '%s'",
+          table.toUpperCase(), schemaName);
     } catch (SQLException pE) {
       throw new RuntimeException(pE);
     }
-
   }
 
   @Override
@@ -47,7 +45,6 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
   }
 
   @Override
-
   protected String calculateDBType(Map<String, Object> columnInfo) {
     String dataType = ((String) columnInfo.get("DATA_TYPE_NAME")).toLowerCase();
     switch (dataType) {
@@ -66,8 +63,7 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
         return "integer";
       case "decimal":
       case "numeric":
-        return StrUtil.format(
-                "numeric({},{})", columnInfo.get("LENGTH"), columnInfo.get("SCALE"));
+        return StrUtil.format("numeric({},{})", columnInfo.get("LENGTH"), columnInfo.get("SCALE"));
       case "text":
         return "text";
       case "time without time zone":
@@ -76,7 +72,7 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
       case "timestamp without time zone":
         return "timestamp";
       default:
-        throw new RepositoryException("未处理的类型:" + dataType);
+        throw new RepositoryException("unsupported type:" + dataType);
     }
   }
 }

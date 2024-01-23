@@ -1,9 +1,9 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import io.teaql.data.BaseRequest;
 import io.teaql.data.UserContext;
 
-public interface GraphqlFieldQuery {
+public interface GraphQLFieldQuery {
 
   String id();
 

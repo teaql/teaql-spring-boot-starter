@@ -1,4 +1,4 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class BaseQueryContainer {
   protected abstract String type();
 
-  public final void register(GraphqlQuerySupport factory) {
+  public final void register(GraphQLSupport factory) {
     if (factory == null) {
       return;
     }
@@ -36,7 +36,7 @@ public abstract class BaseQueryContainer {
             });
     for (Method candidate : candidates) {
       factory.register(
-          new ReflectGraphqlFieldQuery(type() + ":" + candidate.getName(), this, candidate));
+          new ReflectGraphQLFieldQuery(type() + ":" + candidate.getName(), this, candidate));
     }
   }
 }

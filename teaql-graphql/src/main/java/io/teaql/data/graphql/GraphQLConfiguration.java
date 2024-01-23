@@ -1,20 +1,20 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import io.teaql.data.DataConfigProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class GraphqlConfiguration {
+public class GraphQLConfiguration {
 
   @Bean
-  public GraphqlService graphqlService(DataConfigProperties config) {
-    return new GraphqlService(config);
+  public GraphQLService graphqlService(DataConfigProperties config) {
+    return new GraphQLService(config);
   }
 
   @Bean
-  public GraphqlQuerySupport graphqlQuerySupport(BaseQueryContainer[] containers) {
-    SimpleGraphqlQueryFactory simpleGraphqlQueryFactory = new SimpleGraphqlQueryFactory();
+  public GraphQLSupport graphqlQuerySupport(BaseQueryContainer[] containers) {
+    SimpleGraphQLFactory simpleGraphqlQueryFactory = new SimpleGraphQLFactory();
     if (containers != null) {
       for (BaseQueryContainer container : containers) {
         container.register(simpleGraphqlQueryFactory);

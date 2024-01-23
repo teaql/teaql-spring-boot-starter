@@ -1,17 +1,17 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import cn.hutool.core.util.ReflectUtil;
 import io.teaql.data.BaseRequest;
 import io.teaql.data.UserContext;
 import java.lang.reflect.Method;
 
-public class ReflectGraphqlFieldQuery implements GraphqlFieldQuery {
+public class ReflectGraphQLFieldQuery implements GraphQLFieldQuery {
 
   private final String id;
   private final Object obj;
   private final Method method;
 
-  public ReflectGraphqlFieldQuery(String id, Object obj, Method method) {
+  public ReflectGraphQLFieldQuery(String id, Object obj, Method method) {
     this.id = id;
     this.obj = obj;
     this.method = method;

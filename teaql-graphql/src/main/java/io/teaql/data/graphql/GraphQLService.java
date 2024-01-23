@@ -1,4 +1,4 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
@@ -15,18 +15,18 @@ import io.teaql.data.DataConfigProperties;
 import io.teaql.data.TQLException;
 import io.teaql.data.UserContext;
 
-public class GraphqlService implements io.teaql.data.GraphqlService {
+public class GraphQLService implements io.teaql.data.GraphQLService {
 
   GraphQL graphQL;
 
-  public GraphqlService(DataConfigProperties config) {
+  public GraphQLService(DataConfigProperties config) {
     SchemaParser schemaParser = new SchemaParser();
     String graphqlSchemaFile = config.getGraphqlSchemaFile();
     RuntimeWiring runtimeWiring =
         newRuntimeWiring()
             .codeRegistry(
                 GraphQLCodeRegistry.newCodeRegistry()
-                    .defaultDataFetcher(new TeaqlDataFetcherFactory()))
+                    .defaultDataFetcher(new TeaQLDataFetcherFactory()))
             .scalar(ExtendedScalars.GraphQLBigDecimal)
             .scalar(ExtendedScalars.GraphQLLong)
             .scalar(ExtendedScalars.Date)

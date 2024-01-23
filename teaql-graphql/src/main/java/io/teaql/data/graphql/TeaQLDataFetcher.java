@@ -1,4 +1,4 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import cn.hutool.core.map.MapUtil;
 import graphql.execution.DataFetcherResult;
@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TeaqlDataFetcher implements DataFetcher {
+public class TeaQLDataFetcher implements DataFetcher {
 
   public static final long VIRTUAL_ROOT_ID = Long.MIN_VALUE;
   private final DataFetcherFactoryEnvironment env;
 
   static final String DATA_CACHE_KEY_PREFIX = "GraphQL-Data:";
 
-  public TeaqlDataFetcher(DataFetcherFactoryEnvironment pEnv) {
+  public TeaQLDataFetcher(DataFetcherFactoryEnvironment pEnv) {
     env = pEnv;
   }
 
@@ -63,10 +63,10 @@ public class TeaqlDataFetcher implements DataFetcher {
       return false;
     }
 
-    GraphqlQuerySupport graphqlQueryFactory = ctx.getBean(GraphqlQuerySupport.class);
+    GraphQLSupport graphqlQueryFactory = ctx.getBean(GraphQLSupport.class);
     String queryPropertyName =
         graphqlQueryFactory.getRequestProperty(
-            new GraphqlFetcherParam(ctx, parentType, environment.getField().getName()));
+            new GraphQLFetcherParam(ctx, parentType, environment.getField().getName()));
 
     if (queryPropertyName == null) {
       return false;
@@ -99,10 +99,10 @@ public class TeaqlDataFetcher implements DataFetcher {
   }
 
   private String getJoinPropertyName(UserContext ctx, DataFetchingEnvironment environment) {
-    GraphqlQuerySupport graphqlQueryFactory = ctx.getBean(GraphqlQuerySupport.class);
+    GraphQLSupport graphqlQueryFactory = ctx.getBean(GraphQLSupport.class);
     String parentType = ((GraphQLObjectType) environment.getParentType()).getName();
     return graphqlQueryFactory.getRequestProperty(
-        new GraphqlFetcherParam(ctx, parentType, environment.getFieldDefinition().getName()));
+        new GraphQLFetcherParam(ctx, parentType, environment.getFieldDefinition().getName()));
   }
 
   private DataFetcherResult<Object> refineResult(
@@ -183,10 +183,10 @@ public class TeaqlDataFetcher implements DataFetcher {
         String parentRequestType = parentRequestType(environment);
         Repository repository = ctx.resolveRepository(parentRequestType);
         String parentType = ((GraphQLObjectType) environment.getParentType()).getName();
-        GraphqlQuerySupport graphqlQueryFactory = ctx.getBean(GraphqlQuerySupport.class);
+        GraphQLSupport graphqlQueryFactory = ctx.getBean(GraphQLSupport.class);
         String queryProperty =
             graphqlQueryFactory.getRequestProperty(
-                new GraphqlFetcherParam(ctx, parentType, environment.getField().getName()));
+                new GraphQLFetcherParam(ctx, parentType, environment.getField().getName()));
         Relation relation = (Relation) repository.getEntityDescriptor().findProperty(queryProperty);
         relatedProperty = relation.getReverseProperty().getName();
       }
@@ -214,7 +214,7 @@ public class TeaqlDataFetcher implements DataFetcher {
     GraphQLFieldDefinition fieldDefinition = env.getFieldDefinition();
     List<GraphQLArgument> arguments = fieldDefinition.getArguments();
     String parentType = ((GraphQLObjectType) dataFetchingEnvironment.getParentType()).getName();
-    GraphqlQuerySupport graphqlQueryFactory = ctx.getBean(GraphqlQuerySupport.class);
+    GraphQLSupport graphqlQueryFactory = ctx.getBean(GraphQLSupport.class);
     Object[] parameters = new Object[arguments.size()];
     for (int i = 0; i < arguments.size(); i++) {
       GraphQLArgument graphQLArgument = arguments.get(i);
@@ -224,7 +224,7 @@ public class TeaqlDataFetcher implements DataFetcher {
     // call custom query builder to build the basic
     BaseRequest request =
         graphqlQueryFactory.buildQuery(
-            new GraphqlFetcherParam(ctx, parentType, field.getName(), parameters));
+            new GraphQLFetcherParam(ctx, parentType, field.getName(), parameters));
 
     // inspect output
     SelectionSet selectionSet = field.getSelectionSet();
@@ -235,7 +235,7 @@ public class TeaqlDataFetcher implements DataFetcher {
       if (selection instanceof Field f) {
         String name = f.getName();
         String queryProperty =
-            graphqlQueryFactory.getRequestProperty(new GraphqlFetcherParam(ctx, outputType, name));
+            graphqlQueryFactory.getRequestProperty(new GraphQLFetcherParam(ctx, outputType, name));
         PropertyDescriptor property =
             ctx.resolveEntityDescriptor(outputType).findProperty(queryProperty);
         if (property !=null && !(property instanceof Relation)) {
@@ -263,7 +263,7 @@ public class TeaqlDataFetcher implements DataFetcher {
 
       String queryProperty =
           graphqlQueryFactory.getRequestProperty(
-              new GraphqlFetcherParam(
+              new GraphQLFetcherParam(
                   ctx, parentType, dataFetchingEnvironment.getField().getName()));
       // load upstream nodes
       if (relationKeptInParent(ctx, dataFetchingEnvironment)) {

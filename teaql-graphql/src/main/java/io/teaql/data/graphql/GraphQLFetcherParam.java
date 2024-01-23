@@ -1,10 +1,10 @@
-package io.teaql.graphql;
+package io.teaql.data.graphql;
 
 import io.teaql.data.UserContext;
 
-public record GraphqlFetcherParam(
+public record GraphQLFetcherParam(
     UserContext userContext, String parentType, String field, Object[] params) {
-  public GraphqlFetcherParam(UserContext userContext, String parentType, String field) {
+  public GraphQLFetcherParam(UserContext userContext, String parentType, String field) {
     this(userContext, parentType, field, null);
   }
 }
