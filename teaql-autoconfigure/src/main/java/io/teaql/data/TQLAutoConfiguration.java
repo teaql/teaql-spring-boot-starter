@@ -3,6 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.web.MultiReadFilter;
@@ -15,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +52,21 @@ public class TQLAutoConfiguration {
   @ConditionalOnMissingBean
   public EntityMetaFactory entityMetaFactory() {
     return new SimpleEntityMetaFactory();
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      prefix = "teaql",
+      name = "useSmartListAsList",
+      havingValue = "true",
+      matchIfMissing = true)
+  public Jackson2ObjectMapperBuilderCustomizer smartListSerializer() {
+    return jacksonObjectMapperBuilder -> {
+      jacksonObjectMapperBuilder.postConfigurer(
+          mapper -> {
+            mapper.registerModule(TeaQLModule.INSTANCE);
+          });
+    };
   }
 
   @Bean
