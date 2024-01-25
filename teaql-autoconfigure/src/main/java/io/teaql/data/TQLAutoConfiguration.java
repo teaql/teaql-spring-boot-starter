@@ -7,6 +7,7 @@ import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.web.MultiReadFilter;
+import io.teaql.data.web.TeaQLController;
 import io.teaql.data.web.ServletUserContextInitializer;
 import io.teaql.data.web.UserContextInitializer;
 import jakarta.servlet.Filter;
@@ -22,6 +23,7 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -41,6 +43,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import reactor.core.publisher.Mono;
 
 @Configuration
+@Import(TeaQLController.class)
 public class TQLAutoConfiguration {
   @Bean
   @ConfigurationProperties(prefix = "teaql")

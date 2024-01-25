@@ -25,6 +25,8 @@ import java.util.Map;
  */
 public abstract class BaseService {
 
+  public abstract String getBeanName();
+
   /**
    * the main service entrance
    *
@@ -33,8 +35,7 @@ public abstract class BaseService {
    * @param parameter parameter, json format
    * @return webResponse
    */
-  public final WebResponse execute(
-      UserContext ctx, String beanName, String action, String parameter) {
+  public final WebResponse execute(UserContext ctx, String action, String parameter) {
     if (ObjectUtil.isEmpty(action)) {
       return WebResponse.fail("missing action");
     }
@@ -44,7 +45,7 @@ public abstract class BaseService {
       return ReflectUtil.invoke(this, method, ctx, parameter);
     }
     if (action.startsWith("search")) {
-      return doDynamicSearch(ctx, beanName, action, parameter);
+      return doDynamicSearch(ctx, getBeanName(), action, parameter);
     }
     if (action.startsWith("save")) {
       return doSave(ctx, action, parameter);
