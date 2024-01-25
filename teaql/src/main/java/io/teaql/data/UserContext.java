@@ -6,6 +6,7 @@ import cn.hutool.core.util.*;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
+import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
@@ -164,6 +165,34 @@ public class UserContext
     }
     localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
     errors = translateError(entity, errors);
+    throw new CheckException(errors);
+  }
+
+  public void checkAndFix(Iterable<? extends Entity> entities) {
+    if (ObjectUtil.isEmpty(entities)) {
+      return;
+    }
+
+    int i = 0;
+    for (Entity entity : entities) {
+      if (!(entity instanceof BaseEntity)) {
+        i++;
+        continue;
+      }
+      Checker checker = getChecker(entity);
+      if (ObjectUtil.isEmpty(checker)) {
+        throw new TQLException("No checker defined for entity:" + entity);
+      }
+      checker.checkAndFix(this, (BaseEntity) entity, ObjectLocation.arrayRoot(i));
+      i++;
+    }
+
+    List errors = getList(Checker.TEAQL_DATA_CHECK_RESULT);
+    if (ObjectUtil.isEmpty(errors)) {
+      return;
+    }
+    localStorage.remove(Checker.TEAQL_DATA_CHECK_RESULT);
+    errors = translateError(null, errors);
     throw new CheckException(errors);
   }
 

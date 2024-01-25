@@ -5,10 +5,12 @@ import cn.hutool.core.util.ReflectUtil;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.teaql.data.web.WebAction;
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BaseEntity implements Entity {
   public static final String ID_PROPERTY = "id";
@@ -18,8 +20,7 @@ public class BaseEntity implements Entity {
 
   private EntityStatus $status = EntityStatus.NEW;
 
-  @JsonIgnore
-  private String subType;
+  @JsonIgnore private String subType;
 
   @JsonIgnore
   private Map<String, PropertyChangeEvent> updatedProperties = new ConcurrentHashMap<>();
@@ -27,6 +28,8 @@ public class BaseEntity implements Entity {
   @JsonIgnore private Map<String, Object> additionalInfo = new ConcurrentHashMap<>();
 
   @JsonIgnore private Map<String, Entity> relationCache = new HashMap<>();
+
+  private List<WebAction> actionList;
 
   @JsonIgnore
   public EntityStatus get$status() {
@@ -63,6 +66,14 @@ public class BaseEntity implements Entity {
 
   public void setSubType(String pSubType) {
     subType = pSubType;
+  }
+
+  public List<WebAction> getActionList() {
+    return actionList;
+  }
+
+  public void setActionList(List<WebAction> pActionList) {
+    actionList = pActionList;
   }
 
   @Override
@@ -111,7 +122,7 @@ public class BaseEntity implements Entity {
     Field field = ReflectUtil.getField(this.getClass(), relationName);
     Class<?> type = field.getType();
     if (SmartList.class.isAssignableFrom(type)) {
-      SmartList existing = (SmartList) getProperty(relationName);
+      SmartList existing = getProperty(relationName);
       if (existing == null) {
         existing = new SmartList();
         setProperty(relationName, existing);
@@ -124,7 +135,7 @@ public class BaseEntity implements Entity {
 
   @Override
   public void addDynamicProperty(String propertyName, Object value) {
-    if(value==null){
+    if (value == null) {
       return;
     }
     this.additionalInfo.put(dynamicPropertyNameOf(propertyName), value);
@@ -151,6 +162,16 @@ public class BaseEntity implements Entity {
   @Override
   public <T> T getDynamicProperty(String propertyName) {
     return getDynamicProperty(propertyName, null);
+  }
+
+  public Long sumDynaPropOfNumberAsLong(List<String> propertyNames) {
+    AtomicLong atomicLong = new AtomicLong(0);
+    propertyNames.forEach(
+        prop -> {
+          Long ele = ((Number) getDynamicProperty(prop, 0L)).longValue();
+          atomicLong.getAndAdd(ele);
+        });
+    return atomicLong.longValue();
   }
 
   @Override
@@ -289,5 +310,13 @@ public class BaseEntity implements Entity {
   public void clearUpdatedProperties() {
     this.updatedProperties.clear();
   }
-  
+
+  public void addAction(WebAction action) {
+    synchronized (this) {
+      if (actionList == null) {
+        actionList = new ArrayList<>();
+      }
+    }
+    actionList.add(action);
+  }
 }

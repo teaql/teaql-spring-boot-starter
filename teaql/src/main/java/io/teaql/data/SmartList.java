@@ -86,6 +86,7 @@ public class SmartList<T extends Entity> implements Iterable<T> {
   }
 
   public SmartList<T> save(UserContext userContext) {
+    userContext.checkAndFix(this);
     userContext.saveGraph(this);
     return this;
   }
@@ -103,5 +104,9 @@ public class SmartList<T extends Entity> implements Iterable<T> {
 
   public <R> Set<R> toSet(Function<T, R> function) {
     return CollStreamUtil.toSet(data, function);
+  }
+
+  public <R> Map<R, T> toIdentityMap(Function<T, R> function) {
+    return CollStreamUtil.toIdentityMap(data, function);
   }
 }
