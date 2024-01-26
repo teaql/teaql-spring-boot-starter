@@ -7,7 +7,6 @@ import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.web.MultiReadFilter;
-import io.teaql.data.web.TeaQLController;
 import io.teaql.data.web.ServletUserContextInitializer;
 import io.teaql.data.web.UserContextInitializer;
 import jakarta.servlet.Filter;
