@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -1137,7 +1138,7 @@ ALTER TABLE {}
 
   protected List<SQLConstraint> fetchFKs(UserContext ctx) {
     return jdbcTemplate.query(
-        fetchFKsSQL(), Collections.emptyMap(), new BeanPropertyRowMapper<>(SQLConstraint.class));
+        fetchFKsSQL(), Collections.emptyMap(), new DataClassRowMapper<>(SQLConstraint.class));
   }
 
   protected String fetchFKsSQL() {
