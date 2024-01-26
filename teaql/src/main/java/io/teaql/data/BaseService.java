@@ -242,7 +242,7 @@ public abstract class BaseService {
       entity.addAction(WebAction.modifyWebAction(saveURL(beanName, type)));
       Long subCounts = entity.sumDynaPropOfNumberAsLong(dynamicProperties);
       if (subCounts == 0) {
-        entity.addAction(WebAction.modifyWebAction(deleteURL(beanName, type)));
+        entity.addAction(WebAction.deleteWebAction(deleteURL(beanName, type), null));
       }
     }
     return WebResponse.of(ret);
