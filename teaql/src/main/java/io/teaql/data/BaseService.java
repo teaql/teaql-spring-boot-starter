@@ -113,7 +113,7 @@ public abstract class BaseService {
     for (PropertyDescriptor ownProperty : ownProperties) {
       String name = ownProperty.getName();
       Object property = baseEntity.getProperty(name);
-      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre("update", name), property);
+      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), property);
     }
 
     // try update relation
@@ -124,7 +124,7 @@ public abstract class BaseService {
       if (r != null) {
         r.set$status(EntityStatus.REFER);
       }
-      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre("update", name), r);
+      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), r);
     }
 
     // try update attached relationships
