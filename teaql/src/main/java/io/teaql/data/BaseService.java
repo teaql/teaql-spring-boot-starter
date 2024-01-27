@@ -201,7 +201,7 @@ public abstract class BaseService {
     BaseRequest baseRequest = ReflectUtil.newInstance(baseRequestClass, getEntityClass(type));
     baseRequest.appendSearchCriteria(
         baseRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.EQUAL, id));
-
+    baseRequest.selectAll();
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
     List<Relation> foreignRelations = entityDescriptor.getForeignRelations();
     for (Relation foreignRelation : foreignRelations) {
