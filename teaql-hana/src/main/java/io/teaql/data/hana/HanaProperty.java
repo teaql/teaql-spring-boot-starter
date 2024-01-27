@@ -2,6 +2,8 @@ package io.teaql.data.hana;
 
 import io.teaql.data.sql.GenericSQLProperty;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 public class HanaProperty extends GenericSQLProperty {
   public HanaProperty() {}
@@ -12,7 +14,25 @@ public class HanaProperty extends GenericSQLProperty {
   }
 
   @Override
-  protected Object getValue(ResultSet rs) {
-    return super.getValue(rs);
+  protected Object getValue(ResultSet resultSet) {
+    ResultSetMetaData metaData = null;
+    String columnName = getName();
+    try {
+      metaData = resultSet.getMetaData();
+      for (int i = 0; i < metaData.getColumnCount(); i++) {
+        String columnLabelInRs = metaData.getColumnLabel(i + 1);
+        if (columnName.equalsIgnoreCase(columnLabelInRs)) {
+          return resultSet.getObject(i + 1);
+        }
+        String columnNameInRs = metaData.getColumnName(i + 1);
+        if (columnNameInRs.equalsIgnoreCase(columnName)) {
+          return resultSet.getObject(i + 1);
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+    throw new IllegalArgumentException("Column '" + columnName + "' is not found in ResultSet");
+
   }
 }
