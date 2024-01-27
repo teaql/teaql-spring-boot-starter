@@ -164,10 +164,12 @@ public abstract class BaseService {
           // for new child
           if (childId == null) {
             dbItem.addRelation(name, child);
+            ((BaseEntity) child).cacheRelation(reverseProperty.getName(), dbItem);
           } else {
             Entity entity = identityMap.get(childId);
             if (entity == null && child.newItem()) {
               dbItem.addRelation(name, child);
+              ((BaseEntity) child).cacheRelation(reverseProperty.getName(), dbItem);
             } else {
               mergeEntity(ctx, ctx.resolveEntityDescriptor(entity.typeName()), child, entity);
             }
