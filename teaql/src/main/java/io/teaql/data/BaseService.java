@@ -160,7 +160,7 @@ public abstract class BaseService {
     if (contextRelation != null) {
       Object merchant = ReflectUtil.invoke(ctx, "getMerchant");
       ReflectUtil.invoke(
-          baseEntity, StrUtil.upperFirstAndAddPre("update", contextRelation.getName()), merchant);
+          baseEntity, StrUtil.upperFirstAndAddPre(contextRelation.getName(), "update"), merchant);
     }
   }
 
