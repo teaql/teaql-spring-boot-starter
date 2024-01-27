@@ -15,6 +15,7 @@ import io.teaql.data.web.WebAction;
 import io.teaql.data.web.WebResponse;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,12 @@ public abstract class BaseService {
 
   private void mergeEntity(
       UserContext ctx, EntityDescriptor entityDescriptor, Entity baseEntity, Entity dbItem) {
+
+    String manipulationOperation = baseEntity.getDynamicProperty(".manipulationOperation");
+    if ("REMOVE".equals(manipulationOperation)) {
+      ((BaseEntity) baseEntity).set$status(EntityStatus.UPDATED_DELETED);
+    }
+
     // try update Simple properties
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
@@ -139,7 +146,19 @@ public abstract class BaseService {
       if (attach != null && attach) {
         SmartList<? extends Entity> children = baseEntity.getProperty(name);
         SmartList<? extends Entity> currentChildren = dbItem.getProperty(name);
-        Map<Long, ? extends Entity> identityMap = currentChildren.toIdentityMap(Entity::getId);
+        if (ObjectUtil.isEmpty(children)) {
+          if (ObjectUtil.isEmpty(currentChildren)) {
+            continue;
+          } else {
+            for (Entity currentChild : currentChildren) {
+              currentChild.markAsDeleted();
+            }
+          }
+        }
+        Map<Long, ? extends Entity> identityMap = new HashMap<>();
+        if (currentChildren != null) {
+          identityMap = currentChildren.toIdentityMap(Entity::getId);
+        }
         for (Entity child : children) {
           Long childId = child.getId();
           // for new child
@@ -147,7 +166,7 @@ public abstract class BaseService {
             dbItem.addRelation(name, child);
           } else {
             Entity entity = identityMap.get(childId);
-            if (entity == null) {
+            if (entity == null && child.newItem()) {
               dbItem.addRelation(name, child);
             } else {
               mergeEntity(ctx, ctx.resolveEntityDescriptor(entity.typeName()), child, entity);
@@ -155,6 +174,9 @@ public abstract class BaseService {
           }
         }
       }
+    }
+    if (baseEntity.deleteItem()) {
+      dbItem.markAsDeleted();
     }
   }
 
