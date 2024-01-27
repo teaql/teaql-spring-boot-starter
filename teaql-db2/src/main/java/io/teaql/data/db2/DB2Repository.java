@@ -20,6 +20,18 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
     }
     return dbColumn;
   }
+
+  public String getIdSpaceSql() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("CREATE TABLE ")
+            .append(getTqlIdSpaceTable())
+            .append(" (\n")
+            .append("type_name varchar(100) PRIMARY KEY NOT NULL,\n")
+            .append("current_level bigint)\n");
+    String createIdSpaceSql = sb.toString();
+    return createIdSpaceSql;
+  }
+
   @Override
   protected void ensureIndexAndForeignKey(UserContext ctx) {}
 }
