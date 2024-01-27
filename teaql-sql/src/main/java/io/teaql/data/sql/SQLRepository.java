@@ -1473,19 +1473,21 @@ ALTER TABLE {}
     return addColumnSql;
   }
 
+  protected String wrapColumnStatementForCreatingTable(UserContext ctx, String table,SQLColumn column){
+
+    String dbColumn = column.getColumnName() + " " + column.getType();
+    if ("id".equalsIgnoreCase(column.getColumnName())) {
+      dbColumn = dbColumn + " PRIMARY KEY";
+    }
+    return dbColumn;
+  }
   private void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
     StringBuilder sb = new StringBuilder();
     sb.append("CREATE TABLE ").append(table).append(" (\n");
     sb.append(
         columns.stream()
             .map(
-                column -> {
-                  String dbColumn = column.getColumnName() + " " + column.getType();
-                  if ("id".equalsIgnoreCase(column.getColumnName())) {
-                    dbColumn = dbColumn + " PRIMARY KEY";
-                  }
-                  return dbColumn;
-                })
+                column -> wrapColumnStatementForCreatingTable(ctx,table,column))
             .collect(Collectors.joining(",\n")));
     sb.append(")\n");
     String createTableSql = sb.toString();
