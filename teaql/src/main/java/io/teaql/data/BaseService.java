@@ -253,7 +253,9 @@ public abstract class BaseService {
     if (contextRelation != null) {
       baseRequest.appendSearchCriteria(
           baseRequest.createBasicSearchCriteria(
-              contextRelation.getName(), Operator.EQUAL, ReflectUtil.invoke(ctx, "getMerchant")));
+              contextRelation.getName(),
+              Operator.EQUAL,
+              (Object) ReflectUtil.invoke(ctx, "getMerchant")));
     }
   }
 
