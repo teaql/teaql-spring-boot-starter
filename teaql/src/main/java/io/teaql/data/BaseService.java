@@ -111,6 +111,9 @@ public abstract class BaseService {
     // try update Simple properties
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
+      if (ownProperty.isId() || ownProperty.isVersion()) {
+        continue;
+      }
       String name = ownProperty.getName();
       Object property = baseEntity.getProperty(name);
       ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), property);
