@@ -84,7 +84,7 @@ public abstract class BaseService {
 
   private WebResponse doSave(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "save");
-    BaseEntity baseEntity = parseEntity(ctx, parameter, type);
+    BaseEntity baseEntity = parseEntity(ctx, type, parameter);
     if (baseEntity == null) {
       return WebResponse.success();
     }
