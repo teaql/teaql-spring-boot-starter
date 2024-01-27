@@ -292,10 +292,10 @@ public abstract class BaseService {
   }
 
   protected String saveURL(String beanName, String objectType) {
-    return StrUtil.format("{}/save{}", beanName, objectType);
+    return StrUtil.format("{}/save{}/", beanName, objectType);
   }
 
   protected String deleteURL(String beanName, String objectType) {
-    return StrUtil.format("{}/delete{}", beanName, objectType);
+    return StrUtil.format("{}/delete{}/", beanName, objectType);
   }
 }
