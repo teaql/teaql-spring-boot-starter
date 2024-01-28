@@ -1364,8 +1364,7 @@ ALTER TABLE {}
       return;
     }
 
-    Map<String, Map<String, Object>> fields =
-        CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get("column_name")));
+    Map<String, Map<String, Object>> fields = getFields(tableInfo);
 
     for (int i = 0; i < columns.size(); i++) {
       SQLColumn column = columns.get(i);
@@ -1391,6 +1390,14 @@ ALTER TABLE {}
 
       alterColumn(ctx, column);
     }
+  }
+
+  protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
+      return CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())));
+  }
+
+  protected String getSchemaColumnNameFieldName() {
+    return "column_name";
   }
 
   protected String getPureColumnName(String columnName) {
