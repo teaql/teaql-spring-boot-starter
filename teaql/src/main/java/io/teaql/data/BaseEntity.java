@@ -5,6 +5,8 @@ import cn.hutool.core.util.ReflectUtil;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.web.WebAction;
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.Field;
@@ -21,6 +23,8 @@ public class BaseEntity implements Entity {
   private EntityStatus $status = EntityStatus.NEW;
 
   @JsonIgnore private String subType;
+
+  private String displayName;
 
   @JsonIgnore
   private Map<String, PropertyChangeEvent> updatedProperties = new ConcurrentHashMap<>();
@@ -318,5 +322,34 @@ public class BaseEntity implements Entity {
       }
     }
     actionList.add(action);
+  }
+
+  public String getDisplayName() {
+    if (displayName != null) {
+      return displayName;
+    }
+
+    TQLResolver globalResolver = GLobalResolver.getGlobalResolver();
+    if (globalResolver == null) {
+      return typeName() + ":" + getId();
+    }
+
+    EntityDescriptor entityDescriptor = globalResolver.resolveEntityDescriptor(typeName());
+    while (entityDescriptor.getParent() != null) {
+      entityDescriptor = entityDescriptor.getParent();
+    }
+
+    List<PropertyDescriptor> properties = entityDescriptor.getProperties();
+    for (PropertyDescriptor property : properties) {
+      Class aClass = property.getType().javaType();
+      if (aClass.equals(String.class)) {
+        return getProperty(property.getName());
+      }
+    }
+    return typeName() + ":" + getId();
+  }
+
+  public void setDisplayName(String pDisplayName) {
+    displayName = pDisplayName;
   }
 }
