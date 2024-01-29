@@ -3,6 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
@@ -65,6 +66,7 @@ public class TQLAutoConfiguration {
       jacksonObjectMapperBuilder.postConfigurer(
           mapper -> {
             mapper.registerModule(TeaQLModule.INSTANCE);
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
           });
     };
   }
