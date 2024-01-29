@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import io.teaql.data.criteria.Operator;
-
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -288,13 +287,13 @@ public class DynamicSearchHelper {
             if (node.get("id") == null) {
                 return null;
             }
-            return node.get("id").asText();
+            return node.get("id").asLong();
         }
         if (node.isObject()) {
             if (node.get("id") == null) {
                 return null;
             }
-            return node.get("id").asText();
+            return node.get("id").asLong();
         }
 
         return node.asText().trim();
