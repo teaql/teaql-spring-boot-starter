@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public abstract class BaseService {
 
+  public static final int MAX_VERSION = Integer.MAX_VALUE - 10000;
+
   /**
    * the main service entrance
    *
@@ -90,6 +92,10 @@ public abstract class BaseService {
       return WebResponse.success();
     }
     Long id = baseEntity.getId();
+    cleanupEntity(ctx, baseEntity);
+    if (!baseEntity.needPersist()) {
+      return WebResponse.success();
+    }
     if (id == null) {
       setContextRelationBeforeSave(ctx, type, baseEntity);
       baseEntity.save(ctx);
@@ -107,12 +113,60 @@ public abstract class BaseService {
     return WebResponse.success();
   }
 
-  private void mergeEntity(
-      UserContext ctx, EntityDescriptor entityDescriptor, Entity baseEntity, Entity dbItem) {
+  private void cleanupEntity(UserContext ctx, BaseEntity baseEntity) {
+    if (baseEntity == null) {
+      return;
+    }
 
+    // to be removed item, mark the status as deleted
     String manipulationOperation = baseEntity.getDynamicProperty(".manipulationOperation");
     if ("REMOVE".equals(manipulationOperation)) {
-      ((BaseEntity) baseEntity).set$status(EntityStatus.UPDATED_DELETED);
+      baseEntity.set$status(EntityStatus.UPDATED_DELETED);
+      return;
+    }
+
+    // reference item only
+    EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(baseEntity.typeName());
+    Long version = baseEntity.getVersion();
+    if (version != null && version > MAX_VERSION) {
+      // reference, keep id only
+      baseEntity.set$status(EntityStatus.REFER);
+      List<PropertyDescriptor> properties = entityDescriptor.getProperties();
+      for (PropertyDescriptor property : properties) {
+        if (!property.isId()) {
+          baseEntity.setProperty(property.getName(), null);
+        }
+      }
+      return;
+    }
+
+    // for new or update request
+    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+    for (Relation ownRelation : ownRelations) {
+      String name = ownRelation.getName();
+      BaseEntity r = baseEntity.getProperty(name);
+      cleanupEntity(ctx, r);
+    }
+
+    List<Relation> foreignRelations = entityDescriptor.getForeignRelations();
+    for (Relation foreignRelation : foreignRelations) {
+      String name = foreignRelation.getName();
+      Object v = baseEntity.getProperty(name);
+      if (v instanceof BaseEntity) {
+        cleanupEntity(ctx, (BaseEntity) v);
+      } else if (v instanceof SmartList l) {
+        for (Object o : l) {
+          cleanupEntity(ctx, (BaseEntity) o);
+        }
+      }
+    }
+  }
+
+  private void mergeEntity(
+      UserContext ctx, EntityDescriptor entityDescriptor, Entity baseEntity, Entity dbItem) {
+    if (baseEntity.deleteItem()) {
+      dbItem.markAsDeleted();
+      return;
     }
 
     // try update Simple properties
@@ -131,9 +185,6 @@ public abstract class BaseService {
     for (Relation ownRelation : ownRelations) {
       String name = ownRelation.getName();
       BaseEntity r = baseEntity.getProperty(name);
-      if (r != null && r.getVersion() != null && r.getId() != null) {
-        r = ReflectUtil.invokeStatic(ReflectUtil.getMethodByName(r.getClass(), "refer"), r.getId());
-      }
       ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), r);
     }
 
@@ -176,9 +227,6 @@ public abstract class BaseService {
           }
         }
       }
-    }
-    if (baseEntity.deleteItem()) {
-      dbItem.markAsDeleted();
     }
   }
 
