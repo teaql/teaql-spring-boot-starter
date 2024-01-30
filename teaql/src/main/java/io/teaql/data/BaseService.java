@@ -97,7 +97,6 @@ public abstract class BaseService {
       return WebResponse.success();
     }
 
-    setContextRelationBeforeSave(ctx, type, baseEntity);
     if (id == null) {
       baseEntity.save(ctx);
     } else {
@@ -140,6 +139,8 @@ public abstract class BaseService {
       }
       return;
     }
+
+    setContextRelationBeforeSave(ctx, baseEntity.typeName(), baseEntity);
 
     // for new or update request
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
