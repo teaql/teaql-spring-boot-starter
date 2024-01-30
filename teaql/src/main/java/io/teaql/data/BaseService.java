@@ -131,8 +131,8 @@ public abstract class BaseService {
     for (Relation ownRelation : ownRelations) {
       String name = ownRelation.getName();
       BaseEntity r = baseEntity.getProperty(name);
-      if (r != null) {
-        r.set$status(EntityStatus.REFER);
+      if (r != null && r.getVersion() != null && r.getId() != null) {
+        r = ReflectUtil.invokeStatic(ReflectUtil.getMethodByName(r.getClass(), "refer"), r.getId());
       }
       ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), r);
     }
