@@ -407,7 +407,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   @Override
   public void deleteInternal(UserContext userContext, Collection<T> entities) {
-    if (ObjectUtil.isNotEmpty(entities)) {
+    if (ObjectUtil.isEmpty(entities)) {
       return;
     }
     List<Object[]> args =
@@ -439,7 +439,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
   @Override
   public void recoverInternal(UserContext userContext, Collection<T> entities) {
-    if (ObjectUtil.isNotEmpty(entities)) {
+    if (ObjectUtil.isEmpty(entities)) {
       return;
     }
     List<Object[]> args =
