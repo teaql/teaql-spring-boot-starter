@@ -96,8 +96,9 @@ public abstract class BaseService {
     if (!baseEntity.needPersist()) {
       return WebResponse.success();
     }
+
+    setContextRelationBeforeSave(ctx, type, baseEntity);
     if (id == null) {
-      setContextRelationBeforeSave(ctx, type, baseEntity);
       baseEntity.save(ctx);
     } else {
       // update
@@ -178,14 +179,6 @@ public abstract class BaseService {
       String name = ownProperty.getName();
       Object property = baseEntity.getProperty(name);
       ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), property);
-    }
-
-    // try update relation
-    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
-    for (Relation ownRelation : ownRelations) {
-      String name = ownRelation.getName();
-      BaseEntity r = baseEntity.getProperty(name);
-      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), r);
     }
 
     // try update attached relationships
