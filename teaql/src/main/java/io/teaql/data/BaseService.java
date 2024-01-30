@@ -243,6 +243,9 @@ public abstract class BaseService {
     BaseRequest baseRequest = ReflectUtil.newInstance(baseRequestClass, getEntityClass(type));
     baseRequest.appendSearchCriteria(
         baseRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.EQUAL, id));
+    baseRequest.appendSearchCriteria(
+        baseRequest.createBasicSearchCriteria(
+            BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0));
     baseRequest.selectAll();
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
     List<Relation> foreignRelations = entityDescriptor.getForeignRelations();
@@ -281,6 +284,9 @@ public abstract class BaseService {
     if (ObjectUtil.isNotEmpty(parameter)) {
       baseRequest.internalFindWithJsonExpr(parameter);
     }
+    baseRequest.appendSearchCriteria(
+        baseRequest.createBasicSearchCriteria(
+            BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0));
     addContextRelationFilter(ctx, type, baseRequest);
 
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
