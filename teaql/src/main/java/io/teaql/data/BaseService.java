@@ -100,6 +100,7 @@ public abstract class BaseService {
 
     if (id == null) {
       clearRemovedItemsBeforeCreate(ctx, baseEntity);
+      maintainRelationship(ctx, baseEntity);
       baseEntity.save(ctx);
     } else {
       // update
@@ -113,6 +114,28 @@ public abstract class BaseService {
       dbItem.save(ctx);
     }
     return WebResponse.success();
+  }
+
+  private void maintainRelationship(UserContext ctx, BaseEntity baseEntity) {
+    EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(baseEntity.typeName());
+    List<Relation> foreignRelations = entityDescriptor.getForeignRelations();
+    for (Relation foreignRelation : foreignRelations) {
+      String name = foreignRelation.getName();
+      PropertyDescriptor reverseProperty = foreignRelation.getReverseProperty();
+      Boolean attach = MapUtil.getBool(reverseProperty.getAdditionalInfo(), "attach");
+      if (attach != null && attach) {
+        Object property = baseEntity.getProperty(name);
+        if (property instanceof BaseEntity e) {
+          e.cacheRelation(reverseProperty.getName(), baseEntity);
+        } else if (property instanceof SmartList l) {
+          for (Object o : l) {
+            if (o instanceof BaseEntity i) {
+              i.cacheRelation(reverseProperty.getName(), baseEntity);
+            }
+          }
+        }
+      }
+    }
   }
 
   private void clearRemovedItemsBeforeCreate(UserContext ctx, BaseEntity baseEntity) {
