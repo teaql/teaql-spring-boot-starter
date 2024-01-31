@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
+import io.teaql.data.translation.Translator;
 import io.teaql.data.web.MultiReadFilter;
 import io.teaql.data.web.ServletUserContextInitializer;
 import io.teaql.data.web.UserContextInitializer;
@@ -53,6 +54,12 @@ public class TQLAutoConfiguration {
   @ConditionalOnMissingBean
   public EntityMetaFactory entityMetaFactory() {
     return new SimpleEntityMetaFactory();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public Translator translator() {
+    return Translator.NOOP;
   }
 
   @Bean
