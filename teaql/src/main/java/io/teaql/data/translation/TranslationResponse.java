@@ -17,4 +17,12 @@ public class TranslationResponse {
   public Map<String, String> getResults() {
     return CollStreamUtil.toMap(records, TranslationRecord::getKey, TranslationRecord::getValue);
   }
+
+  public Set<TranslationRecord> getRecords() {
+    return records;
+  }
+
+  public void setRecords(Set<TranslationRecord> pRecords) {
+    records = pRecords;
+  }
 }
