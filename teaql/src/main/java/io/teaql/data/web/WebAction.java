@@ -7,6 +7,7 @@ import java.util.List;
 public class WebAction {
 
   public static final String ACTION_LIST = "actionList";
+  private String key;
   private String name;
   private String level;
   private String execute;
@@ -87,6 +88,7 @@ public class WebAction {
   public static WebAction modifyWebAction(String name, String url, String warningMessage) {
     WebAction webAction = new WebAction();
     webAction.setName(name);
+    webAction.setKey(name);
     webAction.setLevel("modify");
     webAction.setExecute("switchview");
     webAction.setTarget("modify");
@@ -100,12 +102,12 @@ public class WebAction {
   }
 
   public static WebAction modifyWebAction(String url) {
-    return modifyWebAction("UPDATE", url);
+    return modifyWebAction("web.action.update", url);
   }
 
   public static WebAction deleteWebAction(String url, String warningMessage) {
 
-    return modifyWebAction("DELETE", url, warningMessage);
+    return modifyWebAction("web.action.delete", url, warningMessage);
   }
 
   public static WebAction auditWebAction(String url, String warningMessage) {
@@ -213,5 +215,13 @@ public class WebAction {
 
   public void setTarget(String target) {
     this.target = target;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public void setKey(String pKey) {
+    key = pKey;
   }
 }

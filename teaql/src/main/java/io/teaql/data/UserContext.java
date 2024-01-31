@@ -8,6 +8,9 @@ import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.translation.TranslationRequest;
+import io.teaql.data.translation.TranslationResponse;
+import io.teaql.data.translation.Translator;
 import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -15,7 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class UserContext
-    implements NaturalLanguageTranslator, RequestHolder, OptNullBasicTypeFromObjectGetter<String> {
+    implements NaturalLanguageTranslator,
+        RequestHolder,
+        OptNullBasicTypeFromObjectGetter<String>,
+        Translator {
   public static final String X_CLASS = "X-Class";
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
@@ -307,5 +313,14 @@ public class UserContext
       return o;
     }
     return defaultValue;
+  }
+
+  @Override
+  public TranslationResponse translate(TranslationRequest req) {
+    Translator translator = getBean(Translator.class);
+    if (translator != null) {
+      return translator.translate(req);
+    }
+    return null;
   }
 }

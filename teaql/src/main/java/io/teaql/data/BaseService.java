@@ -1,5 +1,6 @@
 package io.teaql.data;
 
+import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -11,13 +12,13 @@ import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
+import io.teaql.data.translation.TranslationRecord;
+import io.teaql.data.translation.TranslationRequest;
+import io.teaql.data.translation.TranslationResponse;
 import io.teaql.data.web.WebAction;
 import io.teaql.data.web.WebResponse;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * a generic service implementation for entity CRUD operations
@@ -98,6 +99,7 @@ public abstract class BaseService {
     }
 
     if (id == null) {
+      clearRemovedItemsBeforeCreate(ctx, baseEntity);
       baseEntity.save(ctx);
     } else {
       // update
@@ -111,6 +113,41 @@ public abstract class BaseService {
       dbItem.save(ctx);
     }
     return WebResponse.success();
+  }
+
+  private void clearRemovedItemsBeforeCreate(UserContext ctx, BaseEntity baseEntity) {
+    if (baseEntity == null || baseEntity.deleteItem()) {
+      return;
+    }
+
+    EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(baseEntity.typeName());
+    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+    for (Relation ownRelation : ownRelations) {
+      String name = ownRelation.getName();
+      BaseEntity ref = baseEntity.getProperty(name);
+      if (ref != null && ref.deleteItem()) {
+        baseEntity.setProperty(name, null);
+      }
+    }
+
+    List<Relation> foreignRelations = entityDescriptor.getForeignRelations();
+    for (Relation foreignRelation : foreignRelations) {
+      String name = foreignRelation.getName();
+      Object property = baseEntity.getProperty(name);
+      if (property instanceof BaseEntity) {
+        if (((BaseEntity) property).deleteItem()) {
+          baseEntity.setProperty(name, null);
+        }
+      } else if (property instanceof SmartList l) {
+        Iterator iterator = l.iterator();
+        while (iterator.hasNext()) {
+          Object next = iterator.next();
+          if (next instanceof BaseEntity e && e.deleteItem()) {
+            iterator.remove();
+          }
+        }
+      }
+    }
   }
 
   private void cleanupEntity(UserContext ctx, BaseEntity baseEntity) {
@@ -179,7 +216,11 @@ public abstract class BaseService {
       }
       String name = ownProperty.getName();
       Object property = baseEntity.getProperty(name);
-      ReflectUtil.invoke(dbItem, StrUtil.upperFirstAndAddPre(name, "update"), property);
+      String updateMethodName = StrUtil.upperFirstAndAddPre(name, "update");
+      Method method = ReflectUtil.getMethodByName(dbItem.getClass(), updateMethodName);
+      if (method != null) {
+        ReflectUtil.invoke(dbItem, method, property);
+      }
     }
 
     // try update attached relationships
@@ -313,14 +354,40 @@ public abstract class BaseService {
     }
 
     SmartList<? extends BaseEntity> ret = baseRequest.executeForList(ctx);
+    WebAction webAction = WebAction.modifyWebAction(saveURL(beanName, type));
+    WebAction deleteWebAction = WebAction.deleteWebAction(deleteURL(beanName, type), null);
     for (BaseEntity entity : ret) {
-      entity.addAction(WebAction.modifyWebAction(saveURL(beanName, type)));
+      entity.addAction(webAction);
       Long subCounts = entity.sumDynaPropOfNumberAsLong(dynamicProperties);
       if (subCounts == 0) {
-        entity.addAction(WebAction.deleteWebAction(deleteURL(beanName, type), null));
+        entity.addAction(deleteWebAction);
       }
     }
+    translateResult(ctx, ret);
     return WebResponse.of(ret);
+  }
+
+  private void translateResult(UserContext ctx, SmartList<? extends BaseEntity> ret) {
+    Set<WebAction> actions = new HashSet<>();
+    for (BaseEntity baseEntity : ret) {
+      List<WebAction> actionList = baseEntity.getActionList();
+      if (actionList != null) {
+        actions.addAll(actionList);
+      }
+    }
+    Map<String, WebAction> identityMap = CollStreamUtil.toIdentityMap(actions, WebAction::getKey);
+    Set<String> keys = identityMap.keySet();
+    Set<TranslationRecord> records = CollStreamUtil.toSet(keys, key -> new TranslationRecord(key));
+    TranslationRequest request = new TranslationRequest(records);
+    TranslationResponse response = ctx.translate(request);
+    if (response == null) {
+      return;
+    }
+    Map<String, String> results = response.getResults();
+    results.forEach(
+        (k, v) -> {
+          identityMap.get(k).setName(v);
+        });
   }
 
   private void addContextRelationFilter(UserContext ctx, String type, BaseRequest baseRequest) {
