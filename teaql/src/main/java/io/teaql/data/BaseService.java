@@ -103,7 +103,7 @@ public abstract class BaseService {
       maintainRelationship(ctx, baseEntity);
       baseEntity.save(ctx);
     } else {
-      // update
+      // load the entity before update
       BaseEntity dbItem = reloadEntity(ctx, type, parameter);
       if (dbItem == null) {
         throw new TQLException(StrUtil.format("item [{}] with id [{}] does not exist", type, id));
@@ -127,10 +127,12 @@ public abstract class BaseService {
         Object property = baseEntity.getProperty(name);
         if (property instanceof BaseEntity e) {
           e.cacheRelation(reverseProperty.getName(), baseEntity);
+          maintainRelationship(ctx, e);
         } else if (property instanceof SmartList l) {
           for (Object o : l) {
             if (o instanceof BaseEntity i) {
               i.cacheRelation(reverseProperty.getName(), baseEntity);
+              maintainRelationship(ctx, i);
             }
           }
         }
@@ -150,6 +152,8 @@ public abstract class BaseService {
       BaseEntity ref = baseEntity.getProperty(name);
       if (ref != null && ref.deleteItem()) {
         baseEntity.setProperty(name, null);
+      } else {
+        clearRemovedItemsBeforeCreate(ctx, ref);
       }
     }
 
@@ -160,6 +164,8 @@ public abstract class BaseService {
       if (property instanceof BaseEntity) {
         if (((BaseEntity) property).deleteItem()) {
           baseEntity.setProperty(name, null);
+        } else {
+          clearRemovedItemsBeforeCreate(ctx, (BaseEntity) property);
         }
       } else if (property instanceof SmartList l) {
         Iterator iterator = l.iterator();
@@ -167,6 +173,8 @@ public abstract class BaseService {
           Object next = iterator.next();
           if (next instanceof BaseEntity e && e.deleteItem()) {
             iterator.remove();
+          } else {
+            clearRemovedItemsBeforeCreate(ctx, (BaseEntity) next);
           }
         }
       }
@@ -234,7 +242,12 @@ public abstract class BaseService {
     // try update Simple properties
     List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor ownProperty : ownProperties) {
-      if (ownProperty.isId() || ownProperty.isVersion()) {
+      // id,version is set in the repository
+      // createFunction, updateFunction will not be ignored, and called in the checker
+      if (ownProperty.isId()
+          || ownProperty.isVersion()
+          || ownProperty.getAdditionalInfo().get("createFunction") != null
+          || ownProperty.getAdditionalInfo().get("updateFunction") != null) {
         continue;
       }
       String name = ownProperty.getName();
@@ -297,6 +310,14 @@ public abstract class BaseService {
     }
   }
 
+  /**
+   * reload the entity before update, now load all, and select attached lists
+   *
+   * @param ctx
+   * @param type
+   * @param parameter
+   * @return
+   */
   private BaseEntity reloadEntity(UserContext ctx, String type, String parameter) {
     BaseEntity baseEntity = parseEntity(ctx, type, parameter);
     Long id = baseEntity.getId();
@@ -424,7 +445,7 @@ public abstract class BaseService {
     }
   }
 
-  private Relation getContextRelation(UserContext ctx, String type) {
+  public Relation getContextRelation(UserContext ctx, String type) {
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
     List<Relation> ownRelations = entityDescriptor.getOwnRelations();
     for (Relation ownRelation : ownRelations) {
