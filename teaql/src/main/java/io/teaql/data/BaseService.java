@@ -398,6 +398,7 @@ public abstract class BaseService {
     }
 
     SmartList<? extends BaseEntity> ret = baseRequest.executeForList(ctx);
+    baseRequest.addOrderByDescending(BaseEntity.ID_PROPERTY);
     WebAction webAction = WebAction.modifyWebAction(saveURL(beanName, type));
     WebAction deleteWebAction = WebAction.deleteWebAction(deleteURL(beanName, type), null);
     for (BaseEntity entity : ret) {
