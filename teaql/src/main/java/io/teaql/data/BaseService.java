@@ -366,6 +366,7 @@ public abstract class BaseService {
     Class<? extends BaseEntity> entityClass = getEntityClass(type);
     BaseRequest baseRequest = ReflectUtil.newInstance(requestClass, entityClass);
     baseRequest.selectAll();
+    baseRequest.addOrderByDescending(BaseEntity.ID_PROPERTY);
     if (ObjectUtil.isNotEmpty(parameter)) {
       baseRequest.internalFindWithJsonExpr(parameter);
     }
@@ -398,7 +399,7 @@ public abstract class BaseService {
     }
 
     SmartList<? extends BaseEntity> ret = baseRequest.executeForList(ctx);
-    baseRequest.addOrderByDescending(BaseEntity.ID_PROPERTY);
+
     WebAction webAction = WebAction.modifyWebAction(saveURL(beanName, type));
     WebAction deleteWebAction = WebAction.deleteWebAction(deleteURL(beanName, type), null);
     for (BaseEntity entity : ret) {
