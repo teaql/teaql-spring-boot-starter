@@ -339,7 +339,7 @@ public class BaseEntity implements Entity {
       entityDescriptor = entityDescriptor.getParent();
     }
 
-    List<PropertyDescriptor> properties = entityDescriptor.getProperties();
+    List<PropertyDescriptor> properties = entityDescriptor.getOwnProperties();
     for (PropertyDescriptor property : properties) {
       Class aClass = property.getType().javaType();
       if (aClass.equals(String.class)) {

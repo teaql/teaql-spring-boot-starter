@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -285,7 +284,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         continue;
       }
       Object v = entity.getProperty(property.getName());
-      List<SQLData> data = convertToSQLData(userContext, property, v);
+      List<SQLData> data = convertToSQLData(userContext, entity, property, v);
       sqlEntity.addPropertySQLData(data);
     }
     return sqlEntity;
@@ -373,7 +372,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
       }
       Object v = entity.getProperty(propertyDescriptor.getName());
-      List<SQLData> data = convertToSQLData(userContext, propertyDescriptor, v);
+      List<SQLData> data = convertToSQLData(userContext, entity, propertyDescriptor, v);
       sqlEntity.addPropertySQLData(data);
     }
 
@@ -390,9 +389,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   }
 
   private List<SQLData> convertToSQLData(
-      UserContext pUserContext, PropertyDescriptor property, Object propertyValue) {
+      UserContext ctx, T entity, PropertyDescriptor property, Object propertyValue) {
     if (property instanceof SQLProperty) {
-      return ((SQLProperty) property).toDBRaw(propertyValue);
+      return ((SQLProperty) property).toDBRaw(ctx, entity, propertyValue);
     }
     throw new RepositoryException("SQLRepository only support SQLProperty");
   }
@@ -413,11 +412,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     List<Object[]> args =
         entities.stream()
             .filter(e -> e.getVersion() > 0)
-            .map(
-                e ->
-                    new Object[] {
-                      -(e.getVersion() + 1), e.getId(), e.getVersion()
-                    })
+            .map(e -> new Object[] {-(e.getVersion() + 1), e.getId(), e.getVersion()})
             .collect(Collectors.toList());
     String updateSql =
         StrUtil.format(
@@ -511,6 +506,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return (Stream<T>)
         StreamSupport.stream(
                 new StreamEnhancer(userContext, this, stream, request, enhanceBatch), false)
+            .map(
+                item -> {
+                  userContext.afterLoad(getEntityDescriptor(), (Entity) item);
+                  return item;
+                })
             .onClose(
                 () -> {
                   stream.close();
@@ -657,7 +657,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     if (pProperty instanceof SQLProperty) {
-      ((SQLProperty) pProperty).setPropertyValue(pEntity, resultSet);
+      ((SQLProperty) pProperty).setPropertyValue(userContext, pEntity, resultSet);
       return;
     }
     throw new RepositoryException(
@@ -1393,7 +1393,8 @@ ALTER TABLE {}
   }
 
   protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
-      return CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())));
+    return CollStreamUtil.toIdentityMap(
+        tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())));
   }
 
   protected String getSchemaColumnNameFieldName() {
@@ -1480,7 +1481,8 @@ ALTER TABLE {}
     return addColumnSql;
   }
 
-  protected String wrapColumnStatementForCreatingTable(UserContext ctx, String table,SQLColumn column){
+  protected String wrapColumnStatementForCreatingTable(
+      UserContext ctx, String table, SQLColumn column) {
 
     String dbColumn = column.getColumnName() + " " + column.getType();
     if ("id".equalsIgnoreCase(column.getColumnName())) {
@@ -1488,13 +1490,13 @@ ALTER TABLE {}
     }
     return dbColumn;
   }
+
   private void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
     StringBuilder sb = new StringBuilder();
     sb.append("CREATE TABLE ").append(table).append(" (\n");
     sb.append(
         columns.stream()
-            .map(
-                column -> wrapColumnStatementForCreatingTable(ctx,table,column))
+            .map(column -> wrapColumnStatementForCreatingTable(ctx, table, column))
             .collect(Collectors.joining(",\n")));
     sb.append(")\n");
     String createTableSql = sb.toString();

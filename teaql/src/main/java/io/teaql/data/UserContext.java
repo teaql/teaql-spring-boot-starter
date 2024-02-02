@@ -323,4 +323,14 @@ public class UserContext
     }
     return null;
   }
+
+  public void beforeCreate(EntityDescriptor descriptor, Entity toBeCreate) {}
+
+  public void beforeUpdate(EntityDescriptor descriptor, Entity toBeUpdated) {}
+
+  public void beforeDelete(EntityDescriptor descriptor, Entity toBeDeleted) {}
+
+  public void beforeRecover(EntityDescriptor descriptor, Entity pToBeRecoverItem) {}
+
+  public void afterLoad(EntityDescriptor descriptor, Entity loadedItem) {}
 }

@@ -6,6 +6,7 @@ import cn.hutool.core.util.ReflectUtil;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.EntityStatus;
+import io.teaql.data.UserContext;
 import io.teaql.data.meta.PropertyDescriptor;
 import java.sql.ResultSet;
 import java.util.List;
@@ -31,7 +32,7 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
   }
 
   @Override
-  public List<SQLData> toDBRaw(Object value) {
+  public List<SQLData> toDBRaw(UserContext ctx, Entity entity, Object value) {
     SQLData d = new SQLData();
     d.setColumnName(columnName);
     d.setTableName(tableName);
@@ -44,7 +45,7 @@ public class GenericSQLProperty extends PropertyDescriptor implements SQLPropert
   }
 
   @Override
-  public void setPropertyValue(Entity entity, ResultSet rs) {
+  public void setPropertyValue(UserContext ctx, Entity entity, ResultSet rs) {
     if (!findName(rs, getName())) {
       return;
     }

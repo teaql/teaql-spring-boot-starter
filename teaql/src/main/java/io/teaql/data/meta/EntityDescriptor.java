@@ -3,6 +3,7 @@ package io.teaql.data.meta;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
 import io.teaql.data.Entity;
 import java.util.*;
 
@@ -173,6 +174,17 @@ public class EntityDescriptor {
 
   public PropertyDescriptor addSimpleProperty(String propertyName, Class type) {
     PropertyDescriptor property = createPropertyDescriptor();
+    return setProperty(propertyName, type, property);
+  }
+
+  public PropertyDescriptor addSimpleProperty(
+      String propertyName, Class type, Class<? extends PropertyDescriptor> descriptorType) {
+    PropertyDescriptor property = ReflectUtil.newInstance(descriptorType);
+    return setProperty(propertyName, type, property);
+  }
+
+  private PropertyDescriptor setProperty(
+      String propertyName, Class type, PropertyDescriptor property) {
     property.setName(propertyName);
     property.setType(new SimplePropertyType(type));
     property.setOwner(this);
@@ -189,14 +201,24 @@ public class EntityDescriptor {
       String propertyName,
       String parentType,
       String reverseName,
-      Class<? extends Entity> parentClass) {
-    Relation relation = createRelation();
+      Class<? extends Entity> parentClass,
+      Class<? extends Relation> propertyDescriptor) {
+    Relation relation = ReflectUtil.newInstance(propertyDescriptor);
+    return setRelation(factory, propertyName, parentType, reverseName, parentClass, relation);
+  }
+
+  private Relation setRelation(
+      EntityMetaFactory factory,
+      String propertyName,
+      String parentType,
+      String reverseName,
+      Class<? extends Entity> parentClass,
+      Relation relation) {
     relation.setOwner(this);
     relation.setName(propertyName);
     relation.setType(new SimplePropertyType(parentClass));
     relation.setRelationKeeper(this);
     getProperties().add(relation);
-
     // add one reverse relation on parent
     EntityDescriptor refer = factory.resolveEntityDescriptor(parentType);
     Relation reverse = new Relation();
@@ -210,6 +232,16 @@ public class EntityDescriptor {
 
     refer.getProperties().add(reverse);
     return relation;
+  }
+
+  public Relation addObjectProperty(
+      EntityMetaFactory factory,
+      String propertyName,
+      String parentType,
+      String reverseName,
+      Class<? extends Entity> parentClass) {
+    Relation relation = createRelation();
+    return setRelation(factory, propertyName, parentType, reverseName, parentClass, relation);
   }
 
   protected Relation createRelation() {

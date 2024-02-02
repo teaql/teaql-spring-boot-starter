@@ -2,10 +2,7 @@ package io.teaql.data.sql;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
-import io.teaql.data.BaseEntity;
-import io.teaql.data.Entity;
-import io.teaql.data.EntityStatus;
-import io.teaql.data.RepositoryException;
+import io.teaql.data.*;
 import io.teaql.data.meta.Relation;
 import java.sql.ResultSet;
 import java.util.List;
@@ -23,7 +20,7 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
   }
 
   @Override
-  public List<SQLData> toDBRaw(Object value) {
+  public List<SQLData> toDBRaw(UserContext ctx, Entity entity, Object value) {
     SQLData d = new SQLData();
     d.setColumnName(columnName);
     d.setTableName(tableName);
@@ -38,7 +35,7 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
   }
 
   @Override
-  public void setPropertyValue(Entity entity, ResultSet rs) {
+  public void setPropertyValue(UserContext ctx, Entity entity, ResultSet rs) {
     if (!findName(rs, getName())) {
       return;
     }

@@ -222,6 +222,10 @@ public abstract class BaseService {
     for (Relation foreignRelation : foreignRelations) {
       String name = foreignRelation.getName();
       Object v = baseEntity.getProperty(name);
+      EntityDescriptor owner = foreignRelation.getReverseProperty().getOwner();
+      if (MapUtil.getBool(owner.getAdditionalInfo(), "view")) {
+        continue;
+      }
       if (v instanceof BaseEntity) {
         cleanupEntity(ctx, (BaseEntity) v);
       } else if (v instanceof SmartList l) {
@@ -384,6 +388,10 @@ public abstract class BaseService {
       dynamicProperties.add(retName);
       PropertyDescriptor reverseProperty = foreignRelation.getReverseProperty();
       EntityDescriptor owner = reverseProperty.getOwner();
+      if (MapUtil.getBool(owner.getAdditionalInfo(), "view")) {
+        continue;
+      }
+
       String subType = owner.getType();
       Class<? extends BaseRequest> subRequestClass = requestClass(subType);
       Class<? extends BaseEntity> subEntityClass = getEntityClass(subType);

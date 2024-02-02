@@ -46,6 +46,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       for (T newItem : newItems) {
         setIdAndVersionForInsert(userContext, newItem);
       }
+      beforeCreate(userContext, newItems);
       createInternal(userContext, newItems);
       for (T newItem : newItems) {
         if (newItem instanceof BaseEntity item) {
@@ -57,6 +58,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     }
     Collection<T> updatedItems = CollUtil.filterNew(entities, Entity::updateItem);
     if (ObjectUtil.isNotEmpty(updatedItems)) {
+      beforeUpdate(userContext, updatedItems);
       updateInternal(userContext, updatedItems);
       for (T updateItem : updatedItems) {
         updateItem.setVersion(updateItem.getVersion() + 1);
@@ -69,6 +71,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     }
     Collection<T> deleteItems = CollUtil.filterNew(entities, Entity::deleteItem);
     if (ObjectUtil.isNotEmpty(deleteItems)) {
+      beforeDelete(userContext, deleteItems);
       deleteInternal(userContext, deleteItems);
       for (T deleteItem : deleteItems) {
         deleteItem.setVersion(-(deleteItem.getVersion() + 1));
@@ -82,6 +85,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
 
     Collection<T> recoverItems = CollUtil.filterNew(entities, Entity::recoverItem);
     if (ObjectUtil.isNotEmpty(recoverItems)) {
+      beforeRecover(userContext, recoverItems);
       recoverInternal(userContext, recoverItems);
       for (T recoverItem : recoverItems) {
         recoverItem.setVersion(-recoverItem.getVersion() + 1);
@@ -93,6 +97,30 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       }
     }
     return entities;
+  }
+
+  private void beforeRecover(UserContext userContext, Collection<T> toBeRecoverItems) {
+    for (T toBeRecoverItem : toBeRecoverItems) {
+      userContext.beforeRecover(getEntityDescriptor(), toBeRecoverItem);
+    }
+  }
+
+  private void beforeDelete(UserContext userContext, Collection<T> toBeDeleted) {
+    for (T item : toBeDeleted) {
+      userContext.beforeDelete(getEntityDescriptor(), item);
+    }
+  }
+
+  private void beforeUpdate(UserContext userContext, Collection<T> toBeUpdatedItems) {
+    for (T item : toBeUpdatedItems) {
+      userContext.beforeUpdate(getEntityDescriptor(), item);
+    }
+  }
+
+  protected void beforeCreate(UserContext userContext, Collection<T> toBeCreatedItems) {
+    for (T item : toBeCreatedItems) {
+      userContext.beforeCreate(getEntityDescriptor(), item);
+    }
   }
 
   private void setIdAndVersionForInsert(UserContext userContext, Entity entity) {
@@ -129,14 +157,23 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     enhanceRelations(userContext, smartList, request);
     enhanceWithAggregation(userContext, smartList, request);
     addDynamicAggregations(userContext, smartList, request);
+    for (T t : smartList) {
+      userContext.afterLoad(getEntityDescriptor(), t);
+    }
     return smartList;
   }
 
-  public Stream<T> executeForStream(UserContext userContext, SearchRequest<T> request, int enhanceBatch) {
+  public Stream<T> executeForStream(
+      UserContext userContext, SearchRequest<T> request, int enhanceBatch) {
     SmartList<T> smartList = loadInternal(userContext, request);
     enhanceChildren(userContext, smartList, request);
     enhanceRelations(userContext, smartList, request);
-    return smartList.stream();
+    return smartList.stream()
+        .map(
+            item -> {
+              userContext.afterLoad(getEntityDescriptor(), item);
+              return item;
+            });
   }
 
   public void enhanceChildren(
@@ -383,17 +420,20 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     Map<Object, Number> simpleMap = aggregation.toSimpleMap();
     simpleMap.forEach(
         (parentId, value) -> {
-          if(parentId instanceof Number numberParentId){
+          if (parentId instanceof Number numberParentId) {
             T parent = idEntityMap.get(numberParentId.longValue());
             parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
             return;
           }
           T parent = idEntityMap.get(parentId);
-          if(parent==null){
-            throw new IllegalArgumentException("Not able to find parent object from idEntityMap by key: " +parentId +", with class" +parentId.getClass().getSimpleName() );
+          if (parent == null) {
+            throw new IllegalArgumentException(
+                "Not able to find parent object from idEntityMap by key: "
+                    + parentId
+                    + ", with class"
+                    + parentId.getClass().getSimpleName());
           }
           parent.addDynamicProperty(dynamicAggregateAttribute.getName(), value);
-          
         });
   }
 

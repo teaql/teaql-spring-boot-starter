@@ -10,17 +10,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.teaql.data.Entity;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
+import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.Relation;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.util.List;
 
-public class JsonSQLProperty extends GenericSQLProperty implements SQLProperty {
-
-  @Override
+public class JsonMeProperty extends GenericSQLProperty {
   public List<SQLData> toDBRaw(UserContext ctx, Entity entity, Object v) {
     ObjectMapper objectMapper = ctx.getBean(ObjectMapper.class);
+    // clean up current field
+    entity.setProperty(getName(), null);
     try {
-      String value = objectMapper.writeValueAsString(v);
+      // serialize the current entity as json string
+      String value = objectMapper.writeValueAsString(entity);
+      // zip if zip is enabled
       Boolean zip = MapUtil.getBool(getAdditionalInfo(), "zip");
       if (zip != null && zip) {
         byte[] gzip = ZipUtil.gzip(value.getBytes(StandardCharsets.UTF_8));
@@ -39,17 +43,21 @@ public class JsonSQLProperty extends GenericSQLProperty implements SQLProperty {
     }
     ObjectMapper objectMapper = ctx.getBean(ObjectMapper.class);
     try {
-      Class targetType = getType().javaType();
       Object value = getValue(rs);
-      String jsonString = Convert.convert(String.class, value);
+      String jsonValue = Convert.convert(String.class, value);
       Boolean zipped = MapUtil.getBool(getAdditionalInfo(), "zip");
       if (zipped != null && zipped) {
-        byte[] decodeStr = Base64.decode(jsonString);
+        byte[] decodeStr = Base64.decode(jsonValue);
         byte[] bytes = ZipUtil.unGzip(decodeStr);
-        jsonString = new String(bytes, StandardCharsets.UTF_8);
+        jsonValue = new String(bytes, StandardCharsets.UTF_8);
       }
-      Object o = objectMapper.readValue(jsonString, targetType);
-      entity.setProperty(getName(), o);
+      Entity o = objectMapper.readValue(jsonValue, entity.getClass());
+      EntityDescriptor owner = getOwner();
+      List<Relation> foreignRelations = owner.getForeignRelations();
+      for (Relation foreignRelation : foreignRelations) {
+        String name = foreignRelation.getName();
+        entity.setProperty(name, o.getProperty(name));
+      }
     } catch (JsonMappingException pE) {
       throw new RepositoryException(pE);
     } catch (JsonProcessingException pE) {

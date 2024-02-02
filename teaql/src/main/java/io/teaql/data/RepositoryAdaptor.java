@@ -1,10 +1,12 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.CollStreamUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
+import io.teaql.data.meta.Relation;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -104,6 +106,13 @@ public class RepositoryAdaptor {
     while (entityDescriptor != null) {
       List<PropertyDescriptor> properties = entityDescriptor.getProperties();
       for (PropertyDescriptor property : properties) {
+        if (property instanceof Relation r) {
+          EntityDescriptor relationKeeper = r.getRelationKeeper();
+          Boolean isView = MapUtil.getBool(relationKeeper.getAdditionalInfo(), "view");
+          if (isView != null && isView) {
+            continue;
+          }
+        }
         String name = property.getName();
         Object propertyValue = entity.getProperty(name);
         collect(userContext, entities, propertyValue, pHandled);
@@ -134,12 +143,14 @@ public class RepositoryAdaptor {
     return repository.aggregation(userContext, request);
   }
 
-  public static <T extends Entity> Stream<T> executeForStream(UserContext userContext, SearchRequest request) {
+  public static <T extends Entity> Stream<T> executeForStream(
+      UserContext userContext, SearchRequest request) {
     Repository<T> repository = userContext.resolveRepository(request.getTypeName());
     return repository.executeForStream(userContext, request);
   }
 
-  public static <T extends Entity> Stream<T> executeForStream(UserContext userContext, SearchRequest request, int enhanceBatch) {
+  public static <T extends Entity> Stream<T> executeForStream(
+      UserContext userContext, SearchRequest request, int enhanceBatch) {
     Repository<T> repository = userContext.resolveRepository(request.getTypeName());
     return repository.executeForStream(userContext, request, enhanceBatch);
   }
