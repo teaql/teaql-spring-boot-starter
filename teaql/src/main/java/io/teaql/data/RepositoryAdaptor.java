@@ -1,7 +1,6 @@
 package io.teaql.data;
 
 import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.teaql.data.meta.EntityDescriptor;
@@ -108,8 +107,7 @@ public class RepositoryAdaptor {
       for (PropertyDescriptor property : properties) {
         if (property instanceof Relation r) {
           EntityDescriptor relationKeeper = r.getRelationKeeper();
-          Boolean isView = MapUtil.getBool(relationKeeper.getAdditionalInfo(), "view");
-          if (isView != null && isView) {
+          if (!relationKeeper.hasRepository()) {
             continue;
           }
         }
