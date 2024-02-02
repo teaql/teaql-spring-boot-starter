@@ -223,7 +223,7 @@ public abstract class BaseService {
       String name = foreignRelation.getName();
       Object v = baseEntity.getProperty(name);
       EntityDescriptor owner = foreignRelation.getReverseProperty().getOwner();
-      if (MapUtil.getBool(owner.getAdditionalInfo(), "view")) {
+      if (!owner.hasRepository()) {
         continue;
       }
       if (v instanceof BaseEntity) {
@@ -388,7 +388,7 @@ public abstract class BaseService {
       dynamicProperties.add(retName);
       PropertyDescriptor reverseProperty = foreignRelation.getReverseProperty();
       EntityDescriptor owner = reverseProperty.getOwner();
-      if (MapUtil.getBool(owner.getAdditionalInfo(), "view")) {
+      if (!owner.hasRepository()) {
         continue;
       }
 
