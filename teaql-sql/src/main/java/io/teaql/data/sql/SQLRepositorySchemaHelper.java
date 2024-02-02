@@ -6,7 +6,6 @@ import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +50,11 @@ public class SQLRepositorySchemaHelper {
       EntityDescriptor owner = reverseProperty.getOwner();
       ensureSchema(ctx, handled, owner);
     }
+
+    if (!entityDescriptor.hasRepository()) {
+      return;
+    }
+
     // ensure self
     String type = entityDescriptor.getType();
     Repository repository = ctx.resolveRepository(type);

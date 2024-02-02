@@ -1,11 +1,14 @@
 package io.teaql.data.meta;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import io.teaql.data.Entity;
 import java.util.*;
+
+import static io.teaql.data.meta.MetaConstants.VIEW_OBJECT;
 
 /**
  * Entity metadata
@@ -126,6 +129,15 @@ public class EntityDescriptor {
 
   public PropertyDescriptor findIdProperty() {
     return getOwnProperties().stream().filter(p -> p.isId()).findFirst().orElse(null);
+  }
+
+  public boolean isView() {
+    Boolean viewObject = MapUtil.getBool(getAdditionalInfo(), VIEW_OBJECT);
+    return viewObject != null && viewObject;
+  }
+
+  public boolean hasRepository() {
+    return !isView();
   }
 
   @Override
