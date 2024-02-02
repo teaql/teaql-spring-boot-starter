@@ -84,6 +84,8 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
                 "decimal({},{})", columnInfo.get("length"), columnInfo.get("scale"));
       case "text":
         return "text";
+      case "clob":
+        return "clob";
       case "time without time zone":
         return "time";
       case "timestamp":
