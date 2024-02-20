@@ -152,6 +152,16 @@ public class UserContext
     throw new TQLException("No bean defined for type:" + clazz);
   }
 
+  public <T> T getBean(String name) {
+    if (resolver != null) {
+      T bean = resolver.getBean(name);
+      if (bean != null) {
+        return bean;
+      }
+    }
+    throw new TQLException("No bean defined for name:" + name);
+  }
+
   public LocalDateTime now() {
     return LocalDateTime.now();
   }

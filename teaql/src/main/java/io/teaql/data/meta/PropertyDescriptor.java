@@ -21,7 +21,7 @@ public class PropertyDescriptor {
    */
   private String name;
 
-  /** proeprty type */
+  /** property type */
   private PropertyType type;
 
   private Map<String, String> additionalInfo = new HashMap<>();
@@ -89,5 +89,21 @@ public class PropertyDescriptor {
       return ListUtil.empty();
     }
     return StrUtil.split(candidates, ",", true, true);
+  }
+
+  public String getStr(String key, String value) {
+    Map<String, String> additionalInfo = getAdditionalInfo();
+    if (additionalInfo == null) {
+      return value;
+    }
+    return additionalInfo.getOrDefault(key, value);
+  }
+
+  public boolean getBoolean(String key, boolean pDefaultValue) {
+    String str = getStr(key, null);
+    if (str == null){
+      return pDefaultValue;
+    }
+    return BooleanUtil.toBoolean(str);
   }
 }
