@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
+import io.teaql.data.redis.RedisStore;
 import io.teaql.data.translation.Translator;
 import io.teaql.data.web.MultiReadFilter;
 import io.teaql.data.web.ServletUserContextInitializer;
@@ -19,6 +20,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,6 +28,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -60,6 +65,20 @@ public class TQLAutoConfiguration {
   @ConditionalOnMissingBean
   public Translator translator() {
     return Translator.NOOP;
+  }
+
+
+  @Bean("redisTemplate")
+  public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, Object> template = new RedisTemplate<>();
+    template.setDefaultSerializer(RedisSerializer.json());
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+
+  @Bean
+  public DataStore dataStore(RedisTemplate<String, Object> redisTemplate){
+    return new RedisStore(redisTemplate);
   }
 
   @Bean

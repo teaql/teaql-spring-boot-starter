@@ -11,6 +11,7 @@ import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.translation.TranslationRequest;
 import io.teaql.data.translation.TranslationResponse;
 import io.teaql.data.translation.Translator;
+import io.teaql.data.web.DuplicatedFormException;
 import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -343,4 +344,25 @@ public class UserContext
   public void beforeRecover(EntityDescriptor descriptor, Entity pToBeRecoverItem) {}
 
   public void afterLoad(EntityDescriptor descriptor, Entity loadedItem) {}
+
+  public <T> T getInStore(String key) {
+    return getBean(DataStore.class).get(key);
+  }
+
+  public <T> T getAndRemoveInStore(String key) {
+    return getBean(DataStore.class).getAndRemove(key);
+  }
+
+  public void clearInStore(String key) {
+    getBean(DataStore.class).remove(key);
+  }
+
+  public void putInStore(String key, Object value, int timeout) {
+    getBean(DataStore.class).put(key, value, timeout);
+  }
+
+  public void duplicateFormException() {
+    throw new DuplicatedFormException(
+        "Your form is submitted and processing, please don't resubmit.");
+  }
 }

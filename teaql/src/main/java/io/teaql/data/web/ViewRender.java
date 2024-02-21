@@ -6,6 +6,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.*;
 import cn.hutool.json.JSONUtil;
@@ -28,6 +30,7 @@ public abstract class ViewRender {
   public static final String TEMPLATE = "$template";
   public static final String NUMBER_TYPE = "_number";
   public static final String BOOL_TYPE = "_bool";
+  public static final String CTX = "ctx.";
 
   public abstract String getBeanName();
 
@@ -841,5 +844,65 @@ public abstract class ViewRender {
     Object request = ReflectUtil.invoke(currentView, "getRequest");
     ReflectUtil.invoke(o, "setRequest", request);
     return o;
+  }
+
+  public <T extends Entity> T parseRequest(UserContext ctx, String request, Class<T> clazz) {
+    if (ObjectUtil.isEmpty(request)) {
+      return null;
+    }
+    Map<String, Object> input = JSONUtil.toBean(request, new TypeReference<>() {}, true);
+    Set<String> keys = input.keySet();
+    // set in context
+    for (String key : keys) {
+      if (key.startsWith(CTX)) {
+        ctx.put(StrUtil.removePrefix(key, CTX), input.get(key));
+      }
+    }
+
+    String req = (String) input.get("_req");
+    if (!ObjectUtil.isEmpty(req)) {
+      ctx.put("_req", req);
+      String cachedObject = ctx.getInStore(req);
+      if (cachedObject == null) {
+        ctx.putInStore(req, req, 10);
+      } else {
+        ctx.duplicateFormException();
+      }
+    }
+
+    T entity = ReflectUtil.newInstance(clazz);
+    EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(entity.typeName());
+    while (entityDescriptor != null) {
+      List<PropertyDescriptor> properties = entityDescriptor.getProperties();
+      for (PropertyDescriptor property : properties) {
+        boolean ignore = getBoolean(property, "ignore-form", false);
+        if (ignore) {
+          continue;
+        }
+        String name = property.getName();
+        Object value = input.get(name);
+        Class javaType = property.getType().javaType();
+        if (value == null) {
+          entity.setProperty(name, null);
+        } else if (ClassUtil.isSimpleValueType(javaType)) {
+          if (value instanceof Map || value instanceof Collection) {
+            value = JSONUtil.toJsonStr(value);
+          }
+          entity.setProperty(name, Convert.convert(javaType, value));
+        } else {
+          // entity
+          Number id = BeanUtil.getProperty(value, "id");
+          if (ObjectUtil.isEmpty(id)) {
+            entity.setProperty(name, null);
+          } else {
+            Entity v = (Entity) ReflectUtil.newInstance(javaType);
+            v.setId(id.longValue());
+            entity.setProperty(name, v);
+          }
+        }
+      }
+      entityDescriptor = entityDescriptor.getParent();
+    }
+    return entity;
   }
 }
