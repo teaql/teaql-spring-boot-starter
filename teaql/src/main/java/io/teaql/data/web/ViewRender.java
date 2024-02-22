@@ -60,7 +60,15 @@ public abstract class ViewRender {
       default:
         return data;
     }
-    return page;
+    return preRender(ctx, data, page);
+  }
+
+  public Object preRender(UserContext ctx, Object data, Object view) {
+    if (data != null) {
+      Object bean = ctx.getBean(ClassUtil.loadClass(data.getClass().getName() + "Processor"));
+      return ReflectUtil.invoke(bean, "defaultPreRender", ctx, data, view);
+    }
+    return view;
   }
 
   private void renderAsList(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
@@ -480,6 +488,11 @@ public abstract class ViewRender {
               }
               setValue(uiElement, property, value);
             });
+
+    boolean optional = meta.getBoolean("optional", false);
+    if (!optional) {
+      setValue(uiElement, "required", "true");
+    }
   }
 
   private void setUIPassThrough(EntityDescriptor meta, Object uiElement) {
@@ -895,8 +908,9 @@ public abstract class ViewRender {
           if (ObjectUtil.isEmpty(id)) {
             entity.setProperty(name, null);
           } else {
-            Entity v = (Entity) ReflectUtil.newInstance(javaType);
-            v.setId(id.longValue());
+            Entity v =
+                ReflectUtil.invokeStatic(
+                    ReflectUtil.getMethodByName(javaType, "refer"), id.longValue());
             entity.setProperty(name, v);
           }
         }
@@ -904,5 +918,9 @@ public abstract class ViewRender {
       entityDescriptor = entityDescriptor.getParent();
     }
     return entity;
+  }
+
+  public void validate(UserContext ctx, Entity form) {
+    ctx.checkAndFix(form);
   }
 }
