@@ -11,6 +11,7 @@ import io.teaql.data.redis.RedisStore;
 import io.teaql.data.translation.Translator;
 import io.teaql.data.web.MultiReadFilter;
 import io.teaql.data.web.ServletUserContextInitializer;
+import io.teaql.data.web.UITemplateRender;
 import io.teaql.data.web.UserContextInitializer;
 import jakarta.servlet.Filter;
 import java.util.ArrayList;
@@ -20,7 +21,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -67,9 +67,9 @@ public class TQLAutoConfiguration {
     return Translator.NOOP;
   }
 
-
   @Bean("redisTemplate")
-  public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+  public RedisTemplate<String, Object> redisTemplate(
+      RedisConnectionFactory redisConnectionFactory) {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     template.setDefaultSerializer(RedisSerializer.json());
     template.setConnectionFactory(redisConnectionFactory);
@@ -77,7 +77,13 @@ public class TQLAutoConfiguration {
   }
 
   @Bean
-  public DataStore dataStore(RedisTemplate<String, Object> redisTemplate){
+  @ConditionalOnMissingBean(name = "templateRender")
+  public UITemplateRender templateRender() {
+    return new UITemplateRender();
+  }
+
+  @Bean
+  public DataStore dataStore(RedisTemplate<String, Object> redisTemplate) {
     return new RedisStore(redisTemplate);
   }
 

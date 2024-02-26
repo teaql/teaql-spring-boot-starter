@@ -1,0 +1,16 @@
+{
+  "kids": [
+    {
+      "type": "text",
+      "height": 40,
+      "text": "Hello",
+      "style": {
+        "paddingVertical": 10,
+        "fontSize": 30,
+        "color": "green",
+        "textAlign": "center",
+        "textAlignVertical": "center"
+      }
+    }
+  ]
+}

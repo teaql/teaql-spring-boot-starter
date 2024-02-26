@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class SmartList<T extends Entity> implements Iterable<T> {
@@ -108,5 +109,9 @@ public class SmartList<T extends Entity> implements Iterable<T> {
 
   public <R> Map<R, T> toIdentityMap(Function<T, R> function) {
     return CollStreamUtil.toIdentityMap(data, function);
+  }
+
+  public boolean removeIf(Predicate<T> filter) {
+    return data.removeIf(filter);
   }
 }
