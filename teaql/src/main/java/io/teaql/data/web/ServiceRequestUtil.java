@@ -3,10 +3,7 @@ package io.teaql.data.web;
 import static io.teaql.data.web.UITemplateRender.serviceRequestPopupKey;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.*;
 import io.teaql.data.*;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;
@@ -35,8 +32,13 @@ public class ServiceRequestUtil {
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(view.typeName());
     List<Relation> properties = entityDescriptor.getOwnRelations();
     for (Relation relation : properties) {
-      boolean isServiceRequest = relation.getBoolean(SERVICE_REQUEST, false);
-      if (isServiceRequest) {
+      String isServiceRequest =
+          relation
+              .getReverseProperty()
+              .getOwner()
+              .getAdditionalInfo()
+              .getOrDefault(SERVICE_REQUEST, "false");
+      if (BooleanUtil.toBoolean(isServiceRequest)) {
         return relation;
       }
     }

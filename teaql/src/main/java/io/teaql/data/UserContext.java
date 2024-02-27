@@ -12,6 +12,7 @@ import io.teaql.data.translation.TranslationRequest;
 import io.teaql.data.translation.TranslationResponse;
 import io.teaql.data.translation.Translator;
 import io.teaql.data.web.DuplicatedFormException;
+import io.teaql.data.web.ErrorMessageException;
 import io.teaql.data.web.UserContextInitializer;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -364,5 +365,9 @@ public class UserContext
   public void duplicateFormException() {
     throw new DuplicatedFormException(
         "Your form is submitted and processing, please don't resubmit.");
+  }
+
+  public void error(String message) {
+    throw new ErrorMessageException(message);
   }
 }
