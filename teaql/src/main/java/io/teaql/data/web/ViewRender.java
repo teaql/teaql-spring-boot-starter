@@ -223,6 +223,9 @@ public abstract class ViewRender {
     meta.getProperties()
         .forEach(
             property -> {
+              if (property.isId() || property.isVersion()) {
+                return;
+              }
               addFormField(ctx, page, meta, property.getName(), property, data);
             });
   }
