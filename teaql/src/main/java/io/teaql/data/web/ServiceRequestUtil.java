@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 
 public class ServiceRequestUtil {
 
-  public static final String SERVICE_REQUEST = "serviceRequest";
+  public static final String SERVICE_REQUEST = "serviceRequestDescriptor";
 
   public static <T extends BaseEntity> List<T> getDBViews(UserContext ctx, T view) {
     if (view == null) {
