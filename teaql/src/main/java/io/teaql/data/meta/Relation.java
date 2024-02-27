@@ -1,5 +1,8 @@
 package io.teaql.data.meta;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /** special property */
 public class Relation extends PropertyDescriptor {
 
@@ -23,5 +26,19 @@ public class Relation extends PropertyDescriptor {
 
   public void setRelationKeeper(EntityDescriptor pRelationKeeper) {
     relationKeeper = pRelationKeeper;
+  }
+
+  @Override
+  public Map<String, String> getAdditionalInfo() {
+    Map<String, String> additionalInfo = super.getAdditionalInfo();
+    if (relationKeeper != getOwner()) {
+      return additionalInfo;
+    } else {
+      EntityDescriptor owner = getReverseProperty().getOwner();
+      Map<String, String> parentAttributes = owner.getAdditionalInfo();
+      Map<String, String> ret = new HashMap<>(parentAttributes);
+      ret.putAll(additionalInfo);
+      return ret;
+    }
   }
 }
