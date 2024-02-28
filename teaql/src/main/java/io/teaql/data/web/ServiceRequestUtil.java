@@ -24,7 +24,12 @@ public class ServiceRequestUtil {
     reloadRequest(ctx, view);
     BaseEntity serviceRequest = getServiceRequest(ctx, view);
     Relation serviceRequestRelation = getServiceRequestRelation(ctx, view);
-    return serviceRequest.getProperty(serviceRequestRelation.getReverseProperty().getName());
+    List<T> dbViews =
+        serviceRequest.getProperty(serviceRequestRelation.getReverseProperty().getName());
+    for (T dbView : dbViews) {
+      dbView.setProperty(serviceRequestRelation.getName(), serviceRequest);
+    }
+    return dbViews;
   }
 
   private static <T extends BaseEntity> Relation getServiceRequestRelation(
@@ -151,23 +156,30 @@ public class ServiceRequestUtil {
     }
 
     Relation serviceRequestRelation = getServiceRequestRelation(ctx, view);
+    String name = serviceRequestRelation.getName();
     if (viewOption.isSaveView()) {
       if (viewOption.isOverride()) {
         request.setProperty(serviceRequestRelation.getReverseProperty().getName(), null);
       }
+      view.setProperty(name, null);
       request.addRelation(serviceRequestRelation.getReverseProperty().getName(), view);
     }
 
     if (viewOption.isSave()) {
       saveRequestInView(ctx, request);
     }
+    view.setProperty(name, request);
 
     if (!viewOption.isFirst()) {
       return view;
     }
 
     SmartList l = request.getProperty(serviceRequestRelation.getReverseProperty().getName());
-    return (T) l.first();
+    Entity first = l.first();
+    if (first != null) {
+      first.setProperty(name, request);
+    }
+    return (T) first;
   }
 
   private static void saveRequestInView(UserContext ctx, BaseEntity request) {
