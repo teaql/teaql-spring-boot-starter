@@ -134,8 +134,8 @@ public class ServiceRequestUtil {
   }
 
   // save request on the view
-  public static <T extends BaseEntity> T saveRequest(UserContext ctx, T view, ViewOption viewOption)
-      throws Exception {
+  public static <T extends BaseEntity> T saveRequest(
+      UserContext ctx, T view, ViewOption viewOption) {
     if (view == null || viewOption == null) {
       return null;
     }
@@ -191,16 +191,15 @@ public class ServiceRequestUtil {
   }
 
   public static <T extends BaseEntity> T removeView(
-      UserContext ctx, T view, String property, Object value) throws Exception {
+      UserContext ctx, T view, String property, Object value) {
     return removeView(ctx, view, v -> ObjectUtil.equals(value, v.getProperty(property)));
   }
 
-  public static <T extends BaseEntity> T clear(UserContext ctx, T view) throws Exception {
+  public static <T extends BaseEntity> T clear(UserContext ctx, T view) {
     return removeView(ctx, view, x -> true);
   }
 
-  public static <T extends BaseEntity> T removeView(UserContext ctx, T view, Predicate<T> filter)
-      throws Exception {
+  public static <T extends BaseEntity> T removeView(UserContext ctx, T view, Predicate<T> filter) {
     if (view == null) {
       return null;
     }
