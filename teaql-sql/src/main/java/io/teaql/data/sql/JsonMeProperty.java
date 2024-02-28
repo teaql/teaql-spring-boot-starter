@@ -51,6 +51,7 @@ public class JsonMeProperty extends GenericSQLProperty {
         byte[] bytes = ZipUtil.unGzip(decodeStr);
         jsonValue = new String(bytes, StandardCharsets.UTF_8);
       }
+      entity.setProperty(getName(), jsonValue);
       Entity o = objectMapper.readValue(jsonValue, entity.getClass());
       EntityDescriptor owner = getOwner();
       List<Relation> foreignRelations = owner.getForeignRelations();
