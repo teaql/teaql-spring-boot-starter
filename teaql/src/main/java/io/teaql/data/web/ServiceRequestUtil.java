@@ -113,6 +113,7 @@ public class ServiceRequestUtil {
       BaseRequest loadRequest =
           ReflectUtil.newInstance(
               ClassUtil.loadClass(StrUtil.format("{}Request", targetType.getName())), targetType);
+      loadRequest.selectSelf();
       loadRequest.appendSearchCriteria(
           loadRequest.createBasicSearchCriteria(
               BaseEntity.ID_PROPERTY, Operator.EQUAL, request.getId()));
