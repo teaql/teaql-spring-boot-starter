@@ -960,7 +960,12 @@ public abstract class ViewRender {
     }
   }
 
-  public void noValidateField(UserContext ctx, String name) {
-    ctx.append(NO_VALIDATE_FIELD, name);
+  public void noValidateField(UserContext ctx, String... fields) {
+    if (fields == null) {
+      return;
+    }
+    for (String field : fields) {
+      ctx.append(NO_VALIDATE_FIELD, field);
+    }
   }
 }
