@@ -12,6 +12,10 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.*;
 import cn.hutool.json.JSONUtil;
 import io.teaql.data.*;
+import io.teaql.data.checker.CheckException;
+import io.teaql.data.checker.CheckResult;
+import io.teaql.data.checker.HashLocation;
+import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
@@ -31,6 +35,7 @@ public abstract class ViewRender {
   public static final String NUMBER_TYPE = "_number";
   public static final String BOOL_TYPE = "_bool";
   public static final String CTX = "ctx.";
+  public static final String NO_VALIDATE_FIELD = "noValidateField";
 
   public abstract String getBeanName();
 
@@ -907,7 +912,12 @@ public abstract class ViewRender {
           entity.setProperty(name, Convert.convert(javaType, value));
         } else {
           // entity
-          Number id = BeanUtil.getProperty(value, "id");
+          Number id;
+          if (ClassUtil.isSimpleValueType(value.getClass())) {
+            id = Convert.convert(Number.class, value);
+          } else {
+            id = BeanUtil.getProperty(value, "id");
+          }
           if (ObjectUtil.isEmpty(id)) {
             entity.setProperty(name, null);
           } else {
@@ -924,6 +934,33 @@ public abstract class ViewRender {
   }
 
   public void validate(UserContext ctx, Entity form) {
-    ctx.checkAndFix(form);
+    try {
+      ctx.checkAndFix(form);
+    } catch (CheckException e) {
+      List<CheckResult> violates = e.getViolates();
+      List list = ctx.getList(NO_VALIDATE_FIELD);
+      if (ObjectUtil.isEmpty(list)) {
+        throw e;
+      }
+      List<CheckResult> realViolates = new ArrayList<>();
+      for (CheckResult violate : violates) {
+        ObjectLocation location = violate.getLocation();
+        if (location instanceof HashLocation hashLocation) {
+          String member = hashLocation.getMember();
+          if (CollectionUtil.contains(list, member)) {
+            continue;
+          }
+        }
+        realViolates.add(violate);
+      }
+      if (ObjectUtil.isEmpty(realViolates)) {
+        return;
+      }
+      throw new CheckException(realViolates);
+    }
+  }
+
+  public void noValidateField(UserContext ctx, String name) {
+    ctx.append(NO_VALIDATE_FIELD, name);
   }
 }

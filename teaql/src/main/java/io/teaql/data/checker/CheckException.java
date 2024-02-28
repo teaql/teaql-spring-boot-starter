@@ -36,4 +36,12 @@ public class CheckException extends RuntimeException {
             ";", CollStreamUtil.toList(pErrors, CheckResult::getNaturalLanguageStatement)));
     this.violates = pErrors;
   }
+
+  public List<CheckResult> getViolates() {
+    return violates;
+  }
+
+  public void setViolates(List<CheckResult> pViolates) {
+    violates = pViolates;
+  }
 }
