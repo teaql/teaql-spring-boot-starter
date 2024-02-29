@@ -9,6 +9,7 @@ import io.teaql.data.checker.Checker;
 import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.translation.TranslationRequest;
 import io.teaql.data.translation.TranslationResponse;
@@ -223,10 +224,16 @@ public class UserContext
   }
 
   public List<CheckResult> translateError(Entity pEntity, List<CheckResult> errors) {
-    return getNaturalLanguageTranslator().translateError(pEntity, errors);
+    return getNaturalLanguageTranslator(pEntity).translateError(pEntity, errors);
   }
 
-  public NaturalLanguageTranslator getNaturalLanguageTranslator() {
+  public NaturalLanguageTranslator getNaturalLanguageTranslator(Entity entity) {
+    if (entity != null) {
+      EntityDescriptor entityDescriptor = resolveEntityDescriptor(entity.typeName());
+      if (BooleanUtil.toBoolean(entityDescriptor.getStr("viewObject", "false"))) {
+        return new SimpleChineseViewTranslator(getBean(EntityMetaFactory.class));
+      }
+    }
     return new EnglishTranslator();
   }
 
