@@ -9,6 +9,7 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONUtil;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
@@ -28,6 +29,8 @@ public class UITemplateRender {
   public static String imagesTemplate =
       ResourceUtil.readUtf8Str("classpath:io/teaql/data/web/images.json");
 
+  JSONConfig config = JSONConfig.create().setIgnoreNullValue(true);
+
   public void kv(
       UserContext ctx,
       PropertyDescriptor meta,
@@ -35,7 +38,7 @@ public class UITemplateRender {
       Object fieldValue,
       List candidates,
       List mappedCandidates) {
-    Map value = JSONUtil.toBean(kvTemplate, Map.class);
+    Map value = JSONUtil.toBean(kvTemplate, config, Map.class);
     Object kids0 = ViewRender.getProperty(value, "kids[0]");
 
     setTemplatePassThrough(meta, kids0);
@@ -85,13 +88,13 @@ public class UITemplateRender {
   }
 
   public void message(UserContext ctx, PropertyDescriptor meta, Object uiField, String message) {
-    Map value = JSONUtil.toBean(messageTemplate, Map.class);
+    Map value = JSONUtil.toBean(messageTemplate, config, Map.class);
     BeanUtil.setProperty(value, "kids[0].text", message);
     BeanUtil.setProperty(uiField, "value", value);
   }
 
   public void error(UserContext ctx, PropertyDescriptor meta, Object uiField, String message) {
-    Map value = JSONUtil.toBean(messageTemplate, Map.class);
+    Map value = JSONUtil.toBean(messageTemplate, config, Map.class);
     BeanUtil.setProperty(value, "kids[0].text", message);
     BeanUtil.setProperty(value, "kids[0].style.color", "#f23030"); // rea
     BeanUtil.setProperty(uiField, "value", value);
@@ -102,7 +105,7 @@ public class UITemplateRender {
       ViewRender.setValue(uiField, "value", null);
       return;
     }
-    ViewRender.setValue(uiField, "value", JSONUtil.toBean(String.valueOf(obj), Map.class));
+    ViewRender.setValue(uiField, "value", JSONUtil.toBean(String.valueOf(obj), config, Map.class));
   }
 
   public void jsonArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
@@ -110,7 +113,7 @@ public class UITemplateRender {
       ViewRender.setValue(uiField, "value", null);
       return;
     }
-    ViewRender.setValue(uiField, "value", JSONUtil.toList(String.valueOf(obj), Map.class));
+    ViewRender.setValue(uiField, "value", JSONUtil.toBean(String.valueOf(obj), config, List.class));
   }
 
   public void stringArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
@@ -126,8 +129,9 @@ public class UITemplateRender {
       BeanUtil.setProperty(uiField, "hidden", "true");
       return;
     }
-    Map value = JSONUtil.toBean(imagesTemplate, Map.class);
-    BeanUtil.setProperty(value, "kids[0].items", JSONUtil.toList(String.valueOf(obj), Map.class));
+    Map value = JSONUtil.toBean(imagesTemplate, config, Map.class);
+    BeanUtil.setProperty(
+        value, "kids[0].items", JSONUtil.toBean(String.valueOf(obj), config, List.class));
     ViewRender.setValue(uiField, "value", value);
   }
 
@@ -138,7 +142,7 @@ public class UITemplateRender {
       Object fieldValue,
       List candidates,
       List mappedCandidates) {
-    Map value = JSONUtil.toBean(tableTemplate, Map.class);
+    Map value = JSONUtil.toBean(tableTemplate, config, Map.class);
     Object kids0 = ViewRender.getProperty(value, "kids[0]");
 
     // title
