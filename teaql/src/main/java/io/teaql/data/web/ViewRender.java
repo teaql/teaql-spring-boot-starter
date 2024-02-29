@@ -501,6 +501,11 @@ public abstract class ViewRender {
     if (!optional) {
       setValue(uiElement, "required", "true");
     }
+
+    boolean ignore = getBoolean(meta, "ignore-form", false);
+    if (ignore) {
+      setValue(uiElement, "required", null);
+    }
   }
 
   private void setUIPassThrough(EntityDescriptor meta, Object uiElement) {
