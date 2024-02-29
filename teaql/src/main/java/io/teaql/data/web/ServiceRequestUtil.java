@@ -26,8 +26,10 @@ public class ServiceRequestUtil {
     Relation serviceRequestRelation = getServiceRequestRelation(ctx, view);
     List<T> dbViews =
         serviceRequest.getProperty(serviceRequestRelation.getReverseProperty().getName());
-    for (T dbView : dbViews) {
-      dbView.setProperty(serviceRequestRelation.getName(), serviceRequest);
+    if (dbViews != null) {
+      for (T dbView : dbViews) {
+        dbView.setProperty(serviceRequestRelation.getName(), serviceRequest);
+      }
     }
     return dbViews;
   }
