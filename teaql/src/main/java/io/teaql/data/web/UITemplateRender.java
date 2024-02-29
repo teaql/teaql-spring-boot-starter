@@ -9,8 +9,9 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONConfig;
-import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.UserContext;
@@ -29,7 +30,7 @@ public class UITemplateRender {
   public static String imagesTemplate =
       ResourceUtil.readUtf8Str("classpath:io/teaql/data/web/images.json");
 
-  JSONConfig config = JSONConfig.create().setIgnoreNullValue(true);
+  ObjectMapper mapper = new ObjectMapper();
 
   public void kv(
       UserContext ctx,
@@ -37,8 +38,9 @@ public class UITemplateRender {
       Object uiField,
       Object fieldValue,
       List candidates,
-      List mappedCandidates) {
-    Map value = JSONUtil.toBean(kvTemplate, config, Map.class);
+      List mappedCandidates)
+      throws JsonProcessingException {
+    Map value = mapper.readValue(kvTemplate, Map.class);
     Object kids0 = ViewRender.getProperty(value, "kids[0]");
 
     setTemplatePassThrough(meta, kids0);
@@ -87,51 +89,59 @@ public class UITemplateRender {
             });
   }
 
-  public void message(UserContext ctx, PropertyDescriptor meta, Object uiField, String message) {
-    Map value = JSONUtil.toBean(messageTemplate, config, Map.class);
+  public void message(UserContext ctx, PropertyDescriptor meta, Object uiField, String message)
+      throws JsonProcessingException {
+    Map value = mapper.readValue(messageTemplate, Map.class);
     BeanUtil.setProperty(value, "kids[0].text", message);
     BeanUtil.setProperty(uiField, "value", value);
   }
 
-  public void error(UserContext ctx, PropertyDescriptor meta, Object uiField, String message) {
-    Map value = JSONUtil.toBean(messageTemplate, config, Map.class);
+  public void error(UserContext ctx, PropertyDescriptor meta, Object uiField, String message)
+      throws JsonProcessingException {
+    Map value = mapper.readValue(messageTemplate, Map.class);
     BeanUtil.setProperty(value, "kids[0].text", message);
     BeanUtil.setProperty(value, "kids[0].style.color", "#f23030"); // rea
     BeanUtil.setProperty(uiField, "value", value);
   }
 
-  public void json(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
+  public void json(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj)
+      throws JsonProcessingException {
     if (obj == null) {
       ViewRender.setValue(uiField, "value", null);
       return;
     }
-    ViewRender.setValue(uiField, "value", JSONUtil.toBean(String.valueOf(obj), config, Map.class));
+    ViewRender.setValue(uiField, "value", mapper.readValue(String.valueOf(obj), Map.class));
   }
 
-  public void jsonArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
+  public void jsonArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj)
+      throws JsonProcessingException {
     if (obj == null) {
       ViewRender.setValue(uiField, "value", null);
       return;
     }
-    ViewRender.setValue(uiField, "value", JSONUtil.toBean(String.valueOf(obj), config, List.class));
+    ViewRender.setValue(uiField, "value", mapper.readValue(String.valueOf(obj), List.class));
   }
 
-  public void stringArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
+  public void stringArray(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj)
+      throws JsonProcessingException {
     if (obj == null) {
       ViewRender.setValue(uiField, "value", null);
       return;
     }
-    ViewRender.setValue(uiField, "value", JSONUtil.toList(String.valueOf(obj), String.class));
+    ViewRender.setValue(
+        uiField,
+        "value",
+        mapper.readValue(String.valueOf(obj), new TypeReference<List<String>>() {}));
   }
 
-  public void images(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj) {
+  public void images(UserContext ctx, PropertyDescriptor meta, Object uiField, Object obj)
+      throws JsonProcessingException {
     if (obj == null) {
       BeanUtil.setProperty(uiField, "hidden", "true");
       return;
     }
-    Map value = JSONUtil.toBean(imagesTemplate, config, Map.class);
-    BeanUtil.setProperty(
-        value, "kids[0].items", JSONUtil.toBean(String.valueOf(obj), config, List.class));
+    Map value = mapper.readValue(imagesTemplate, Map.class);
+    BeanUtil.setProperty(value, "kids[0].items", mapper.readValue(String.valueOf(obj), List.class));
     ViewRender.setValue(uiField, "value", value);
   }
 
@@ -141,8 +151,9 @@ public class UITemplateRender {
       Object uiField,
       Object fieldValue,
       List candidates,
-      List mappedCandidates) {
-    Map value = JSONUtil.toBean(tableTemplate, config, Map.class);
+      List mappedCandidates)
+      throws JsonProcessingException {
+    Map value = mapper.readValue(tableTemplate, Map.class);
     Object kids0 = ViewRender.getProperty(value, "kids[0]");
 
     // title
