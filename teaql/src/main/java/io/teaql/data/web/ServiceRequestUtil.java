@@ -30,6 +30,8 @@ public class ServiceRequestUtil {
       for (T dbView : dbViews) {
         dbView.setProperty(serviceRequestRelation.getName(), serviceRequest);
       }
+    } else {
+      dbViews = Collections.emptyList();
     }
     return dbViews;
   }
