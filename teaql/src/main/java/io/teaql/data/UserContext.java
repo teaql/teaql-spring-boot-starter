@@ -7,7 +7,9 @@ import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.checker.ObjectLocation;
+import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.translation.TranslationRequest;
 import io.teaql.data.translation.TranslationResponse;
 import io.teaql.data.translation.Translator;
@@ -369,5 +371,52 @@ public class UserContext
 
   public void error(String message) {
     throw new ErrorMessageException(message);
+  }
+
+  /**
+   * reload the entity if id exists
+   *
+   * @param entity
+   * @return
+   * @param <T>
+   */
+  public <T extends BaseEntity> T reload(T entity) {
+    if (entity == null) {
+      return null;
+    }
+    Long id = entity.getId();
+    if (id == null) {
+      return entity;
+    }
+
+    if (entity.get$status().equals(EntityStatus.PERSISTED)
+        || entity.get$status().equals(EntityStatus.PERSISTED_DELETED)) {
+      return entity;
+    }
+
+    BaseRequest<T> tempRequest = initRequest(entity.getClass());
+    tempRequest.appendSearchCriteria(
+        tempRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.EQUAL, id));
+    T item = tempRequest.execute(this);
+    EntityDescriptor entityDescriptor = resolveEntityDescriptor(entity.typeName());
+    while (entityDescriptor != null) {
+      List<PropertyDescriptor> properties = entityDescriptor.getProperties();
+      for (PropertyDescriptor property : properties) {
+        entity.setProperty(property.getName(), item.getProperty(property.getName()));
+      }
+      entityDescriptor = entityDescriptor.getParent();
+    }
+    entity.set$status(item.get$status());
+    return entity;
+  }
+
+  public <T> BaseRequest initRequest(Class<T> type) {
+    if (type == null) {
+      return null;
+    }
+    String name = type.getName();
+    BaseRequest request = ReflectUtil.newInstance(ClassUtil.loadClass(name + "Request"), type);
+    request.selectSelf();
+    return request;
   }
 }
