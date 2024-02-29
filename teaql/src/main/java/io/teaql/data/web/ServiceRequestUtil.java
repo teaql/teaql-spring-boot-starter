@@ -24,16 +24,16 @@ public class ServiceRequestUtil {
     reloadRequest(ctx, view);
     BaseEntity serviceRequest = getServiceRequest(ctx, view);
     Relation serviceRequestRelation = getServiceRequestRelation(ctx, view);
-    List<T> dbViews =
+    SmartList<T> dbViews =
         serviceRequest.getProperty(serviceRequestRelation.getReverseProperty().getName());
     if (dbViews != null) {
       for (T dbView : dbViews) {
         dbView.setProperty(serviceRequestRelation.getName(), serviceRequest);
       }
     } else {
-      dbViews = Collections.emptyList();
+      return Collections.emptyList();
     }
-    return dbViews;
+    return dbViews.getData();
   }
 
   private static <T extends BaseEntity> Relation getServiceRequestRelation(
