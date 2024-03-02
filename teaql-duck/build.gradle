@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+}
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            groupId = "${groupId}"
+            artifactId = 'teaql-duck'
+            version = "${version}"
+            from components.java
+        }
+    }
+}
+
+dependencies {
+    api project(':teaql-sql')
+}

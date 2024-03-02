@@ -10,4 +10,5 @@ include 'teaql-mssql'
 include 'teaql-snowflake'
 include 'teaql-graphql'
 include 'teaql-memory'
+include 'teaql-duck'
 
