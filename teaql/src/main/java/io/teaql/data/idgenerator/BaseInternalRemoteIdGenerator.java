@@ -2,7 +2,6 @@ package io.teaql.data.idgenerator;
 
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
-import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.InternalIdGenerator;
 
@@ -15,10 +14,5 @@ public class BaseInternalRemoteIdGenerator implements InternalIdGenerator {
     String response = HttpUtil.post(url, body);
     RemoteIdGenResponse result = JSONUtil.toBean(response, RemoteIdGenResponse.class);
     return result.getCurrent();
-  }
-
-  public static void main(String[] args) {
-    Long id = new BaseInternalRemoteIdGenerator().generateId(new BaseEntity());
-    System.out.println(id);
   }
 }

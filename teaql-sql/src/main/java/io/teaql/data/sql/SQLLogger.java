@@ -126,23 +126,7 @@ public class SQLLogger {
       }
       finalSQL.append(ch);
     }
-    String newMethod = getStackTrace();
-    // logDebug(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
-    // logDebug(timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
-
-    userContext.info(
-        timeExpr() + "\t" + alignWithTabSpace(result, 4) + finalSQL.toString() + ";\n");
-  }
-
-  public static void logDebug(String message) {
-    System.out.println(message);
-  }
-
-  protected static String timeExpr() {
-
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yy-MM-dd'T'HH:mm:ss.SSS");
-    // It is not thread safe, how silly the JDK is!!!
-    return simpleDateFormat.format(new java.util.Date());
+    userContext.info(finalSQL.toString());
   }
 
   protected static String join(Object... objs) {

@@ -511,10 +511,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                   userContext.afterLoad(getEntityDescriptor(), (Entity) item);
                   return item;
                 })
-            .onClose(
-                () -> {
-                  stream.close();
-                });
+            .onClose(stream::close);
   }
 
   protected AggregationResult aggregateInternal(UserContext userContext, SearchRequest<T> request) {

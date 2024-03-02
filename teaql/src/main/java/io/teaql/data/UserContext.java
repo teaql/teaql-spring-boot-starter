@@ -2,7 +2,10 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
+import cn.hutool.core.lang.caller.CallerUtil;
 import cn.hutool.core.util.*;
+import cn.hutool.log.LogFactory;
+import cn.hutool.log.StaticLog;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
@@ -95,7 +98,23 @@ public class UserContext
   }
 
   public void info(String messageTemplate, Object... args) {
-    System.out.println(StrUtil.format(messageTemplate, args));
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.info(LogFactory.get(caller), messageTemplate, args);
+  }
+
+  public void debug(String messageTemplate, Object... args) {
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.debug(LogFactory.get(caller), messageTemplate, args);
+  }
+
+  public void error(String messageTemplate, Object... args) {
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.error(LogFactory.get(caller), messageTemplate, args);
+  }
+
+  public void error(Exception e, String messageTemplate, Object... args) {
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.error(LogFactory.get(caller), e, messageTemplate, args);
   }
 
   public <T extends Entity> AggregationResult aggregation(SearchRequest request) {
