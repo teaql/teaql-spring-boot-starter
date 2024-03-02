@@ -70,20 +70,24 @@ public class UserContext
   }
 
   public <T extends Entity> T execute(SearchRequest<T> searchRequest) {
-    return RepositoryAdaptor.execute(this, searchRequest);
+    return RepositoryAdaptor.execute(this, edit(searchRequest));
+  }
+
+  public <T extends Entity> SearchRequest<T> edit(SearchRequest<T> request) {
+    return request;
   }
 
   public <T extends Entity> SmartList<T> executeForList(SearchRequest searchRequest) {
-    return RepositoryAdaptor.executeForList(this, searchRequest);
+    return RepositoryAdaptor.executeForList(this, edit(searchRequest));
   }
 
   public <T extends Entity> Stream<T> executeForStream(SearchRequest searchRequest) {
-    return RepositoryAdaptor.executeForStream(this, searchRequest);
+    return RepositoryAdaptor.executeForStream(this, edit(searchRequest));
   }
 
   public <T extends Entity> Stream<T> executeForStream(
       SearchRequest searchRequest, int enhanceBatch) {
-    return RepositoryAdaptor.executeForStream(this, searchRequest, enhanceBatch);
+    return RepositoryAdaptor.executeForStream(this, edit(searchRequest), enhanceBatch);
   }
 
   public void delete(Entity pEntity) {
