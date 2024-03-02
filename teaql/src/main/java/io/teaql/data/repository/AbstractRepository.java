@@ -152,6 +152,10 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
 
   @Override
   public SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request) {
+    String comment = request.comment();
+    if (ObjectUtil.isNotEmpty(comment)) {
+      userContext.info("start execute request: {}", comment);
+    }
     SmartList<T> smartList = loadInternal(userContext, request);
     enhanceChildren(userContext, smartList, request);
     enhanceRelations(userContext, smartList, request);
@@ -159,6 +163,9 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     addDynamicAggregations(userContext, smartList, request);
     for (T t : smartList) {
       userContext.afterLoad(getEntityDescriptor(), t);
+    }
+    if (ObjectUtil.isNotEmpty(comment)) {
+      userContext.info("end execute request: {}", comment);
     }
     return smartList;
   }

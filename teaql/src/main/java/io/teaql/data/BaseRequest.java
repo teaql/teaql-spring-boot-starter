@@ -15,6 +15,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public static final String REFINEMENTS = "refinements";
 
+  String comment;
+
   // select properties
   List<SimpleNamedExpression> projections = new ArrayList<>();
 
@@ -497,19 +499,22 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     addAggregate(retName, propertyName, AggrFunction.AVG);
   }
 
-
   public void standardDeviation(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.STDDEV);
   }
+
   public void squareRootOfPopulationStandardDeviation(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.STDDEV_POP);
   }
+
   public void sampleVariance(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.VAR_SAMP);
   }
+
   public void samplePopulationVariance(String retName, String propertyName) {
     addAggregate(retName, propertyName, AggrFunction.VAR_POP);
   }
+
   public void standardDeviation(String propertyName) {
     standardDeviation(propertyName, propertyName);
   }
@@ -525,8 +530,6 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
   public void samplePopulationVariance(String propertyName) {
     samplePopulationVariance(propertyName, propertyName);
   }
-  
-
 
   protected BaseRequest<T> matchType(String... types) {
     appendSearchCriteria(new TypeCriteria(new Parameter("subTypes", types, Operator.IN)));
@@ -647,5 +650,14 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
       return;
     }
     enhanceChildren.put(childRequest.getTypeName(), childRequest);
+  }
+
+  @Override
+  public String comment() {
+    return comment;
+  }
+
+  public void comment(String comment) {
+    this.comment = comment;
   }
 }

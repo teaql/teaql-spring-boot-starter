@@ -107,6 +107,16 @@ public class UserContext
     StaticLog.debug(LogFactory.get(caller), messageTemplate, args);
   }
 
+  public void warn(String messageTemplate, Object... args) {
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.warn(LogFactory.get(caller), messageTemplate, args);
+  }
+
+  public void warn(Exception e, String messageTemplate, Object... args) {
+    Class<?> caller = CallerUtil.getCaller(2);
+    StaticLog.warn(LogFactory.get(caller), e, messageTemplate, args);
+  }
+
   public void error(String messageTemplate, Object... args) {
     Class<?> caller = CallerUtil.getCaller(2);
     StaticLog.error(LogFactory.get(caller), messageTemplate, args);

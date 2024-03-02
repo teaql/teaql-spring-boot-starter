@@ -12,6 +12,8 @@ public interface SearchRequest<T extends Entity> {
 
   Class<? extends T> returnType();
 
+  String comment();
+
   String getPartitionProperty();
 
   void setPartitionProperty(String propertyName);
