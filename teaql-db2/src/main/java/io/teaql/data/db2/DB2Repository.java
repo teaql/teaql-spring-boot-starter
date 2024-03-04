@@ -24,7 +24,7 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
   protected String wrapColumnStatementForCreatingTable(UserContext ctx, String table, SQLColumn column){
 
     String dbColumn = column.getColumnName() + " " + column.getType();
-    if ("id".equalsIgnoreCase(column.getColumnName())) {
+    if (column.isIdColumn()) {
       dbColumn = dbColumn + " PRIMARY KEY NOT NULL";
     }
     return dbColumn;

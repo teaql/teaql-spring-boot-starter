@@ -1505,7 +1505,7 @@ ALTER TABLE {}
       UserContext ctx, String table, SQLColumn column) {
 
     String dbColumn = column.getColumnName() + " " + column.getType();
-    if ("id".equalsIgnoreCase(column.getColumnName())) {
+    if (column.isIdColumn()) {
       dbColumn = dbColumn + " PRIMARY KEY";
     }
     return dbColumn;
