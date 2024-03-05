@@ -31,6 +31,7 @@ public class UserContext
         OptNullBasicTypeFromObjectGetter<String>,
         Translator {
   public static final String X_CLASS = "X-Class";
+  public static final String TOAST = "$toast";
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
@@ -458,5 +459,23 @@ public class UserContext
     BaseRequest request = ReflectUtil.newInstance(ClassUtil.loadClass(name + "Request"), type);
     request.selectSelf();
     return request;
+  }
+
+  public void makeToast(String content, int duration, String type) {
+    HashMap<String, Object> toast = new HashMap<String, Object>();
+    toast.put("text", content);
+    toast.put("duration", duration * 1000);
+    toast.put("icon", type);
+    toast.put("position", "center");
+    toast.put("playSound", "success");
+    put(TOAST, toast);
+  }
+
+  public void makeToast(String content) {
+    makeToast(content, 3, "info");
+  }
+
+  public Object getToast() {
+    return getObj(TOAST);
   }
 }

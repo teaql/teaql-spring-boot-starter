@@ -1,5 +1,6 @@
 package io.teaql.data;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -34,6 +35,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -170,7 +172,7 @@ public class TQLAutoConfiguration {
 
   @ControllerAdvice
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-  public static class XClassSetter implements ResponseBodyAdvice {
+  public static class TeaQLResponseAdvice implements ResponseBodyAdvice {
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
       return true;
@@ -189,6 +191,24 @@ public class TQLAutoConfiguration {
         response.getHeaders().set(UserContext.X_CLASS, body.getClass().getName());
       }
 
+      try {
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+          UserContext ctx =
+              (UserContext) servletRequest.getServletRequest().getAttribute("USER_CONTEXT");
+          if (ctx != null) {
+            Object toast = ctx.getToast();
+            if (toast != null) {
+              BeanUtil.setProperty(body, "toast", toast);
+              Object playSound = BeanUtil.getProperty(toast, "playSound");
+              if (playSound != null) {
+                BeanUtil.setProperty(body, "playSound", playSound);
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+
+      }
       return body;
     }
   }

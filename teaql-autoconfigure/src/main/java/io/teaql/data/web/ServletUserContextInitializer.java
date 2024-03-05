@@ -15,6 +15,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 
 public class ServletUserContextInitializer implements UserContextInitializer {
 
+  public static final String USER_CONTEXT = "USER_CONTEXT";
+
   @Override
   public boolean support(Object request) {
     return request instanceof NativeWebRequest;
@@ -23,7 +25,8 @@ public class ServletUserContextInitializer implements UserContextInitializer {
   @Override
   public void init(UserContext userContext, Object request) {
     if (request instanceof NativeWebRequest nativeWebRequest) {
-      if (nativeWebRequest.getNativeRequest() instanceof HttpServletRequest httpRequest)
+      if (nativeWebRequest.getNativeRequest() instanceof HttpServletRequest httpRequest) {
+        httpRequest.setAttribute(USER_CONTEXT, userContext);
         userContext.put(
             UserContext.REQUEST_HOLDER,
             new RequestHolder() {
@@ -61,6 +64,7 @@ public class ServletUserContextInitializer implements UserContextInitializer {
                 return IoUtil.readBytes(inputStream);
               }
             });
+      }
 
       if (nativeWebRequest.getNativeResponse() instanceof HttpServletResponse response)
         userContext.put(
