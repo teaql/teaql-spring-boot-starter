@@ -192,7 +192,7 @@ public class ServiceRequestUtil {
     Method method =
         ReflectUtil.getMethodByName(
             request.getClass(), StrUtil.upperFirstAndAddPre(property, "update"));
-    ReflectUtil.invoke(request, method, null);
+    ReflectUtil.invoke(request, method, (Object) null);
     request.save(ctx);
   }
 

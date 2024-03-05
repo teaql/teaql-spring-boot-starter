@@ -1,9 +1,11 @@
 package io.teaql.data;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
@@ -35,7 +37,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -186,30 +187,32 @@ public class TQLAutoConfiguration {
         Class selectedConverterType,
         ServerHttpRequest request,
         ServerHttpResponse response) {
+      handleXClass(body, response);
+      handleToast(body, response);
+      return body;
+    }
+
+    private void handleXClass(Object body, ServerHttpResponse response) {
       String xClass = response.getHeaders().getFirst(UserContext.X_CLASS);
       if (ObjectUtil.isEmpty(xClass) && body != null) {
         response.getHeaders().set(UserContext.X_CLASS, body.getClass().getName());
       }
+    }
 
-      try {
-        if (request instanceof ServletServerHttpRequest servletRequest) {
-          UserContext ctx =
-              (UserContext) servletRequest.getServletRequest().getAttribute("USER_CONTEXT");
-          if (ctx != null) {
-            Object toast = ctx.getToast();
-            if (toast != null) {
-              BeanUtil.setProperty(body, "toast", toast);
-              Object playSound = BeanUtil.getProperty(toast, "playSound");
-              if (playSound != null) {
-                BeanUtil.setProperty(body, "playSound", playSound);
-              }
-            }
+    private void handleToast(Object body, ServerHttpResponse response) {
+      String command = response.getHeaders().getFirst("command");
+      if (command == null) {
+        String toast = response.getHeaders().getFirst("toast");
+        response.getHeaders().remove("toast");
+        if (toast != null) {
+          Object toastObj = JSONUtil.toBean(Base64.decodeStr(toast), Map.class);
+          BeanUtil.setProperty(body, "toast", toastObj);
+          Object playSound = BeanUtil.getProperty(toastObj, "playSound");
+          if (playSound != null) {
+            BeanUtil.setProperty(body, "playSound", playSound);
           }
         }
-      } catch (Exception e) {
-
       }
-      return body;
     }
   }
 

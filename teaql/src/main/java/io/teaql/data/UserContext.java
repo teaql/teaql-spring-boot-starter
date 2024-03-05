@@ -1,9 +1,11 @@
 package io.teaql.data;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
 import cn.hutool.core.lang.caller.CallerUtil;
 import cn.hutool.core.util.*;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.log.StaticLog;
 import io.teaql.data.checker.CheckException;
@@ -31,7 +33,7 @@ public class UserContext
         OptNullBasicTypeFromObjectGetter<String>,
         Translator {
   public static final String X_CLASS = "X-Class";
-  public static final String TOAST = "$toast";
+  public static final String TOAST = "toast";
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
   private Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
@@ -462,13 +464,13 @@ public class UserContext
   }
 
   public void makeToast(String content, int duration, String type) {
-    HashMap<String, Object> toast = new HashMap<String, Object>();
+    Map<String, Object> toast = new HashMap<>();
     toast.put("text", content);
     toast.put("duration", duration * 1000);
     toast.put("icon", type);
     toast.put("position", "center");
     toast.put("playSound", "success");
-    put(TOAST, toast);
+    setResponseHeader(TOAST, Base64.encode(JSONUtil.toJsonStr(toast)));
   }
 
   public void makeToast(String content) {
@@ -477,5 +479,9 @@ public class UserContext
 
   public Object getToast() {
     return getObj(TOAST);
+  }
+
+  public void back() {
+    setResponseHeader("command", "back");
   }
 }
