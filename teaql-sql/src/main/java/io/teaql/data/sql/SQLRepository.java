@@ -1381,12 +1381,14 @@ ALTER TABLE {}
       }
 
       String dbType = calculateDBType(field);
-      if (dbType.equalsIgnoreCase(type)) {
-        continue;
-      }
+      if (isTypeMatch(dbType, type)) continue;
 
       alterColumn(ctx, column);
     }
+  }
+
+  protected boolean isTypeMatch(String dbType, String type) {
+      return dbType.equalsIgnoreCase(type);
   }
 
   protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
