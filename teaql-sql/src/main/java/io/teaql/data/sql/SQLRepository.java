@@ -1272,7 +1272,7 @@ ALTER TABLE {}
     }
 
     if (property.isId()) {
-      return genIdForCandidateCode(identifier);
+      return genIdForCandidateCode(NamingCase.toPascalCase(identifier));
     }
     return null;
   }
@@ -1388,7 +1388,7 @@ ALTER TABLE {}
   }
 
   protected boolean isTypeMatch(String dbType, String type) {
-      return dbType.equalsIgnoreCase(type);
+    return dbType.equalsIgnoreCase(type);
   }
 
   protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
