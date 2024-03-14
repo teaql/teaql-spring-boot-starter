@@ -41,7 +41,7 @@ public abstract class ViewRender {
 
   public Object view(UserContext ctx, Object data) {
     if (data == null) {
-      return MapUtil.empty();
+      return new HashMap<>();
     }
 
     Method showPop = ReflectUtil.getMethodByName(getTemplateRender(ctx).getClass(), "showPop");
