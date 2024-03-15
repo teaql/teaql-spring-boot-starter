@@ -29,7 +29,7 @@ public class RepositoryAdaptor {
       }
     }
 
-    Set<String> types = entities.keySet();
+    Set<String> types = new HashSet<>(entities.keySet());
     for (String type : types) {
       saveType(userContext, type, entities);
     }
