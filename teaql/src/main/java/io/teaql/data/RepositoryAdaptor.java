@@ -48,6 +48,9 @@ public class RepositoryAdaptor {
 
     // save this type-self
     List<Entity> list = entities.remove(type);
+    if (ObjectUtil.isEmpty(list)) {
+      return;
+    }
     Repository<Entity> repository = userContext.resolveRepository(type);
     Collection<Entity> saveResult = repository.save(userContext, list);
     Map<Long, Entity> entityMap = CollStreamUtil.toIdentityMap(list, Entity::getId);
