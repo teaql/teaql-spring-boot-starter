@@ -29,19 +29,34 @@ public class RepositoryAdaptor {
       }
     }
 
-    for (Map.Entry<String, List<Entity>> entry : entities.entrySet()) {
-      String type = entry.getKey();
-      List<Entity> list = entry.getValue();
-      Repository<Entity> repository = userContext.resolveRepository(type);
-      Collection<Entity> saveResult = repository.save(userContext, list);
-      Map<Long, Entity> entityMap = CollStreamUtil.toIdentityMap(list, Entity::getId);
-      for (Entity entity : saveResult) {
-        Entity input = entityMap.get(entity.getId());
-        if (input == entity) {
-          continue;
-        }
-        copyProperties(entity, input);
+    Set<String> types = entities.keySet();
+    for (String type : types) {
+      saveType(userContext, type, entities);
+    }
+  }
+
+  private static void saveType(
+      UserContext userContext, String type, Map<String, List<Entity>> entities) {
+    // save referenced types first
+    EntityDescriptor entityDescriptor = userContext.resolveEntityDescriptor(type);
+    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+    for (Relation ownRelation : ownRelations) {
+      EntityDescriptor owner = ownRelation.getReverseProperty().getOwner();
+      String referType = owner.getType();
+      saveType(userContext, referType, entities);
+    }
+
+    // save this type-self
+    List<Entity> list = entities.remove(type);
+    Repository<Entity> repository = userContext.resolveRepository(type);
+    Collection<Entity> saveResult = repository.save(userContext, list);
+    Map<Long, Entity> entityMap = CollStreamUtil.toIdentityMap(list, Entity::getId);
+    for (Entity entity : saveResult) {
+      Entity input = entityMap.get(entity.getId());
+      if (input == entity) {
+        continue;
       }
+      copyProperties(entity, input);
     }
   }
 
