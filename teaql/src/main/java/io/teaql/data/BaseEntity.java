@@ -215,9 +215,7 @@ public class BaseEntity implements Entity {
     if (this == pO) return true;
     if (pO == null || getClass() != pO.getClass()) return false;
     BaseEntity that = (BaseEntity) pO;
-    return Objects.equals(getId(), that.getId())
-        && Objects.equals(getVersion(), that.getVersion())
-        && Objects.equals(typeName(), that.typeName());
+    return Objects.equals(getId(), that.getId()) && Objects.equals(typeName(), that.typeName());
   }
 
   @Override
