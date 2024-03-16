@@ -11,6 +11,7 @@ import io.teaql.data.event.EntityCreatedEvent;
 import io.teaql.data.event.EntityDeletedEvent;
 import io.teaql.data.event.EntityRecoverEvent;
 import io.teaql.data.event.EntityUpdatedEvent;
+import io.teaql.data.log.Markers;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
@@ -154,7 +155,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
   public SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request) {
     String comment = request.comment();
     if (ObjectUtil.isNotEmpty(comment)) {
-      userContext.info("start execute request: {}", comment);
+      userContext.info(Markers.SEARCH_REQUEST_START, "start execute request: {}", comment);
     }
     SmartList<T> smartList = loadInternal(userContext, request);
     enhanceChildren(userContext, smartList, request);
@@ -165,7 +166,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       userContext.afterLoad(getEntityDescriptor(), t);
     }
     if (ObjectUtil.isNotEmpty(comment)) {
-      userContext.info("end execute request: {}", comment);
+      userContext.info(Markers.SEARCH_REQUEST_END, "end execute request: {}", comment);
     }
     return smartList;
   }

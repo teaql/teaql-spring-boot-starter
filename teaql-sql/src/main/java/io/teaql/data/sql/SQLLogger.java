@@ -1,7 +1,9 @@
 package io.teaql.data.sql;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import io.teaql.data.AggregationResult;
 import io.teaql.data.BaseEntity;
 import io.teaql.data.UserContext;
 import java.text.SimpleDateFormat;
@@ -9,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Marker;
 import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 
 public class SQLLogger {
@@ -36,6 +39,36 @@ public class SQLLogger {
 
   private static final char SINGLE_QUOTE = '\'';
 
+  public static void logNamedSQL(
+      Marker marker,
+      UserContext userContext,
+      String sql,
+      Map<String, Object> paramMap,
+      AggregationResult result) {
+    String finalSQL = NamedParameterUtils.substituteNamedParameters(sql, null);
+    List<Map<String, Object>> list = result.toList();
+
+    boolean hasMore = false;
+    if (list.size() > 3) {
+      hasMore = true;
+    }
+
+    String resultString =
+        list.stream()
+            .limit(3)
+            .map(item -> MapUtil.joinIgnoreNull(item, ",", "="))
+            .collect(Collectors.joining("/"));
+    if (hasMore) {
+      resultString = resultString + "...";
+    }
+    logSQLAndParameters(
+        marker,
+        userContext,
+        finalSQL,
+        NamedParameterUtils.buildValueArray(sql, paramMap),
+        resultString);
+  }
+
   static class Counter {
     int count = 0;
 
@@ -50,56 +83,15 @@ public class SQLLogger {
     }
   }
 
-  protected static Object[] flattenParameters(Object[] params) {
-    List<Object> result = new ArrayList<>();
-
-    Arrays.asList(params)
-        .forEach(
-            t -> {
-              if (t instanceof Set) {
-                Set setT = (Set) t;
-                setT.forEach(
-                    eV -> {
-                      result.add(eV);
-                    });
-                return;
-              }
-
-              if (t.getClass().isArray()) {
-                Object[] array = (Object[]) t;
-                Arrays.asList(array)
-                    .forEach(
-                        eV -> {
-                          result.add(eV);
-                        });
-                return;
-              }
-
-              result.add(t);
-            });
-
-    return result.toArray();
-  }
-
-  protected static String methodNameOf(StackTraceElement ste) {
-    return join(ste.getFileName().replace(".java", ""), ".", ste.getMethodName() + "()");
-  }
-
-  protected static String getStackTrace() {
-    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    List<StackTraceElement> stackList = Arrays.asList(stackTrace);
-    Collections.reverse(stackList);
-    return stackList.stream()
-        .filter(st -> st.getClassName().contains(".doublechaintech."))
-        .filter(st -> !st.getClassName().contains(SQLLogger.class.getSimpleName()))
-        .map(st -> methodNameOf(st))
-        .collect(Collectors.joining(" -> "));
-  }
-
   public static <T> void logNamedSQL(
-      UserContext userContext, String sql, Map<String, Object> paramMap, List<T> result) {
+      Marker marker,
+      UserContext userContext,
+      String sql,
+      Map<String, Object> paramMap,
+      List<T> result) {
     String finalSQL = NamedParameterUtils.substituteNamedParameters(sql, null);
     logSQLAndParameters(
+        marker,
         userContext,
         finalSQL,
         NamedParameterUtils.buildValueArray(sql, paramMap),
@@ -107,7 +99,7 @@ public class SQLLogger {
   }
 
   public static void logSQLAndParameters(
-      UserContext userContext, String sql, Object[] parameters, String result) {
+      Marker marker, UserContext userContext, String sql, Object[] parameters, String result) {
 
     StringBuilder finalSQL = new StringBuilder();
 
@@ -115,10 +107,8 @@ public class SQLLogger {
     int index = 0;
 
     Counter counter = new Counter();
-
     for (char ch : sqlChars) {
       counter.onChar(ch);
-
       if (ch == '?' && counter.outOfQuote()) {
         finalSQL.append(wrapValueInSQL(parameters[index]));
         index++;
@@ -126,19 +116,17 @@ public class SQLLogger {
       }
       finalSQL.append(ch);
     }
-    userContext.info(finalSQL.toString());
+    userContext.debug(marker, "{} {}", result, finalSQL.toString());
   }
 
   protected static String join(Object... objs) {
     StringBuilder internalPresentBuffer = new StringBuilder();
-
     for (Object o : objs) {
       if (o == null) {
         continue;
       }
       internalPresentBuffer.append(o);
     }
-
     return internalPresentBuffer.toString();
   }
 
@@ -206,32 +194,5 @@ public class SQLLogger {
   protected static String sqlDateExpr(Date dateValue) {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     return simpleDateFormat.format(dateValue);
-  }
-
-  public static String alignWithTabSpace(String value, int tabWidth) {
-    if (tabWidth <= 0) {
-      return value;
-    }
-    int length = value.length();
-    if (length >= tabWidth * 8) {
-      return value.substring(0, tabWidth * 8 - 2) + ".\t";
-    }
-
-    int count = tabWidth - (length / 8);
-
-    return value + repeatTab(count);
-  }
-
-  protected static String repeatTab(int length) {
-    if (length <= 0) {
-      return "";
-    }
-    StringBuilder stringBuilder = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-
-      stringBuilder.append('\t');
-    }
-
-    return stringBuilder.toString();
   }
 }

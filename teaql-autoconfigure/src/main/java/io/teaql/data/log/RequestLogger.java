@@ -1,0 +1,44 @@
+package io.teaql.data.log;
+
+import io.teaql.data.UserContext;
+import io.teaql.data.web.UserContextInitializer;
+import java.util.List;
+import org.springframework.core.Ordered;
+
+public class RequestLogger implements UserContextInitializer, Ordered {
+
+  @Override
+  public boolean support(Object request) {
+    return true;
+  }
+
+  @Override
+  public void init(UserContext userContext, Object request) {
+    userContext.debug(
+        Markers.HTTP_REQUEST, "{} {}", userContext.method(), userContext.requestUri());
+    List<String> headerNames = userContext.getHeaderNames();
+    for (String headerName : headerNames) {
+      userContext.debug(
+          Markers.HTTP_REQUEST, "HEADER {}={}", headerName, userContext.getHeader(headerName));
+    }
+
+    List<String> parameterNames = userContext.getParameterNames();
+    for (String parameterName : parameterNames) {
+      userContext.debug(
+          Markers.HTTP_REQUEST,
+          "PARAM {}={}",
+          parameterName,
+          userContext.getParameter(parameterName));
+    }
+
+    byte[] bodyBytes = userContext.getBodyBytes();
+    if (bodyBytes != null) {
+      userContext.debug(Markers.HTTP_REQUEST, "BODY: {}", new String(bodyBytes));
+    }
+  }
+
+  @Override
+  public int getOrder() {
+    return Integer.MAX_VALUE;
+  }
+}

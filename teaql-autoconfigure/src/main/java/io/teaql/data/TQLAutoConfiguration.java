@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -121,7 +122,9 @@ public class TQLAutoConfiguration {
             if (ObjectUtil.isEmpty(beansOfType)) {
               return Collections.emptyList();
             }
-            return new ArrayList<>(beansOfType.values());
+            ArrayList<T> list = new ArrayList<>(beansOfType.values());
+            list.sort(AnnotationAwareOrderComparator.INSTANCE);
+            return list;
           }
 
           @Override
@@ -261,6 +264,7 @@ public class TQLAutoConfiguration {
 
   @Bean
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  @Order
   public UserContextInitializer servletInitializer() {
     return new ServletUserContextInitializer();
   }

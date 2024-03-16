@@ -1,5 +1,7 @@
 package io.teaql.data.sql;
 
+import static io.teaql.data.log.Markers.*;
+
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
@@ -7,6 +9,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.*;
 import io.teaql.data.*;
+import io.teaql.data.log.Markers;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
@@ -209,7 +212,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
-    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    SQLLogger.logSQLAndParameters(
+        Markers.SQL_UPDATE, userContext, updateSql, parameters, update + " UPDATED");
     if (update != 1) {
       throw new ConcurrentModifyException();
     }
@@ -230,7 +234,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
-    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    SQLLogger.logSQLAndParameters(
+        SQL_UPDATE, userContext, updateSql, parameters, update + " UPDATED");
     if (update != 1) {
       throw new RepositoryException("primary table update failed");
     }
@@ -262,7 +267,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     } catch (DataAccessException pE) {
       throw new RepositoryException(pE);
     }
-    SQLLogger.logSQLAndParameters(userContext, updateSql, parameters, update + " UPDATED");
+    SQLLogger.logSQLAndParameters(
+        SQL_UPDATE, userContext, updateSql, parameters, update + " UPDATED");
     if (update != 1) {
       throw new ConcurrentModifyException();
     }
@@ -355,7 +361,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
           }
           int i = 0;
           for (int ret : rets) {
-            SQLLogger.logSQLAndParameters(userContext, sql, v.get(i++), ret + " UPDATED");
+            SQLLogger.logSQLAndParameters(
+                SQL_UPDATE, userContext, sql, v.get(i++), ret + " UPDATED");
           }
         });
   }
@@ -425,7 +432,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     int i = 0;
     for (int ret : rets) {
-      SQLLogger.logSQLAndParameters(userContext, updateSql, args.get(i++), ret + " UPDATED");
+      SQLLogger.logSQLAndParameters(
+          SQL_UPDATE, userContext, updateSql, args.get(i++), ret + " UPDATED");
       if (ret != 1) {
         throw new ConcurrentModifyException();
       }
@@ -458,7 +466,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
     int i = 0;
     for (int ret : rets) {
-      SQLLogger.logSQLAndParameters(userContext, updateSql, args.get(i++), ret + " UPDATED");
+      SQLLogger.logSQLAndParameters(
+          SQL_UPDATE, userContext, updateSql, args.get(i++), ret + " UPDATED");
       if (ret != 1) {
         throw new ConcurrentModifyException();
       }
@@ -488,7 +497,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       } catch (DataAccessException pE) {
         throw new RepositoryException(pE);
       }
-      SQLLogger.logNamedSQL(userContext, sql, params, results);
+      SQLLogger.logNamedSQL(SQL_SELECT, userContext, sql, params, results);
     }
     SmartList<T> smartList = new SmartList<>(results);
     return smartList;
@@ -542,8 +551,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       sql = StrUtil.format("{} {}", sql, groupBy);
     }
 
-    userContext.info(sql);
-    userContext.info("{}", parameters);
     List<AggregationItem> aggregationItems;
     try {
       aggregationItems = jdbcTemplate.query(sql, parameters, getAggregationMapper(request));
@@ -553,6 +560,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     AggregationResult result = new AggregationResult();
     result.setName(request.getAggregations().getName());
     result.setData(aggregationItems);
+    SQLLogger.logNamedSQL(SQL_SELECT, userContext, sql, parameters, result);
     return result;
   }
 

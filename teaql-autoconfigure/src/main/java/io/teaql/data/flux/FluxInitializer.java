@@ -4,6 +4,9 @@ import io.teaql.data.RequestHolder;
 import io.teaql.data.ResponseHolder;
 import io.teaql.data.UserContext;
 import io.teaql.data.web.UserContextInitializer;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.core.PriorityOrdered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -11,7 +14,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 
-public class FluxInitializer implements UserContextInitializer {
+public class FluxInitializer implements UserContextInitializer, PriorityOrdered {
   @Override
   public boolean support(Object request) {
     return request instanceof ServerWebExchange;
@@ -27,8 +30,18 @@ public class FluxInitializer implements UserContextInitializer {
           new RequestHolder() {
 
             @Override
+            public String method() {
+              return serverHttpRequest.getMethod().name();
+            }
+
+            @Override
             public String getHeader(String name) {
               return serverHttpRequest.getHeaders().getFirst(name);
+            }
+
+            @Override
+            public List<String> getHeaderNames() {
+              return new ArrayList<>(serverHttpRequest.getHeaders().keySet());
             }
 
             @Override
@@ -44,6 +57,11 @@ public class FluxInitializer implements UserContextInitializer {
                         return bytes;
                       })
                   .block();
+            }
+
+            @Override
+            public List<String> getParameterNames() {
+              return new ArrayList<>(serverHttpRequest.getQueryParams().keySet());
             }
 
             @Override
@@ -68,6 +86,11 @@ public class FluxInitializer implements UserContextInitializer {
                       })
                   .block();
             }
+
+            @Override
+            public String requestUri() {
+              return serverHttpRequest.getPath().pathWithinApplication().value();
+            }
           });
 
       userContext.put(
@@ -84,5 +107,10 @@ public class FluxInitializer implements UserContextInitializer {
             }
           });
     }
+  }
+
+  @Override
+  public int getOrder() {
+    return Integer.MIN_VALUE;
   }
 }

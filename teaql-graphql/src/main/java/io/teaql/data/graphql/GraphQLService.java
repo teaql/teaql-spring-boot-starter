@@ -48,7 +48,7 @@ public class GraphQLService implements io.teaql.data.GraphQLService {
     ExecutionResult result =
         graphQL.execute(
             ExecutionInput.newExecutionInput()
-                .graphQLContext(MapUtil.of("userContext", new UserContext()))
+                .graphQLContext(MapUtil.of("userContext", ctx))
                 .query(query));
     if (result.getErrors() != null && !result.getErrors().isEmpty()) {
       throw new TQLException(result.getErrors().toString());

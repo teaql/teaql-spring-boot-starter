@@ -6,8 +6,6 @@ import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
 import cn.hutool.core.lang.caller.CallerUtil;
 import cn.hutool.core.util.*;
 import cn.hutool.json.JSONUtil;
-import cn.hutool.log.LogFactory;
-import cn.hutool.log.StaticLog;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
@@ -26,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 
 public class UserContext
     implements NaturalLanguageTranslator,
@@ -101,33 +102,69 @@ public class UserContext
   }
 
   public void info(String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.info(LogFactory.get(caller), messageTemplate, args);
+    Logger logger = getLogger();
+    logger.info(messageTemplate, args);
+  }
+
+  public void info(Marker marker, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.info(marker, messageTemplate, args);
   }
 
   public void debug(String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.debug(LogFactory.get(caller), messageTemplate, args);
+    Logger logger = getLogger();
+    logger.debug(messageTemplate, args);
+  }
+
+  public void debug(Marker marker, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.debug(marker, messageTemplate, args);
   }
 
   public void warn(String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.warn(LogFactory.get(caller), messageTemplate, args);
+    Logger logger = getLogger();
+    logger.warn(messageTemplate, args);
+  }
+
+  public void warn(Marker marker, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.warn(marker, messageTemplate, args);
   }
 
   public void warn(Exception e, String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.warn(LogFactory.get(caller), e, messageTemplate, args);
+    Logger logger = getLogger();
+    logger.warn(StrUtil.format(messageTemplate, args), e);
+  }
+
+  public void warn(Marker marker, Exception e, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.warn(marker, StrUtil.format(messageTemplate, args), e);
   }
 
   public void error(String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.error(LogFactory.get(caller), messageTemplate, args);
+    Logger logger = getLogger();
+    logger.error(messageTemplate, args);
+  }
+
+  public void error(Marker marker, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.error(marker, messageTemplate, args);
   }
 
   public void error(Exception e, String messageTemplate, Object... args) {
-    Class<?> caller = CallerUtil.getCaller(2);
-    StaticLog.error(LogFactory.get(caller), e, messageTemplate, args);
+    Logger logger = getLogger();
+    logger.error(StrUtil.format(messageTemplate, args), e);
+  }
+
+  public void error(Marker marker, Exception e, String messageTemplate, Object... args) {
+    Logger logger = getLogger();
+    logger.error(marker, StrUtil.format(messageTemplate, args), e);
+  }
+
+  private Logger getLogger() {
+    Class<?> caller = CallerUtil.getCaller(3);
+    Logger logger = LoggerFactory.getLogger(caller);
+    return logger;
   }
 
   public <T extends Entity> AggregationResult aggregation(SearchRequest request) {
@@ -332,6 +369,15 @@ public class UserContext
     return responseHolder;
   }
 
+  public List<String> getHeaderNames() {
+    return getRequestHolder().getHeaderNames();
+  }
+
+  @Override
+  public String method() {
+    return getRequestHolder().method();
+  }
+
   @Override
   public String getHeader(String name) {
     return getRequestHolder().getHeader(name);
@@ -343,6 +389,11 @@ public class UserContext
   }
 
   @Override
+  public List<String> getParameterNames() {
+    return getRequestHolder().getParameterNames();
+  }
+
+  @Override
   public String getParameter(String name) {
     return getRequestHolder().getParameter(name);
   }
@@ -350,6 +401,11 @@ public class UserContext
   @Override
   public byte[] getBodyBytes() {
     return getRequestHolder().getBodyBytes();
+  }
+
+  @Override
+  public String requestUri() {
+    return getRequestHolder().requestUri();
   }
 
   public void setResponseHeader(String headerName, String headerValue) {

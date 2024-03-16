@@ -1,5 +1,6 @@
 package io.teaql.data.web;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.io.IoUtil;
 import io.teaql.data.RequestHolder;
 import io.teaql.data.ResponseHolder;
@@ -11,9 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import org.springframework.core.PriorityOrdered;
 import org.springframework.web.context.request.NativeWebRequest;
 
-public class ServletUserContextInitializer implements UserContextInitializer {
+public class ServletUserContextInitializer implements UserContextInitializer, PriorityOrdered {
 
   public static final String USER_CONTEXT = "USER_CONTEXT";
 
@@ -30,9 +33,20 @@ public class ServletUserContextInitializer implements UserContextInitializer {
         userContext.put(
             UserContext.REQUEST_HOLDER,
             new RequestHolder() {
+
+              @Override
+              public String method() {
+                return httpRequest.getMethod();
+              }
+
               @Override
               public String getHeader(String name) {
                 return httpRequest.getHeader(name);
+              }
+
+              @Override
+              public List<String> getHeaderNames() {
+                return ListUtil.toList(httpRequest.getHeaderNames().asIterator());
               }
 
               @Override
@@ -49,6 +63,11 @@ public class ServletUserContextInitializer implements UserContextInitializer {
               }
 
               @Override
+              public List<String> getParameterNames() {
+                return ListUtil.toList(httpRequest.getParameterNames().asIterator());
+              }
+
+              @Override
               public String getParameter(String name) {
                 return httpRequest.getParameter(name);
               }
@@ -62,6 +81,13 @@ public class ServletUserContextInitializer implements UserContextInitializer {
                   throw new RuntimeException(pE);
                 }
                 return IoUtil.readBytes(inputStream);
+              }
+
+              @Override
+              public String requestUri() {
+                String requestURI = httpRequest.getRequestURI();
+                String contextPath = httpRequest.getContextPath();
+                return requestURI.substring(contextPath.length());
               }
             });
       }
@@ -81,5 +107,10 @@ public class ServletUserContextInitializer implements UserContextInitializer {
               }
             });
     }
+  }
+
+  @Override
+  public int getOrder() {
+    return Integer.MIN_VALUE;
   }
 }
