@@ -24,23 +24,24 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+import org.slf4j.spi.LocationAwareLogger;
 
 public class UserContext
     implements NaturalLanguageTranslator,
         RequestHolder,
         OptNullBasicTypeFromObjectGetter<String>,
         Translator {
+
+  public static final String FQCN = UserContext.class.getName();
   public static final String X_CLASS = "X-Class";
   public static final String TOAST = "toast";
-  private TQLResolver resolver = GLobalResolver.getGlobalResolver();
-  private Map<String, Object> localStorage = new ConcurrentHashMap<>();
-
   public static final String REQUEST_HOLDER = "$request:requestHolder";
-
   public static final String RESPONSE_HOLDER = "$response:responseHolder";
+  InternalIdGenerator internalIdGenerator;
+  private TQLResolver resolver = GLobalResolver.getGlobalResolver();
+  private final Map<String, Object> localStorage = new ConcurrentHashMap<>();
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {
@@ -102,69 +103,68 @@ public class UserContext
   }
 
   public void info(String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.info(messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.INFO_INT, messageTemplate, args, null);
   }
 
   public void info(Marker marker, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.info(marker, messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.INFO_INT, messageTemplate, args, null);
   }
 
   public void debug(String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.debug(messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.DEBUG_INT, messageTemplate, args, null);
   }
 
   public void debug(Marker marker, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.debug(marker, messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.DEBUG_INT, messageTemplate, args, null);
   }
 
   public void warn(String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.warn(messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.WARN_INT, messageTemplate, args, null);
   }
 
   public void warn(Marker marker, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.warn(marker, messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.WARN_INT, messageTemplate, args, null);
   }
 
   public void warn(Exception e, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.warn(StrUtil.format(messageTemplate, args), e);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.WARN_INT, messageTemplate, args, e);
   }
 
   public void warn(Marker marker, Exception e, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.warn(marker, StrUtil.format(messageTemplate, args), e);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.WARN_INT, messageTemplate, args, e);
   }
 
   public void error(String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.error(messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.ERROR_INT, messageTemplate, args, null);
   }
 
   public void error(Marker marker, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.error(marker, messageTemplate, args);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.ERROR_INT, messageTemplate, args, null);
   }
 
   public void error(Exception e, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.error(StrUtil.format(messageTemplate, args), e);
+    LocationAwareLogger logger = getLogger();
+    logger.log(null, FQCN, LocationAwareLogger.ERROR_INT, messageTemplate, args, e);
   }
 
   public void error(Marker marker, Exception e, String messageTemplate, Object... args) {
-    Logger logger = getLogger();
-    logger.error(marker, StrUtil.format(messageTemplate, args), e);
+    LocationAwareLogger logger = getLogger();
+    logger.log(marker, FQCN, LocationAwareLogger.ERROR_INT, messageTemplate, args, e);
   }
 
-  private Logger getLogger() {
+  private LocationAwareLogger getLogger() {
     Class<?> caller = CallerUtil.getCaller(3);
-    Logger logger = LoggerFactory.getLogger(caller);
-    return logger;
+    return (LocationAwareLogger) LoggerFactory.getLogger(caller);
   }
 
   public <T extends Entity> AggregationResult aggregation(SearchRequest request) {
@@ -329,8 +329,6 @@ public class UserContext
   public void setInternalIdGenerator(InternalIdGenerator internalIdGenerator) {
     this.internalIdGenerator = internalIdGenerator;
   }
-
-  InternalIdGenerator internalIdGenerator;
 
   public Long generateId(Entity pEntity) {
     if (this.internalIdGenerator == null) {
