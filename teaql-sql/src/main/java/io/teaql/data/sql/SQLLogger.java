@@ -116,7 +116,7 @@ public class SQLLogger {
       }
       finalSQL.append(ch);
     }
-    userContext.debug(marker, "{} {}", result, finalSQL.toString());
+    userContext.debug(marker, "[{}] {}", result, finalSQL.toString());
   }
 
   protected static String join(Object... objs) {
