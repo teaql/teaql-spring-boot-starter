@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import org.springframework.boot.web.servlet.filter.OrderedFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
@@ -21,8 +20,8 @@ public class MultiReadFilter implements OrderedFilter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    if (!(request instanceof ContentCachingRequestWrapper)) {
-      request = new ContentCachingRequestWrapper((HttpServletRequest) request);
+    if (!(request instanceof CachedBodyHttpServletRequest)) {
+      request = new CachedBodyHttpServletRequest((HttpServletRequest) request);
     }
     if (!(response instanceof ContentCachingResponseWrapper)) {
       response = new ContentCachingResponseWrapper((HttpServletResponse) response);

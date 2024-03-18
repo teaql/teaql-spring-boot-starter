@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.URLDecoder;
 import io.teaql.data.log.LogConfiguration;
 import io.teaql.data.log.RequestLogger;
+import io.teaql.data.log.UserTraceIdInitializer;
 import java.nio.charset.StandardCharsets;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,11 @@ public class TQLLogConfiguration {
   @Bean
   public RequestLogger requestLogger() {
     return new RequestLogger();
+  }
+
+  @Bean
+  public UserTraceIdInitializer userTraceIdInitializer() {
+    return new UserTraceIdInitializer();
   }
 
   @Controller
