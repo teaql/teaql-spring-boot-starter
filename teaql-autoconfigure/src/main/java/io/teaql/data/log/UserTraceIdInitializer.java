@@ -2,6 +2,7 @@ package io.teaql.data.log;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import io.teaql.data.UserContext;
 import io.teaql.data.web.UserContextInitializer;
 import java.util.List;
@@ -23,14 +24,14 @@ public class UserTraceIdInitializer implements UserContextInitializer, PriorityO
   public void init(UserContext userContext, Object request) {
     List<String> headerNames = userContext.getHeaderNames();
     for (String headerName : headerNames) {
-      if (headerName.startsWith(TRACE_PREFIX)) {
-        MDC.put(headerName, userContext.getHeader(headerName));
+      if (StrUtil.startWithIgnoreCase(headerName, TRACE_PREFIX)) {
+        MDC.put(headerName.toUpperCase(), userContext.getHeader(headerName));
       }
     }
     List<String> parameterNames = userContext.getParameterNames();
     for (String parameterName : parameterNames) {
-      if (parameterName.startsWith(TRACE_PREFIX)) {
-        MDC.put(parameterName, userContext.getParameter(parameterName));
+      if (StrUtil.startWithIgnoreCase(parameterName, TRACE_PREFIX)) {
+        MDC.put(parameterName.toUpperCase(), userContext.getParameter(parameterName));
       }
     }
     String traceId = MDC.get(TRACE_ID);
