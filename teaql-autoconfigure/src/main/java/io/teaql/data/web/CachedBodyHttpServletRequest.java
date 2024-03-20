@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.io.*;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
 public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
