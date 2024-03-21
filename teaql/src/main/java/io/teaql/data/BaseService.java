@@ -457,12 +457,15 @@ public abstract class BaseService {
 
   public Relation getContextRelation(UserContext ctx, String type) {
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
-    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
-    for (Relation ownRelation : ownRelations) {
-      Boolean context = MapUtil.getBool(ownRelation.getAdditionalInfo(), "context");
-      if (context != null && context) {
-        return ownRelation;
+    while (entityDescriptor != null) {
+      List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+      for (Relation ownRelation : ownRelations) {
+        Boolean context = MapUtil.getBool(ownRelation.getAdditionalInfo(), "context");
+        if (context != null && context) {
+          return ownRelation;
+        }
       }
+      entityDescriptor = entityDescriptor.getParent();
     }
     return null;
   }
