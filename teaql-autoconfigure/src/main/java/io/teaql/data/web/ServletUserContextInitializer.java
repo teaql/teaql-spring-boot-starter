@@ -89,6 +89,11 @@ public class ServletUserContextInitializer implements UserContextInitializer, Pr
                 String contextPath = httpRequest.getContextPath();
                 return requestURI.substring(contextPath.length());
               }
+
+              @Override
+              public String getRemoteAddress() {
+                return httpRequest.getRemoteAddr();
+              }
             });
       }
 

@@ -19,4 +19,6 @@ public interface RequestHolder {
   byte[] getBodyBytes();
 
   String requestUri();
+
+  String getRemoteAddress();
 }

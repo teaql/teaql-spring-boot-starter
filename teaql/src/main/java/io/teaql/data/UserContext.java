@@ -20,6 +20,8 @@ import io.teaql.data.translation.Translator;
 import io.teaql.data.web.DuplicatedFormException;
 import io.teaql.data.web.ErrorMessageException;
 import io.teaql.data.web.UserContextInitializer;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -404,6 +406,38 @@ public class UserContext
   @Override
   public String requestUri() {
     return getRequestHolder().requestUri();
+  }
+
+  @Override
+  public String getRemoteAddress() {
+    return getRequestHolder().requestUri();
+  }
+
+  public String getClientIp() {
+    String header = getHeader("X-Forwarded-For");
+    if (header == null) {
+      return getRemoteAddress();
+    }
+    String[] parts = header.split(",");
+    return parts[0];
+  }
+
+  public boolean isFromLocalhost() {
+    String clientIp = getClientIp();
+    try {
+      return InetAddress.getByName(clientIp).isLoopbackAddress();
+    } catch (UnknownHostException pE) {
+      throw new RuntimeException(pE);
+    }
+  }
+
+  public List<String> getProxyChain() {
+    String header = getHeader("X-Forwarded-For");
+    if (header == null){
+      return Collections.emptyList();
+    }
+    String[] parts = header.split(",");
+    return ListUtil.of(ArrayUtil.sub(parts, 1, -1));
   }
 
   public void setResponseHeader(String headerName, String headerValue) {

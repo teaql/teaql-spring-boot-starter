@@ -91,6 +91,11 @@ public class FluxInitializer implements UserContextInitializer, PriorityOrdered 
             public String requestUri() {
               return serverHttpRequest.getPath().pathWithinApplication().value();
             }
+
+            @Override
+            public String getRemoteAddress() {
+              return serverHttpRequest.getRemoteAddress().getHostString();
+            }
           });
 
       userContext.put(
