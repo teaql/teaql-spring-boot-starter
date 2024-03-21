@@ -53,7 +53,7 @@ public class MultiReadFilter implements OrderedFilter {
       if (buf.length > 0) {
         String payload;
         try {
-          payload = new String(buf, wrapper.getCharacterEncoding());
+          payload = new String(buf, "UTF-8");
         } catch (UnsupportedEncodingException e) {
           payload = "[unknown]";
         }
