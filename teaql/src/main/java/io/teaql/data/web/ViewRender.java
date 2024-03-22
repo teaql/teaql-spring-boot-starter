@@ -41,7 +41,7 @@ public abstract class ViewRender {
 
   public Object view(UserContext ctx, Object data) {
     if (data == null) {
-      return preRender(ctx, null, new HashMap<>());
+      return renderEmptyView(ctx);
     }
 
     Method showPop = ReflectUtil.getMethodByName(getTemplateRender(ctx).getClass(), "showPop");
@@ -73,7 +73,11 @@ public abstract class ViewRender {
       Object bean = ctx.getBean(ClassUtil.loadClass(data.getClass().getName() + "Processor"));
       return ReflectUtil.invoke(bean, "defaultPreRender", ctx, data, view);
     }
-    return view;
+    return renderEmptyView(ctx);
+  }
+
+  public Object renderEmptyView(UserContext ctx) {
+    return new HashMap<>();
   }
 
   private void renderAsList(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
