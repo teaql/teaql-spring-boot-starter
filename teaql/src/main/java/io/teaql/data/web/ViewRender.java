@@ -749,7 +749,9 @@ public abstract class ViewRender {
     return Base64Encoder.encodeUrlSafe(JSONUtil.toJsonStr(values));
   }
 
-  public void errorMessage(String message) {}
+  public void errorMessage(String message) {
+    throw new ErrorMessageException(message);
+  }
 
   private void addPageTitle(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
     setValue(page, "pageTitle", getStr(meta, "name", "默认页面"));
