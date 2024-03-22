@@ -77,8 +77,7 @@ public abstract class ViewRender {
   }
 
   public Object renderEmptyView(UserContext ctx) {
-    ctx.back();
-    return new HashMap<>();
+    return ctx.back();
   }
 
   private void renderAsList(UserContext ctx, Object page, EntityDescriptor meta, Object data) {

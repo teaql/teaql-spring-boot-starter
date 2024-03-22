@@ -433,7 +433,7 @@ public class UserContext
 
   public List<String> getProxyChain() {
     String header = getHeader("X-Forwarded-For");
-    if (header == null){
+    if (header == null) {
       return Collections.emptyList();
     }
     String[] parts = header.split(",");
@@ -569,7 +569,8 @@ public class UserContext
     return getObj(TOAST);
   }
 
-  public void back() {
+  public Object back() {
     setResponseHeader("command", "back");
+    return new HashMap<>();
   }
 }
