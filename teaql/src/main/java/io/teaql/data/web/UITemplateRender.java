@@ -19,6 +19,7 @@ import io.teaql.data.meta.PropertyDescriptor;
 import java.util.*;
 
 public class UITemplateRender {
+
   public static String messageTemplate =
       ResourceUtil.readUtf8Str("classpath:io/teaql/data/web/message.json");
 
@@ -62,6 +63,32 @@ public class UITemplateRender {
       ViewRender.setValue(kids0, "title", meta.getStr("zh_CN", null));
     }
     ViewRender.setValue(uiField, "value", value);
+  }
+
+  public void analytics(
+      UserContext ctx,
+      PropertyDescriptor meta,
+      Object uiField,
+      Object fieldValue,
+      List candidates,
+      List mappedCandidates) {
+    if (candidates == null) {
+      return;
+    }
+    int index = 1;
+    ViewRender.setValue(uiField, "value", null);
+    for (Object candidate : candidates) {
+      Map<String, Object> newV = new HashMap<>();
+      Object id = ViewRender.getProperty(candidate, "id");
+      BeanUtil.setProperty(newV, "id", id == null ? index++ : id);
+      BeanUtil.setProperty(newV, "value", BeanUtil.getProperty(candidate, "value"));
+      BeanUtil.setProperty(
+          newV, "validateExpression", BeanUtil.getProperty(candidate, "validateExpression"));
+      BeanUtil.setProperty(newV, "displayRule", BeanUtil.getProperty(candidate, "displayRule"));
+      BeanUtil.setProperty(newV, "title", BeanUtil.getProperty(candidate, "name"));
+      BeanUtil.setProperty(newV, "result", BeanUtil.getProperty(candidate, "result"));
+      ViewRender.addValue(uiField, "value", newV);
+    }
   }
 
   private void setTemplatePassThrough(PropertyDescriptor meta, Object uiElement) {
