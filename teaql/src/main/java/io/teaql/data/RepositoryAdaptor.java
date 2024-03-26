@@ -39,11 +39,15 @@ public class RepositoryAdaptor {
       UserContext userContext, String type, Map<String, List<Entity>> entities) {
     // save referenced types first
     EntityDescriptor entityDescriptor = userContext.resolveEntityDescriptor(type);
-    List<Relation> ownRelations = entityDescriptor.getOwnRelations();
-    for (Relation ownRelation : ownRelations) {
-      EntityDescriptor owner = ownRelation.getReverseProperty().getOwner();
-      String referType = owner.getType();
-      saveType(userContext, referType, entities);
+
+    while (entityDescriptor != null) {
+      List<Relation> ownRelations = entityDescriptor.getOwnRelations();
+      for (Relation ownRelation : ownRelations) {
+        EntityDescriptor owner = ownRelation.getReverseProperty().getOwner();
+        String referType = owner.getType();
+        saveType(userContext, referType, entities);
+      }
+      entityDescriptor = entityDescriptor.getParent();
     }
 
     // save this type-self
