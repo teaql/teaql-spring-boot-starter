@@ -81,6 +81,38 @@ public class ServiceRequestUtil {
     return CollectionUtil.getLast(list);
   }
 
+  // switch to another view
+  public static <T extends BaseEntity> T gotoView(
+      UserContext ctx, BaseEntity view, Class<T> targetViewType) {
+
+    // reload the service request from the view
+    reloadRequest(ctx, view);
+    BaseEntity serviceRequest = getServiceRequest(ctx, view);
+    EntityDescriptor serviceRequestDescriptor =
+        ctx.resolveEntityDescriptor(serviceRequest.typeName());
+
+    // find the target view relationship
+    List<Relation> foreignRelations = serviceRequestDescriptor.getForeignRelations();
+    Relation relationship = null;
+    for (Relation foreignRelation : foreignRelations) {
+      Class aClass = foreignRelation.getRelationKeeper().getTargetType();
+      if (targetViewType.isAssignableFrom(aClass)) {
+        relationship = foreignRelation;
+        break;
+      }
+    }
+
+    // get the views of the target view type
+    SmartList<T> values = serviceRequest.getProperty(relationship.getName());
+    if (values != null) {
+      T targetView = values.first();
+      // set the service request of the target view
+      targetView.setProperty(relationship.getReverseProperty().getName(), serviceRequest);
+      return targetView;
+    }
+    return null;
+  }
+
   public static <T extends BaseEntity> T getFirst(UserContext ctx, T view) {
     List<BaseEntity> dbViews = getDBViews(ctx, view);
     if (dbViews.isEmpty()) {
