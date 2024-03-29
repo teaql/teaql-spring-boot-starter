@@ -3,28 +3,23 @@ package io.teaql.data.meta;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
-
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /** property meta in entity meta */
 public class PropertyDescriptor {
 
-  /**
-   * property owner,
-   */
+  /** property owner, */
   private EntityDescriptor owner;
 
-  /**
-   *  property name
-   */
+  /** property name */
   private String name;
 
   /** property type */
   private PropertyType type;
 
-  private Map<String, String> additionalInfo = new HashMap<>();
+  private Map<String, String> additionalInfo = new LinkedHashMap<>();
 
   public PropertyDescriptor() {}
 
@@ -101,7 +96,7 @@ public class PropertyDescriptor {
 
   public boolean getBoolean(String key, boolean pDefaultValue) {
     String str = getStr(key, null);
-    if (str == null){
+    if (str == null) {
       return pDefaultValue;
     }
     return BooleanUtil.toBoolean(str);

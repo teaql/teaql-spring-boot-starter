@@ -33,7 +33,7 @@ public enum Operator implements PropertyFunction {
   }
 
   public boolean hasMultiValue() {
-    return this == IN || this == NOT_IN;
+    return this == IN || this == NOT_IN || this == IN_LARGE || this == NOT_IN_LARGE;
   }
 
   public boolean isBetween() {
