@@ -1,5 +1,6 @@
 package io.teaql.data.sql.expression;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.Parameter;
 import io.teaql.data.UserContext;
@@ -45,7 +46,8 @@ public class ParameterParser implements SQLExpressionParser<Parameter> {
       case IN_LARGE:
       case NOT_IN_LARGE:
         List flatValues = Parameter.flatValues(pValue);
-        return flatValues.toArray(new Object[flatValues.size()]);
+        Object o = flatValues.get(0);
+        return ArrayUtil.toArray(flatValues, o.getClass());
     }
     return pValue;
   }
