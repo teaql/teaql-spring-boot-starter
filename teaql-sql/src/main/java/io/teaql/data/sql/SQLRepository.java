@@ -1206,7 +1206,7 @@ ALTER TABLE {}
       if (dbRootRow != null) {
         long version = ((Number) dbRootRow.get("version")).longValue();
         if (version > 0) {
-          return;
+          continue;
         }
         // update version
         String sql =
@@ -1223,7 +1223,7 @@ ALTER TABLE {}
             throw new RepositoryException(pE);
           }
         }
-        return;
+        continue;
       }
 
       String sql =

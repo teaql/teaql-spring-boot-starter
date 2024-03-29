@@ -865,19 +865,6 @@ public abstract class ViewRender {
     }
   }
 
-  public Object gotoNextView(BaseEntity currentView, Class<? extends BaseEntity> nextView) {
-    if (ObjectUtil.isEmpty(currentView)) {
-      return currentView;
-    }
-    if (ObjectUtil.isEmpty(nextView)) {
-      return currentView;
-    }
-    Object o = ReflectUtil.newInstance(nextView);
-    Object request = ReflectUtil.invoke(currentView, "getRequest");
-    ReflectUtil.invoke(o, "setRequest", request);
-    return o;
-  }
-
   public <T extends Entity> T parseRequest(UserContext ctx, String request, Class<T> clazz) {
     if (ObjectUtil.isEmpty(request)) {
       return null;
