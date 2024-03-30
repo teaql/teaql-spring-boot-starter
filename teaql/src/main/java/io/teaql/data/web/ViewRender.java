@@ -235,8 +235,162 @@ public abstract class ViewRender {
               if (property.isId() || property.isVersion()) {
                 return;
               }
+              if (property instanceof Relation relation && relation.getRelationKeeper() != meta) {
+                addSubView(ctx, page, meta, relation, (BaseEntity) data);
+                return;
+              }
               addFormField(ctx, page, meta, property.getName(), property, data);
             });
+  }
+
+  private void addSubView(
+      UserContext ctx, Object page, EntityDescriptor meta, Relation relation, BaseEntity data) {
+    SmartList values = data.getProperty(relation.getName());
+    PropertyDescriptor fieldMeta = relation.getReverseProperty();
+    String groupName = getStr(fieldMeta, "group", "default");
+    Object group = ensureFormGroup(page, groupName);
+    Object formField = createSubViewField(ctx, meta, relation.getName(), relation, data, values);
+    if (formField == null) {
+      return;
+    }
+    addValue(group, "fieldList", formField);
+  }
+
+  private Object createSubViewField(
+      UserContext ctx,
+      EntityDescriptor meta,
+      String fieldName,
+      Relation relation,
+      BaseEntity data,
+      SmartList fieldValues) {
+    PropertyDescriptor pFieldMeta = relation.getReverseProperty();
+    boolean ignoreIfNull = getBoolean(pFieldMeta, "ignore-if-null", false);
+    if (ignoreIfNull && ObjectUtil.isEmpty(fieldValues)) {
+      return null;
+    }
+    Object uiField =
+        MapUtil.builder()
+            .put("name", fieldName)
+            .put("label", pFieldMeta.getStr("zh_CN", fieldName))
+            .put("type", pFieldMeta.getStr("ui-type", "table"))
+            .build();
+    if (getBoolean(pFieldMeta, "no_label", false)) {
+      setValue(uiField, "label", null);
+    }
+
+    renderSubViewMeta(ctx, uiField, relation);
+    renderSubViewData(ctx, uiField, relation, data, fieldValues);
+    buildFieldActions(ctx, uiField, meta, pFieldMeta, data);
+    setUIPassThrough(pFieldMeta, uiField);
+    return uiField;
+  }
+
+  private void renderSubViewData(
+      UserContext ctx, Object uiField, Relation relation, BaseEntity view, SmartList fieldValues) {
+    if (ObjectUtil.isEmpty(fieldValues)) {
+      return;
+    }
+
+    EntityDescriptor subViewMeta = relation.getRelationKeeper();
+    for (Object fieldValue : fieldValues) {
+      if (fieldValue == null) {
+        continue;
+      }
+      addValue(
+          uiField, "value", createOneSubViewData(ctx, subViewMeta, view, (BaseEntity) fieldValue));
+    }
+  }
+
+  private Object createOneSubViewData(
+      UserContext ctx, EntityDescriptor subViewMeta, BaseEntity view, BaseEntity subView) {
+    List uiSubView = new ArrayList();
+    List<PropertyDescriptor> properties = subViewMeta.getProperties();
+    for (PropertyDescriptor subViewFieldMeta : properties) {
+      uiSubView.add(
+          createOneSubViewField(
+              ctx,
+              subViewMeta,
+              subViewFieldMeta,
+              view,
+              subView,
+              subView.getProperty(subViewFieldMeta.getName())));
+    }
+    return uiSubView;
+  }
+
+  private Object createOneSubViewField(
+      UserContext ctx,
+      EntityDescriptor subViewMeta,
+      PropertyDescriptor subViewFieldMeta,
+      BaseEntity view,
+      BaseEntity subView,
+      Object subViewProperty) {
+    Object currentFieldValue = format(ctx, subViewFieldMeta, subViewProperty);
+    Object oneSubView =
+        MapUtil.builder()
+            .put("name", subViewFieldMeta.getName())
+            .put(currentFieldValue != null, "value", currentFieldValue)
+            .build();
+    List candidates = prepareCandidates(ctx, subViewFieldMeta, view, subView);
+    if (candidates != null) {
+      candidates = CollectionUtil.sub(candidates, 0, getCandidateLimit(subViewFieldMeta));
+      List mappingCandidates =
+          (List)
+              candidates.stream()
+                  .map(c -> buildCandidate(ctx, subViewFieldMeta, c, currentFieldValue))
+                  .collect(Collectors.toList());
+
+      renderCandidateValues(
+          ctx, subViewFieldMeta, subViewProperty, candidates, mappingCandidates, oneSubView);
+    }
+    return oneSubView;
+  }
+
+  private List prepareCandidates(
+      UserContext ctx, PropertyDescriptor subViewFieldMeta, BaseEntity view, BaseEntity subView) {
+    String candidateAction =
+        String.format("prepareCandidatesFor%s", StrUtil.upperFirst(subViewFieldMeta.getName()));
+
+    if (hasCustomized(ctx, view, subView, candidateAction)) {
+      return invokeCandidateAction(ctx, view, subView, candidateAction);
+    }
+    return null;
+  }
+
+  private void renderSubViewMeta(UserContext ctx, Object uiField, Relation relation) {
+    EntityDescriptor relationKeeper = relation.getRelationKeeper();
+
+    List<PropertyDescriptor> properties = relationKeeper.getProperties();
+    for (PropertyDescriptor property : properties) {
+      if (BooleanUtil.toBoolean(property.getStr("viewObject", "false"))) {
+        continue;
+      }
+      if (property.isVersion()) {
+        continue;
+      }
+      renderSubViewFieldMeta(ctx, uiField, relation, property);
+    }
+  }
+
+  private void renderSubViewFieldMeta(
+      UserContext ctx, Object uiField, Relation subViewRelation, PropertyDescriptor subField) {
+    addValue(
+        uiField, "subViewFields", createSubViewFieldMeta(ctx, uiField, subViewRelation, subField));
+  }
+
+  private Object createSubViewFieldMeta(
+      UserContext ctx, Object uiField, Relation subViewRelation, PropertyDescriptor subField) {
+    Object subViewUiField =
+        MapUtil.builder()
+            .put("name", subField.getName())
+            .put("label", subField.getStr("zh_CN", subField.getName()))
+            .put("type", subField.getStr("ui-type", defaultFormFieldType(ctx, subField)))
+            .build();
+    if (getBoolean(subField, "no_label", false)) {
+      setValue(subViewUiField, "label", null);
+    }
+    setUIPassThrough(subField, subViewUiField);
+    return subViewUiField;
   }
 
   private void addFormField(
@@ -281,10 +435,7 @@ public abstract class ViewRender {
         MapUtil.builder()
             .put("name", pFieldName)
             .put("label", pFieldMeta.getStr("zh_CN", pFieldName))
-            .put(
-                "type",
-                pFieldMeta.getStr(
-                    "ui-type", defaultFormFieldType(ctx, pFieldMeta, currentFieldValue)))
+            .put("type", pFieldMeta.getStr("ui-type", defaultFormFieldType(ctx, pFieldMeta)))
             .put(currentFieldValue != null, "value", currentFieldValue)
             .build();
     if (getBoolean(pFieldMeta, "no_label", false)) {
@@ -402,11 +553,22 @@ public abstract class ViewRender {
               if (!key.endsWith(UI_FIELD_ACTION_SUFFIX)) {
                 return;
               }
+
+              String[] values = value.split(",");
+              String firstAction = values[0];
               setValue(
                   field,
                   StrUtil.removeSuffix(
                       StrUtil.removePrefix(key, UI_ATTRIBUTE_PREFIX), UI_FIELD_ACTION_SUFFIX),
-                  createAction(ctx, pData, value));
+                  createAction(ctx, pData, firstAction));
+
+              for (int i = 1; i < values.length; i++) {
+                addValue(
+                    field,
+                    StrUtil.removeSuffix(
+                        StrUtil.removePrefix(key, UI_ATTRIBUTE_PREFIX), UI_FIELD_ACTION_SUFFIX),
+                    createAction(ctx, pData, values[i]));
+              }
             });
   }
 
@@ -489,13 +651,13 @@ public abstract class ViewRender {
 
               if (StrUtil.endWith(property, NUMBER_TYPE)) {
                 property = StrUtil.removeSuffix(property, NUMBER_TYPE);
-                setValue(uiElement, property, NumberUtil.parseNumber((String) value));
+                setValue(uiElement, property, NumberUtil.parseNumber(value));
                 return;
               }
 
               if (StrUtil.endWith(property, BOOL_TYPE)) {
                 property = StrUtil.removeSuffix(property, BOOL_TYPE);
-                setValue(uiElement, property, BooleanUtil.toBoolean((String) value));
+                setValue(uiElement, property, BooleanUtil.toBoolean(value));
                 return;
               }
               setValue(uiElement, property, value);
@@ -563,6 +725,13 @@ public abstract class ViewRender {
     return method != null;
   }
 
+  private boolean hasCustomized(
+      UserContext pCtx, Object view, Object subview, String pCandidateAction) {
+    Object bean = pCtx.getBean(ClassUtil.loadClass(subview.getClass().getName() + "Processor"));
+    Method method = ReflectUtil.getMethodOfObj(bean, pCandidateAction, pCtx, view, subview);
+    return method != null;
+  }
+
   private List loadConstants(Class pParentType) {
     return (List)
         ReflectUtil.getStaticFieldValue(ReflectUtil.getField(pParentType, "CODE_NAME_LIST"));
@@ -598,8 +767,13 @@ public abstract class ViewRender {
     return ReflectUtil.invoke(bean, pCandidateAction, pCtx, pData);
   }
 
-  public String defaultFormFieldType(
-      UserContext pCtx, PropertyDescriptor pFieldMeta, Object pCurrentFieldValue) {
+  private <T> T invokeCandidateAction(
+      UserContext pCtx, Object view, Object subView, String pCandidateAction) {
+    Object bean = pCtx.getBean(ClassUtil.loadClass(subView.getClass().getName() + "Processor"));
+    return ReflectUtil.invoke(bean, pCandidateAction, pCtx, view, subView);
+  }
+
+  public String defaultFormFieldType(UserContext pCtx, PropertyDescriptor pFieldMeta) {
     if (pFieldMeta instanceof Relation) {
       return "single-select";
     }
@@ -889,6 +1063,11 @@ public abstract class ViewRender {
       }
     }
 
+    T entity = parse(ctx, clazz, input);
+    return entity;
+  }
+
+  private <T extends Entity> T parse(UserContext ctx, Class<T> clazz, Map<String, Object> input) {
     T entity = ReflectUtil.newInstance(clazz);
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(entity.typeName());
     while (entityDescriptor != null) {
@@ -908,7 +1087,7 @@ public abstract class ViewRender {
             value = JSONUtil.toJsonStr(value);
           }
           entity.setProperty(name, Convert.convert(javaType, value));
-        } else {
+        } else if (property instanceof Relation r && r.getRelationKeeper() == entityDescriptor) {
           // entity
           Number id;
           if (ClassUtil.isSimpleValueType(value.getClass())) {
@@ -923,6 +1102,17 @@ public abstract class ViewRender {
                 ReflectUtil.invokeStatic(
                     ReflectUtil.getMethodByName(javaType, "refer"), id.longValue());
             entity.setProperty(name, v);
+          }
+        } else {
+          Class<? extends Entity> targetType =
+              ((Relation) property).getRelationKeeper().getTargetType();
+          // sub view
+          if (value instanceof Collection subViews) {
+            for (Object subView : subViews) {
+              if (subView instanceof Map m) {
+                entity.addRelation(property.getName(), parse(ctx, targetType, m));
+              }
+            }
           }
         }
       }
