@@ -19,6 +19,7 @@ import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
+import io.teaql.data.parser.Parser;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -554,7 +555,7 @@ public abstract class ViewRender {
                 return;
               }
 
-              String[] values = value.split(",");
+              String[] values = Parser.split(value, ',');
               String firstAction = values[0];
               setValue(
                   field,
@@ -825,14 +826,16 @@ public abstract class ViewRender {
   }
 
   public Map<Object, Object> createAction(UserContext ctx, Object data, String action) {
-    String[] actionDes = action.split(":");
+    Parser.StringPair actionDes = Parser.splitToPair(action, ':');
     String title, code;
-    title = actionDes[0];
-    if (actionDes.length > 1) {
-      code = actionDes[1];
+    if (StrUtil.isNotEmpty(actionDes.post())) {
+      title = actionDes.pre();
+      code = actionDes.post();
     } else {
-      code = actionDes[0];
+      title = actionDes.pre();
+      code = actionDes.pre();
     }
+
     return MapUtil.builder()
         .put("title", title)
         .put("code", code)
