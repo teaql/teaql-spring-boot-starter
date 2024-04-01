@@ -544,7 +544,7 @@ public abstract class ViewRender {
       PropertyDescriptor fieldMeta,
       Object pData) {
     fieldMeta
-        .getAdditionalInfo()
+        .getSelfAdditionalInfo()
         .forEach(
             (k, value) -> {
               String key = k;
