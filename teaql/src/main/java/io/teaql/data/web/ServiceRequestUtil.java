@@ -121,6 +121,19 @@ public class ServiceRequestUtil {
     return (T) dbViews.get(0);
   }
 
+  public static <T extends BaseEntity> T getFirst(UserContext ctx, T view, Predicate<T> filter) {
+    List<T> dbViews = getDBViews(ctx, view);
+    if (dbViews.isEmpty()) {
+      return null;
+    }
+    for (T dbView : dbViews) {
+      if (filter.test(dbView)) {
+        return dbView;
+      }
+    }
+    return null;
+  }
+
   public static <T> List<T> getList(UserContext ctx, BaseEntity view, String property) {
     List<BaseEntity> dbViews = getDBViews(ctx, view);
 
