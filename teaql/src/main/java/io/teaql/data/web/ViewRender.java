@@ -307,6 +307,12 @@ public abstract class ViewRender {
     List uiSubView = new ArrayList();
     List<PropertyDescriptor> properties = subViewMeta.getProperties();
     for (PropertyDescriptor subViewFieldMeta : properties) {
+      if (BooleanUtil.toBoolean(subViewFieldMeta.getStr("viewObject", "false"))) {
+        continue;
+      }
+      if (subViewFieldMeta.isVersion()) {
+        continue;
+      }
       uiSubView.add(
           createOneSubViewField(
               ctx,
