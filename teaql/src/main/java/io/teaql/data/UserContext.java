@@ -508,8 +508,8 @@ public class UserContext
    * reload the entity if id exists
    *
    * @param entity
-   * @return
    * @param <T>
+   * @return
    */
   public <T extends BaseEntity> T reload(T entity) {
     if (entity == null) {
@@ -571,6 +571,11 @@ public class UserContext
 
   public Object back() {
     setResponseHeader("command", "back");
+    return new HashMap<>();
+  }
+
+  public Object home() {
+    setResponseHeader("command", "home");
     return new HashMap<>();
   }
 }
