@@ -210,7 +210,6 @@ public class ServiceRequestUtil {
       if (viewOption.isOverride()) {
         request.setProperty(serviceRequestRelation.getReverseProperty().getName(), null);
       }
-      view.setProperty(name, null);
       request.addRelation(serviceRequestRelation.getReverseProperty().getName(), view);
     }
 
@@ -238,6 +237,25 @@ public class ServiceRequestUtil {
         ReflectUtil.getMethodByName(
             request.getClass(), StrUtil.upperFirstAndAddPre(property, "update"));
     ReflectUtil.invoke(request, method, (Object) null);
+
+    // clean up the request reference in views
+    EntityDescriptor serviceRequestDescriptor = ctx.resolveEntityDescriptor(request.typeName());
+    List<Relation> foreignRelations = serviceRequestDescriptor.getForeignRelations();
+    for (Relation foreignRelation : foreignRelations) {
+      Object subData = request.getProperty(foreignRelation.getName());
+      if (subData instanceof SmartList l) {
+        for (Object o : l) {
+          BaseEntity item = (BaseEntity) o;
+          Relation serviceRequestRelation = getServiceRequestRelation(ctx, item);
+          String name = serviceRequestRelation.getName();
+          item.setProperty(name, null);
+        }
+      } else if (subData instanceof BaseEntity e) {
+        Relation serviceRequestRelation = getServiceRequestRelation(ctx, e);
+        String name = serviceRequestRelation.getName();
+        e.setProperty(name, null);
+      }
+    }
     request.save(ctx);
   }
 
