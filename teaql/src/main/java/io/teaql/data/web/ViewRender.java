@@ -333,10 +333,12 @@ public abstract class ViewRender {
       BaseEntity subView,
       Object subViewProperty) {
     Object currentFieldValue = format(ctx, subViewFieldMeta, subViewProperty);
+    String subViewType = subViewUIType(ctx, view, subView, subViewFieldMeta);
     Object oneSubView =
         MapUtil.builder()
             .put("name", subViewFieldMeta.getName())
             .put(currentFieldValue != null, "value", currentFieldValue)
+            .put(subViewType != null, "type", subViewType)
             .build();
     List candidates = prepareCandidates(ctx, subViewFieldMeta, view, subView);
     if (candidates != null) {
@@ -350,7 +352,18 @@ public abstract class ViewRender {
       renderCandidateValues(
           ctx, subViewFieldMeta, subViewProperty, candidates, mappingCandidates, oneSubView);
     }
+
     return oneSubView;
+  }
+
+  private String subViewUIType(
+      UserContext ctx, BaseEntity view, BaseEntity subView, PropertyDescriptor subViewProperty) {
+    String candidateAction =
+        String.format("subViewTypeFor%s", StrUtil.upperFirst(subViewProperty.getName()));
+    if (hasCustomized(ctx, view, subView, candidateAction)) {
+      return invokeCandidateAction(ctx, view, subView, candidateAction);
+    }
+    return null;
   }
 
   private List prepareCandidates(
