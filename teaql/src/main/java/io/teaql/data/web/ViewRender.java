@@ -210,9 +210,36 @@ public abstract class ViewRender {
     addPageTitle(ctx, page, meta, data);
     addFormActions(ctx, page, meta, data);
     addFormFields(ctx, page, meta, data);
+    addPageActions(ctx, page, meta, data);
     setUIPassThrough(meta, page);
     addRequestId(ctx, page);
     return page;
+  }
+
+  private void addPageActions(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
+    meta.getAdditionalInfo()
+        .forEach(
+            (k, value) -> {
+              String key = k;
+              if (!key.startsWith(UI_ATTRIBUTE_PREFIX)) {
+                return;
+              }
+
+              key = StrUtil.removePrefix(key, UI_ATTRIBUTE_PREFIX);
+              if (!key.endsWith(UI_FIELD_ACTION_SUFFIX)) {
+                return;
+              }
+
+              key = StrUtil.removeSuffix(key, UI_FIELD_ACTION_SUFFIX);
+
+              String[] values = Parser.split(value, ',');
+              String firstAction = values[0];
+              setValue(page, key, createAction(ctx, data, firstAction));
+
+              for (int i = 1; i < values.length; i++) {
+                addValue(page, key, createAction(ctx, data, values[i]));
+              }
+            });
   }
 
   private void addRequestId(UserContext ctx, Object page) {
