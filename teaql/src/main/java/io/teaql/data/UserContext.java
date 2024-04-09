@@ -180,6 +180,10 @@ public class UserContext
     localStorage.put(key, value);
   }
 
+  public void del(String key) {
+    localStorage.remove(key);
+  }
+
   public void append(String key, Object value) {
     if (ObjectUtil.isEmpty(key)) {
       throw new IllegalArgumentException("key cannot be null");

@@ -40,6 +40,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     implements SQLColumnResolver {
   public static final String TYPE_ALIAS = "_type_";
+  public static final String IGNORE_SUBTYPES = "IGNORE_SUBTYPES";
   private String childType = "_child_type";
   private String childSqlType = "VARCHAR(100)";
   private String tqlIdSpaceTable = "teaql_id_space";
@@ -825,9 +826,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             .map(e -> ExpressionHelper.toSql(userContext, e, idTable, pParameters, this))
             .collect(Collectors.joining(", "));
 
-    String typeSQL = getTypeSQL(userContext);
-    if (ObjectUtil.isNotEmpty(typeSQL)) {
-      selects = selects + ", " + typeSQL;
+    if (!userContext.getBool(IGNORE_SUBTYPES, false)) {
+      String typeSQL = getTypeSQL(userContext);
+      if (ObjectUtil.isNotEmpty(typeSQL)) {
+        selects = selects + ", " + typeSQL;
+      }
     }
     return selects;
   }

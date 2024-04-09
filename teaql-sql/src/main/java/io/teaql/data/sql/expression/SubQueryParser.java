@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteria> {
+
+  public static final String IGNORE_SUBTYPES = "IGNORE_SUBTYPES";
+
   @Override
   public Class<SubQuerySearchCriteria> type() {
     return SubQuerySearchCriteria.class;
@@ -43,7 +46,10 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
       // select depends on property
       tempRequest.selectProperty(dependsOnPropertyName);
       tempRequest.appendSearchCriteria(dependsOn.getSearchCriteria());
+
+      userContext.put(IGNORE_SUBTYPES, true);
       String subQuery = subRepository.buildDataSQL(userContext, tempRequest, parameters);
+      userContext.del(IGNORE_SUBTYPES);
       if (ObjectUtil.isEmpty(subQuery)) {
         return SearchCriteria.FALSE;
       }
