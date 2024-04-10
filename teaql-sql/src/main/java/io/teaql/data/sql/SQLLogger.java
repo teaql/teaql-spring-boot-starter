@@ -164,8 +164,8 @@ public class SQLLogger {
     if (value instanceof Number) {
       return value.toString();
     }
-    if (value instanceof Boolean) {
-      return (Boolean) value ? "1" : "0";
+    if (value instanceof Boolean b) {
+      return b.toString();
     }
     if (value instanceof String) {
       String strValue = (String) value;
