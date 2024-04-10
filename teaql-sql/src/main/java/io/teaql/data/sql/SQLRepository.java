@@ -201,7 +201,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   private void updateVersionTableVersion(UserContext userContext, SQLEntity sqlEntity) {
     String updateSql =
         StrUtil.format(
-            "UPDATE {} SET {} = ？ WHERE {} = ? and {} = ?",
+            "UPDATE {} SET {} = ? WHERE {} = ? and {} = ?",
             this.versionTableName,
             VERSION,
             ID,
