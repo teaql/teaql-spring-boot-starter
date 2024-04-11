@@ -184,6 +184,10 @@ public class UserContext
     localStorage.remove(key);
   }
 
+  public boolean containsKey(String key) {
+    return localStorage.containsKey(key);
+  }
+
   public void append(String key, Object value) {
     if (ObjectUtil.isEmpty(key)) {
       throw new IllegalArgumentException("key cannot be null");
