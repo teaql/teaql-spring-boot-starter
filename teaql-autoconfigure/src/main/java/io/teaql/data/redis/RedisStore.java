@@ -14,12 +14,12 @@ public class RedisStore implements DataStore {
 
   @Override
   public void put(String key, Object object) {
-    redisTemplate.opsForValue().setIfPresent(key, object);
+    redisTemplate.opsForValue().set(key, object);
   }
 
   @Override
   public void put(String key, Object object, long timeout) {
-    redisTemplate.opsForValue().setIfPresent(key, object, timeout, TimeUnit.SECONDS);
+    redisTemplate.opsForValue().set(key, object, timeout, TimeUnit.SECONDS);
   }
 
   @Override
