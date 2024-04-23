@@ -1070,6 +1070,24 @@ public abstract class ViewRender {
     return new HashMap<>();
   }
 
+  public void removeFields(Object view, String... names) {
+    List groups = BeanUtil.getProperty(view, "groupList");
+    if (ObjectUtil.isEmpty(groups)) {
+      return;
+    }
+
+    if (names == null) {
+      return;
+    }
+
+    for (Object group : groups) {
+      List fieldList = BeanUtil.getProperty(group, "fieldList");
+      if (fieldList != null) {
+        fieldList.removeIf(o -> ArrayUtil.contains(names, BeanUtil.getProperty(o, "name")));
+      }
+    }
+  }
+
   public void showFields(Object view, String... names) {
     if (names != null) {
       for (String name : names) {
