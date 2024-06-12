@@ -83,7 +83,7 @@ public abstract class BaseService {
     }
     entity.markAsDeleted();
     entity.save(ctx);
-    return WebResponse.success();
+    return WebResponse.of((BaseEntity) entity);
   }
 
   public WebResponse doSave(UserContext ctx, String action, String parameter) {
@@ -102,6 +102,7 @@ public abstract class BaseService {
       clearRemovedItemsBeforeCreate(ctx, baseEntity);
       maintainRelationship(ctx, baseEntity);
       baseEntity.save(ctx);
+      return WebResponse.of(baseEntity);
     } else {
       // load the entity before update
       BaseEntity dbItem = reloadEntity(ctx, type, parameter);
@@ -112,8 +113,8 @@ public abstract class BaseService {
       mergeEntity(ctx, entityDescriptor, baseEntity, dbItem);
       // save item
       dbItem.save(ctx);
+      return WebResponse.of(dbItem);
     }
-    return WebResponse.success();
   }
 
   private void maintainRelationship(UserContext ctx, BaseEntity baseEntity) {
