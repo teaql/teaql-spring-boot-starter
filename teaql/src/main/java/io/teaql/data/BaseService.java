@@ -75,7 +75,7 @@ public abstract class BaseService {
     return WebResponse.of(baseRequest.executeForList(ctx));
   }
 
-  private WebResponse doDelete(UserContext ctx, String action, String parameter) {
+  public WebResponse doDelete(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "delete");
     Entity entity = reloadEntity(ctx, type, parameter);
     if (entity == null) {
@@ -86,7 +86,7 @@ public abstract class BaseService {
     return WebResponse.success();
   }
 
-  private WebResponse doSave(UserContext ctx, String action, String parameter) {
+  public WebResponse doSave(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "save");
     BaseEntity baseEntity = parseEntity(ctx, type, parameter);
     if (baseEntity == null) {
