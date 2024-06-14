@@ -500,7 +500,11 @@ public class UserContext
   }
 
   public void putInStore(String key, Object value, int timeout) {
-    getBean(DataStore.class).put(key, value, timeout);
+    if (timeout <= 0) {
+      getBean(DataStore.class).put(key, value);
+    } else {
+      getBean(DataStore.class).put(key, value, timeout);
+    }
   }
 
   public void duplicateFormException() {
