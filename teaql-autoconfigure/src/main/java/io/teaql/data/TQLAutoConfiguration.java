@@ -7,6 +7,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
@@ -103,6 +104,7 @@ public class TQLAutoConfiguration {
           mapper -> {
             mapper.registerModule(TeaQLModule.INSTANCE);
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
           });
     };
   }
