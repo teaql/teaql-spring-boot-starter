@@ -512,7 +512,7 @@ public class UserContext
         "Your form is submitted and processing, please don't resubmit.");
   }
 
-  public void errorMessage(String message, Object args) {
+  public void errorMessage(String message, Object... args) {
     throw new ErrorMessageException(StrUtil.format(message, args));
   }
 
