@@ -1069,6 +1069,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     for (Relation ownRelation : ownRelations) {
       ensureForeignKeyForRelation(ctx, constraints, ownRelation);
     }
+    for (String table : allTableNames) {
+      if (table.equals(versionTableName)) {
+        continue;
+      }
+      ensureFK(ctx, constraints, table, "id", versionTableName, "id");
+    }
   }
 
   private void ensureForeignKeyForRelation(
@@ -1080,12 +1086,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       String fTableName = tableName(owner.getType());
       String fColumnName = "id";
       ensureFK(ctx, constraints, tableName, columnName, fTableName, fColumnName);
-    }
-    for (String table : allTableNames) {
-      if (table.equals(versionTableName)) {
-        continue;
-      }
-      ensureFK(ctx, constraints, table, "id", versionTableName, "id");
     }
   }
 
