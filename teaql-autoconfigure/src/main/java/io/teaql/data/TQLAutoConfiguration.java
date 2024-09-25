@@ -7,7 +7,9 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
@@ -35,6 +37,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
@@ -76,7 +79,10 @@ public class TQLAutoConfiguration {
   public RedisTemplate<String, Object> redisTemplate(
       RedisConnectionFactory redisConnectionFactory) {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
-    template.setDefaultSerializer(RedisSerializer.json());
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.enableDefaultTyping(
+        ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+    template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
     template.setConnectionFactory(redisConnectionFactory);
     return template;
   }
