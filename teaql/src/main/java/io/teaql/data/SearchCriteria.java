@@ -2,6 +2,7 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
 import io.teaql.data.criteria.AND;
+import io.teaql.data.criteria.NOT;
 import io.teaql.data.criteria.OR;
 
 import java.util.List;
@@ -21,32 +22,5 @@ public interface SearchCriteria extends Expression {
   static SearchCriteria not(SearchCriteria sub) {
     return new NOT(sub);
   }
-
-
-
-  class NOT implements SearchCriteria, PropertyAware {
-    private SearchCriteria inner;
-
-    public SearchCriteria getInner() {
-      return inner;
-    }
-
-    public void setInner(SearchCriteria pInner) {
-      inner = pInner;
-    }
-
-    public NOT(SearchCriteria pInner) {
-      inner = pInner;
-    }
-
-    @Override
-    public List<String> properties(UserContext ctx) {
-      if (inner != null) {
-        return inner.properties(ctx);
-      }
-      return ListUtil.empty();
-    }
-  }
-
 
 }
