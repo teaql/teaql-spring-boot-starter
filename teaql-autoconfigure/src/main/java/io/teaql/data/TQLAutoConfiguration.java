@@ -38,7 +38,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -81,7 +80,7 @@ public class TQLAutoConfiguration {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.enableDefaultTyping(
-        ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
     template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
     template.setConnectionFactory(redisConnectionFactory);
     return template;
