@@ -973,8 +973,6 @@ public abstract class ViewRender {
   }
 
   public void errorMessage(UserContext ctx, String message, Object... args) {
-    String req = ctx.getStr("_req");
-    ctx.del(req);
     ctx.errorMessage(message, args);
   }
 
