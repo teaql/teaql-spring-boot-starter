@@ -45,6 +45,10 @@ public abstract class ViewRender {
       return renderEmptyView(ctx);
     }
 
+    if (!(data instanceof BaseEntity)) {
+      return data;
+    }
+
     Method showPop = ReflectUtil.getMethodByName(getTemplateRender(ctx).getClass(), "showPop");
     if (showPop != null) {
       Object o = ReflectUtil.invoke(getTemplateRender(ctx), showPop, ctx, data);

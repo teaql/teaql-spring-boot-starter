@@ -1,11 +1,8 @@
 package io.teaql.data;
 
-import cn.hutool.core.collection.ListUtil;
 import io.teaql.data.criteria.AND;
 import io.teaql.data.criteria.NOT;
 import io.teaql.data.criteria.OR;
-
-import java.util.List;
 
 public interface SearchCriteria extends Expression {
   String TRUE = "true";
