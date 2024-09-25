@@ -954,7 +954,7 @@ public abstract class ViewRender {
 
   public String encode(UserContext ctx, Object data, Map<String, Object> additional) {
     if (data == null) {
-      errorMessage("data should not null");
+      errorMessage(ctx, "data should not null");
     }
     EntityDescriptor entity = ctx.resolveEntityDescriptor(((Entity) data).typeName());
     Map<String, Object> values = new HashMap<>();
@@ -972,8 +972,10 @@ public abstract class ViewRender {
     return Base64Encoder.encodeUrlSafe(JSONUtil.toJsonStr(values));
   }
 
-  public void errorMessage(String message, Object... args) {
-    throw new ErrorMessageException(StrUtil.format(message, args));
+  public void errorMessage(UserContext ctx, String message, Object... args) {
+    String req = ctx.getStr("_req");
+    ctx.del(req);
+    ctx.errorMessage(message, args);
   }
 
   private void addPageTitle(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
@@ -1211,7 +1213,7 @@ public abstract class ViewRender {
       if (ObjectUtil.isEmpty(realViolates)) {
         return;
       }
-      throw new CheckException(realViolates);
+      errorMessage(ctx, new CheckException(realViolates).getMessage());
     }
   }
 
