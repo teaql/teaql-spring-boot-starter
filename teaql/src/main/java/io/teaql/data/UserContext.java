@@ -515,7 +515,7 @@ public class UserContext
   public void errorMessage(String message, Object... args) {
     String req = getStr("_req");
     if (req != null) {
-      del(req);
+      clearInStore(req);
     }
     throw new ErrorMessageException(StrUtil.format(message, args));
   }
