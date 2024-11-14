@@ -2,6 +2,7 @@ package io.teaql.data.web;
 
 import static io.teaql.data.web.ServletUserContextInitializer.USER_CONTEXT;
 
+import cn.hutool.core.util.StrUtil;
 import io.teaql.data.UserContext;
 import io.teaql.data.log.Markers;
 import jakarta.servlet.FilterChain;
@@ -40,7 +41,11 @@ public class MultiReadFilter implements OrderedFilter {
             responseWrapper.getHeader(headerName));
       }
       String responseBody = getResponseBody(response);
-      userContext.debug(Markers.HTTP_RESPONSE, "Response body: {}", responseBody);
+      if (StrUtil.length(responseBody) < 1000) {
+        userContext.debug(Markers.HTTP_SHOT_RESPONSE, "Response body: {}", responseBody);
+      } else {
+        userContext.debug(Markers.HTTP_RESPONSE, "Response body: {}", responseBody);
+      }
     }
     ((ContentCachingResponseWrapper) response).copyBodyToResponse();
   }

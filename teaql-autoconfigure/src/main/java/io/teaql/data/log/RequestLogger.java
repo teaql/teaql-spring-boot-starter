@@ -15,7 +15,7 @@ public class RequestLogger implements UserContextInitializer, Ordered {
   @Override
   public void init(UserContext userContext, Object request) {
     userContext.debug(
-        Markers.HTTP_REQUEST, "{} {}", userContext.method(), userContext.requestUri());
+        Markers.HTTP_SHOT_REQUEST, "{} {}", userContext.method(), userContext.requestUri());
     List<String> headerNames = userContext.getHeaderNames();
     for (String headerName : headerNames) {
       userContext.debug(
@@ -25,7 +25,7 @@ public class RequestLogger implements UserContextInitializer, Ordered {
     List<String> parameterNames = userContext.getParameterNames();
     for (String parameterName : parameterNames) {
       userContext.debug(
-          Markers.HTTP_REQUEST,
+          Markers.HTTP_SHOT_REQUEST,
           "PARAM {}={}",
           parameterName,
           userContext.getParameter(parameterName));
@@ -33,7 +33,12 @@ public class RequestLogger implements UserContextInitializer, Ordered {
 
     byte[] bodyBytes = userContext.getBodyBytes();
     if (bodyBytes != null) {
-      userContext.debug(Markers.HTTP_REQUEST, "BODY: {}", new String(bodyBytes));
+      String body = new String(bodyBytes);
+      if (body.length() < 1000) {
+        userContext.debug(Markers.HTTP_SHOT_REQUEST, "BODY: {}", body);
+      } else {
+        userContext.debug(Markers.HTTP_REQUEST, "BODY: {}", body);
+      }
     }
   }
 

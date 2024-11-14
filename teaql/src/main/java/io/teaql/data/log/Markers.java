@@ -9,5 +9,7 @@ public interface Markers {
   Marker SQL_SELECT = MarkerFactory.getMarker("SQL_SELECT");
   Marker SQL_UPDATE = MarkerFactory.getMarker("SQL_UPDATE");
   Marker HTTP_REQUEST = MarkerFactory.getMarker("HTTP_REQUEST");
+  Marker HTTP_SHOT_REQUEST = MarkerFactory.getMarker("HTTP_SHOT_REQUEST");
   Marker HTTP_RESPONSE = MarkerFactory.getMarker("HTTP_RESPONSE");
+  Marker HTTP_SHOT_RESPONSE = MarkerFactory.getMarker("HTTP_SHOT_RESPONSE");
 }
