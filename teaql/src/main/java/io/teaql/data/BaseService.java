@@ -78,6 +78,7 @@ public abstract class BaseService {
   public WebResponse doDelete(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "delete");
     Entity entity = reloadEntity(ctx, type, parameter);
+    validateEntityForDelete(entity);
     if (entity == null) {
       return WebResponse.success();
     }
@@ -86,9 +87,12 @@ public abstract class BaseService {
     return WebResponse.of((BaseEntity) entity);
   }
 
+  public void validateEntityForDelete(Entity entity) {}
+
   public WebResponse doSave(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "save");
     BaseEntity baseEntity = parseEntity(ctx, type, parameter);
+    validateEntityForSave(baseEntity);
     if (baseEntity == null) {
       return WebResponse.success();
     }
@@ -116,6 +120,8 @@ public abstract class BaseService {
       return WebResponse.of(dbItem);
     }
   }
+
+  public void validateEntityForSave(BaseEntity entity) {}
 
   private void maintainRelationship(UserContext ctx, BaseEntity baseEntity) {
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(baseEntity.typeName());
@@ -350,7 +356,7 @@ public abstract class BaseService {
     return (BaseEntity) baseRequest.execute(ctx);
   }
 
-  private BaseEntity parseEntity(UserContext ctx, String type, String parameter) {
+  public BaseEntity parseEntity(UserContext ctx, String type, String parameter) {
     if (ObjectUtil.isEmpty(parameter)) {
       throw new IllegalArgumentException("missing parameter");
     }
