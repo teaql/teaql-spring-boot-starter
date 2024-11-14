@@ -42,7 +42,7 @@ public class MultiReadFilter implements OrderedFilter {
       }
       String responseBody = getResponseBody(response);
       if (StrUtil.length(responseBody) < 1000) {
-        userContext.debug(Markers.HTTP_SHOT_RESPONSE, "Response body: {}", responseBody);
+        userContext.debug(Markers.HTTP_SHORT_RESPONSE, "Response body: {}", responseBody);
       } else {
         userContext.debug(Markers.HTTP_RESPONSE, "Response body: {}", responseBody);
       }
