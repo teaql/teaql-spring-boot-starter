@@ -83,9 +83,12 @@ public abstract class BaseService {
       return WebResponse.success();
     }
     entity.markAsDeleted();
+    beforeDelete(ctx, entity);
     entity.save(ctx);
     return WebResponse.of((BaseEntity) entity);
   }
+
+  private void beforeDelete(UserContext ctx, Entity entity) {}
 
   public void validateEntityForDelete(UserContext ctx, Entity entity) {}
 
@@ -115,11 +118,14 @@ public abstract class BaseService {
       }
       EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(type);
       mergeEntity(ctx, entityDescriptor, baseEntity, dbItem);
+      beforeSave(ctx, dbItem);
       // save item
       dbItem.save(ctx);
       return WebResponse.of(dbItem);
     }
   }
+
+  public void beforeSave(UserContext ctx, BaseEntity item) {}
 
   public void validateEntityForSave(UserContext ctx, BaseEntity entity) {}
 
