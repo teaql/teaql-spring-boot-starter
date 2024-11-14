@@ -78,7 +78,7 @@ public abstract class BaseService {
   public WebResponse doDelete(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "delete");
     Entity entity = reloadEntity(ctx, type, parameter);
-    validateEntityForDelete(entity);
+    validateEntityForDelete(ctx, entity);
     if (entity == null) {
       return WebResponse.success();
     }
@@ -87,12 +87,12 @@ public abstract class BaseService {
     return WebResponse.of((BaseEntity) entity);
   }
 
-  public void validateEntityForDelete(Entity entity) {}
+  public void validateEntityForDelete(UserContext ctx, Entity entity) {}
 
   public WebResponse doSave(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "save");
     BaseEntity baseEntity = parseEntity(ctx, type, parameter);
-    validateEntityForSave(baseEntity);
+    validateEntityForSave(ctx, baseEntity);
     if (baseEntity == null) {
       return WebResponse.success();
     }
@@ -121,7 +121,7 @@ public abstract class BaseService {
     }
   }
 
-  public void validateEntityForSave(BaseEntity entity) {}
+  public void validateEntityForSave(UserContext ctx, BaseEntity entity) {}
 
   private void maintainRelationship(UserContext ctx, BaseEntity baseEntity) {
     EntityDescriptor entityDescriptor = ctx.resolveEntityDescriptor(baseEntity.typeName());
