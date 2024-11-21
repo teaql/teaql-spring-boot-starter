@@ -8,6 +8,7 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.StaticLog;
 import io.teaql.data.Entity;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -33,8 +34,8 @@ public class TaskRunner {
   }
 
   public void execute(Runnable runnable, String... keys) {
-    lock(keys);
     try {
+      lock(5000, keys);
       runnable.run();
     } finally {
       unlock(keys);
@@ -42,27 +43,33 @@ public class TaskRunner {
   }
 
   public void singleTaskRun(String taskName, Runnable runnable) {
-    boolean canRun = tryLock(taskName);
-    if (!canRun) {
-      throw new RuntimeException(StrUtil.format("Task {} is already running.", taskName));
-    }
+    boolean canRun = false;
     try {
+      canRun = tryLock(taskName);
+      if (!canRun) {
+        throw new RuntimeException(StrUtil.format("Task {} is already running.", taskName));
+      }
       runnable.run();
     } finally {
-      unlock(taskName);
+      if (canRun) {
+        unlock(taskName);
+      }
     }
   }
 
   public void trySingleTaskRun(String taskName, Runnable runnable) {
-    boolean canRun = tryLock(taskName);
-    if (!canRun) {
-      StaticLog.info("Task {} is already running.", taskName);
-      return;
-    }
+    boolean canRun = false;
     try {
+      canRun = tryLock(taskName);
+      if (!canRun) {
+        StaticLog.info("Task {} is already running.", taskName);
+        return;
+      }
       runnable.run();
     } finally {
-      unlock(taskName);
+      if (canRun) {
+        unlock(taskName);
+      }
     }
   }
 
@@ -74,8 +81,8 @@ public class TaskRunner {
   }
 
   public <V> V call(Callable<V> callable, String... keys) {
-    lock(keys);
     try {
+      lock(5000, keys);
       return callable.call();
     } catch (Exception pE) {
       throw new RuntimeException(pE);
@@ -84,16 +91,36 @@ public class TaskRunner {
     }
   }
 
-  private void lock(String... keys) {
+  private void lock(long timeout, String... keys) {
     keys = ArrayUtil.removeNull(keys);
     if (ObjUtil.isEmpty(keys)) {
       return;
     }
     List<String> list = ListUtil.list(false, keys);
     Collections.sort(list);
-    for (String key : list) {
-      Lock lock = ensureLockForKey(key);
-      lock.lock();
+    List<Lock> acquiredLocks = new ArrayList<>();
+    boolean release = false;
+    try {
+      for (String key : list) {
+        Lock lock = ensureLockForKey(key);
+        try {
+          if (!lock.tryLock(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+            release = true;
+            throw new RuntimeException("error while acquire lock:" + key);
+          }
+          acquiredLocks.add(lock);
+        } catch (InterruptedException pE) {
+          release = true;
+          throw new RuntimeException(pE);
+        }
+      }
+
+    } finally {
+      if (release) {
+        for (Lock acquiredLock : acquiredLocks) {
+          acquiredLock.unlock();
+        }
+      }
     }
   }
 
@@ -104,13 +131,25 @@ public class TaskRunner {
     }
     List<String> list = ListUtil.list(false, keys);
     Collections.sort(list);
-    for (String key : list) {
-      Lock lock = ensureLockForKey(key);
-      if (!lock.tryLock()) {
-        return false;
+    List<Lock> acquiredLocks = new ArrayList<>();
+    boolean release = false;
+    try {
+      for (String key : list) {
+        Lock lock = ensureLockForKey(key);
+        if (!lock.tryLock()) {
+          release = true;
+          break;
+        }
+        acquiredLocks.add(lock);
+      }
+      return !release;
+    } finally {
+      if (release) {
+        for (Lock acquiredLock : acquiredLocks) {
+          acquiredLock.unlock();
+        }
       }
     }
-    return true;
   }
 
   private void unlock(String... keys) {
