@@ -1,6 +1,8 @@
 package io.teaql.data;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import java.util.List;
 
 // the super interface in TEAQL repository
@@ -17,7 +19,10 @@ public interface Entity {
     return this.getClass().getSimpleName();
   }
 
-  default String runtimeType() {return typeName();};
+  default String runtimeType() {
+    return typeName();
+  }
+  ;
 
   default void setRuntimeType(String runtimeType) {}
 
@@ -51,6 +56,11 @@ public interface Entity {
 
   default void setProperty(String propertyName, Object value) {
     BeanUtil.setProperty(this, propertyName, value);
+  }
+
+  default Entity updateProperty(String propertyName, Object value) {
+    ReflectUtil.invoke(this, "update" + StrUtil.upperFirst(propertyName), value);
+    return this;
   }
 
   List<String> getUpdatedProperties();
