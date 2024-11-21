@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.teaql.data.jackson.TeaQLModule;
+import io.teaql.data.lock.TaskRunner;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.redis.RedisStore;
@@ -56,6 +57,12 @@ import reactor.core.publisher.Mono;
 
 @Configuration
 public class TQLAutoConfiguration {
+
+  @Bean(name = "teaqlTaskRunner")
+  public TaskRunner taskRunner() {
+    return new TaskRunner();
+  }
+
   @Bean
   @ConfigurationProperties(prefix = "teaql")
   public DataConfigProperties dataConfig() {
