@@ -3,6 +3,7 @@ package io.teaql.data;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import java.lang.reflect.Method;
 import java.util.List;
 
 // the super interface in TEAQL repository
@@ -59,7 +60,9 @@ public interface Entity {
   }
 
   default Entity updateProperty(String propertyName, Object value) {
-    ReflectUtil.invoke(this, "update" + StrUtil.upperFirst(propertyName), value);
+    Method method =
+        ReflectUtil.getMethodByName(getClass(), "update" + StrUtil.upperFirst(propertyName));
+    ReflectUtil.invoke(this, method, value);
     return this;
   }
 
