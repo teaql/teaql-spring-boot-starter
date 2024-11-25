@@ -62,7 +62,7 @@ public abstract class BaseService {
     return WebResponse.fail(StrUtil.format("unknown action: %s", action));
   }
 
-  private WebResponse doCandidate(UserContext ctx, String action, String parameter) {
+  public WebResponse doCandidate(UserContext ctx, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "list");
     type = StrUtil.removeSuffix(type, "ForCandidate");
     Class<? extends BaseRequest> requestClass = requestClass(type);
@@ -376,7 +376,7 @@ public abstract class BaseService {
     }
   }
 
-  private WebResponse doDynamicSearch(
+  public WebResponse doDynamicSearch(
       UserContext ctx, String beanName, String action, String parameter) {
     String type = StrUtil.removePrefix(action, "search");
     Class<? extends BaseRequest> requestClass = requestClass(type);
