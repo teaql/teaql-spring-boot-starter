@@ -67,7 +67,7 @@ public abstract class BaseService {
     type = StrUtil.removeSuffix(type, "ForCandidate");
     Class<? extends BaseRequest> requestClass = requestClass(type);
     Class<? extends BaseEntity> entityClass = getEntityClass(type);
-    BaseRequest baseRequest = ReflectUtil.newInstance(requestClass, entityClass);
+    BaseRequest baseRequest = ctx.initRequest(entityClass);
     baseRequest.selectAll();
     if (ObjectUtil.isNotEmpty(parameter)) {
       baseRequest.internalFindWithJsonExpr(parameter);

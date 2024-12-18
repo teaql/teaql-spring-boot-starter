@@ -564,6 +564,8 @@ public class UserContext
     String name = type.getName();
     BaseRequest request = ReflectUtil.newInstance(ClassUtil.loadClass(name + "Request"), type);
     request.selectSelf();
+    request.appendSearchCriteria(
+        request.createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0l));
     return request;
   }
 
