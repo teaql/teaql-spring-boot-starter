@@ -1,5 +1,7 @@
 package io.teaql.data;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
@@ -24,7 +26,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -43,7 +45,7 @@ public class UserContext
   public static final String RESPONSE_HOLDER = "$response:responseHolder";
   InternalIdGenerator internalIdGenerator;
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
-  private final Map<String, Object> localStorage = new ConcurrentHashMap<>();
+  private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {
@@ -461,11 +463,15 @@ public class UserContext
   }
 
   public Object getObj(String key, Object defaultValue) {
-    Object o = localStorage.get(key);
-    if (o != null) {
-      return o;
-    }
-    return defaultValue;
+    return get(key, () -> defaultValue);
+  }
+
+  public <T> T get(String key, Supplier<T> supplier) {
+    return (T) localStorage.get(key, () -> supplier.get());
+  }
+
+  public <T> T advancedGet(String key, Supplier<T> supplier) {
+    return get(key, () -> getInStore(key, supplier));
   }
 
   @Override
@@ -489,6 +495,10 @@ public class UserContext
 
   public <T> T getInStore(String key) {
     return getBean(DataStore.class).get(key);
+  }
+
+  public <T> T getInStore(String key, Supplier<T> supplier) {
+    return getBean(DataStore.class).get(key, supplier);
   }
 
   public <T> T getAndRemoveInStore(String key) {
