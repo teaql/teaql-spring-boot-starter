@@ -1,6 +1,7 @@
 package io.teaql.data;
 
 import java.util.List;
+import java.util.Objects;
 
 public class SimpleNamedExpression implements Expression {
   String name;
@@ -29,5 +30,17 @@ public class SimpleNamedExpression implements Expression {
   @Override
   public List<String> properties(UserContext ctx) {
     return expression.properties(ctx);
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof SimpleNamedExpression that)) return false;
+    return Objects.equals(name, that.name) && Objects.equals(getExpression(), that.getExpression());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, getExpression());
   }
 }

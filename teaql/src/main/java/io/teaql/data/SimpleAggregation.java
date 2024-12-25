@@ -1,5 +1,7 @@
 package io.teaql.data;
 
+import java.util.Objects;
+
 public class SimpleAggregation implements Expression {
   private String name;
   private SearchRequest aggregateRequest;
@@ -39,5 +41,19 @@ public class SimpleAggregation implements Expression {
 
   public void setSingleNumber(boolean pSingleNumber) {
     singleNumber = pSingleNumber;
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof SimpleAggregation that)) return false;
+    return isSingleNumber() == that.isSingleNumber()
+        && Objects.equals(getName(), that.getName())
+        && Objects.equals(getAggregateRequest(), that.getAggregateRequest());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getAggregateRequest(), isSingleNumber());
   }
 }

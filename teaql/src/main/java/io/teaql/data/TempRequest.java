@@ -47,9 +47,7 @@ public class TempRequest extends BaseRequest {
     return this;
   }
 
-    public void setOrderBy(OrderBys orderBy) {
-
-      orderBys=orderBy;
-
-    }
+  public void setOrderBy(OrderBys orderBy) {
+    orderBys = orderBy;
+  }
 }

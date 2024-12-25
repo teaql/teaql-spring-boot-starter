@@ -2,6 +2,7 @@ package io.teaql.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class OrderBys implements Expression {
   private List<OrderBy> orderBys = new ArrayList<>();
@@ -36,5 +37,17 @@ public class OrderBys implements Expression {
 
   public boolean isEmpty() {
     return orderBys.isEmpty();
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof OrderBys orderBys1)) return false;
+    return Objects.equals(getOrderBys(), orderBys1.getOrderBys());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getOrderBys());
   }
 }

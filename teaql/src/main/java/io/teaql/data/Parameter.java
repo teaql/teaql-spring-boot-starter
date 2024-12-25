@@ -7,6 +7,7 @@ import io.teaql.data.criteria.Operator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class Parameter implements Expression {
   private String name;
@@ -83,5 +84,19 @@ public class Parameter implements Expression {
 
   public void setOperator(Operator pOperator) {
     operator = pOperator;
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof Parameter parameter)) return false;
+    return Objects.equals(getName(), parameter.getName())
+        && Objects.equals(getValue(), parameter.getValue())
+        && getOperator() == parameter.getOperator();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getValue(), getOperator());
   }
 }

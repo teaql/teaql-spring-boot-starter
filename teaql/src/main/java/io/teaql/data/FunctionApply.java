@@ -5,6 +5,7 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FunctionApply implements Expression {
   PropertyFunction operator;
@@ -53,5 +54,18 @@ public class FunctionApply implements Expression {
 
   public Expression last() {
     return CollUtil.get(expressions, -1);
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof FunctionApply that)) return false;
+    return Objects.equals(getOperator(), that.getOperator())
+        && Objects.equals(getExpressions(), that.getExpressions());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getOperator(), getExpressions());
   }
 }

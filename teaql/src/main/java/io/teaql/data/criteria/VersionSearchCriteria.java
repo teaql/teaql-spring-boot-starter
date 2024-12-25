@@ -3,6 +3,7 @@ package io.teaql.data.criteria;
 import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import java.util.List;
+import java.util.Objects;
 
 public class VersionSearchCriteria implements SearchCriteria {
   private SearchCriteria searchCriteria;
@@ -22,5 +23,17 @@ public class VersionSearchCriteria implements SearchCriteria {
 
   public void setSearchCriteria(SearchCriteria pSearchCriteria) {
     searchCriteria = pSearchCriteria;
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof VersionSearchCriteria that)) return false;
+    return Objects.equals(getSearchCriteria(), that.getSearchCriteria());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getSearchCriteria());
   }
 }

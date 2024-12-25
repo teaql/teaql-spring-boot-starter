@@ -1,5 +1,7 @@
 package io.teaql.data;
 
+import java.util.Objects;
+
 public class TypeCriteria implements SearchCriteria {
   private Parameter typeParameter;
 
@@ -15,5 +17,17 @@ public class TypeCriteria implements SearchCriteria {
 
   public void setTypeParameter(Parameter pTypeParameter) {
     typeParameter = pTypeParameter;
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof TypeCriteria that)) return false;
+    return Objects.equals(getTypeParameter(), that.getTypeParameter());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getTypeParameter());
   }
 }

@@ -2,6 +2,7 @@ package io.teaql.data;
 
 import cn.hutool.core.collection.ListUtil;
 import java.util.List;
+import java.util.Objects;
 
 public class SubQuerySearchCriteria implements SearchCriteria, PropertyAware {
   private String propertyName;
@@ -42,5 +43,19 @@ public class SubQuerySearchCriteria implements SearchCriteria, PropertyAware {
   @Override
   public List<String> properties(UserContext ctx) {
     return ListUtil.of(propertyName);
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof SubQuerySearchCriteria that)) return false;
+    return Objects.equals(getPropertyName(), that.getPropertyName())
+        && Objects.equals(getDependsOn(), that.getDependsOn())
+        && Objects.equals(getDependsOnPropertyName(), that.getDependsOnPropertyName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getPropertyName(), getDependsOn(), getDependsOnPropertyName());
   }
 }

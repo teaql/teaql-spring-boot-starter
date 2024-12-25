@@ -1,7 +1,7 @@
 package io.teaql.data;
 
-
 import java.util.List;
+import java.util.Objects;
 
 public class OrderBy implements Expression {
   private Expression expression;
@@ -39,5 +39,18 @@ public class OrderBy implements Expression {
   @Override
   public List<String> properties(UserContext ctx) {
     return expression.properties(ctx);
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) return true;
+    if (!(pO instanceof OrderBy orderBy)) return false;
+    return Objects.equals(getExpression(), orderBy.getExpression())
+        && Objects.equals(getDirection(), orderBy.getDirection());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getExpression(), getDirection());
   }
 }
