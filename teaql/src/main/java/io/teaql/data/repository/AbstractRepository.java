@@ -1,5 +1,7 @@
 package io.teaql.data.repository;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.comparator.CompareUtil;
@@ -24,6 +26,9 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
   public static final String VERSION = "version";
   public static final String ID = "id";
 
+  private Cache<RequestAggregationCacheKey, AggregationResult> aggregateCache =
+      CacheUtil.newTimedCache(60000);
+
   protected abstract void updateInternal(UserContext ctx, Collection<T> items);
 
   protected abstract void createInternal(UserContext ctx, Collection<T> items);
@@ -34,7 +39,27 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
 
   protected abstract SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request);
 
-  protected abstract AggregationResult aggregateInternal(
+  protected AggregationResult aggregateInternal(UserContext userContext, SearchRequest<T> request) {
+    if (request.tryCacheAggregation()) {
+      RequestAggregationCacheKey requestAggregationCacheKey =
+          new RequestAggregationCacheKey(request);
+      AggregationResult aggregationResult = aggregateCache.get(requestAggregationCacheKey, false);
+      if (aggregationResult == null) {
+        long now = System.currentTimeMillis();
+        aggregationResult = doAggregateInternal(userContext, request);
+        long cost = System.currentTimeMillis() - now;
+        long cacheTime = request.getAggregateCacheTime();
+        if (cacheTime <= 0) {
+          cacheTime = cost * 10;
+        }
+        aggregateCache.put(requestAggregationCacheKey, aggregationResult, cacheTime);
+      }
+      return aggregationResult;
+    }
+    return doAggregateInternal(userContext, request);
+  }
+
+  protected abstract AggregationResult doAggregateInternal(
       UserContext userContext, SearchRequest<T> request);
 
   @Override

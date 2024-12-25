@@ -524,7 +524,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             .onClose(stream::close);
   }
 
-  protected AggregationResult aggregateInternal(UserContext userContext, SearchRequest<T> request) {
+  protected AggregationResult doAggregateInternal(
+      UserContext userContext, SearchRequest<T> request) {
     if (!request.hasSimpleAgg()) {
       return null;
     }

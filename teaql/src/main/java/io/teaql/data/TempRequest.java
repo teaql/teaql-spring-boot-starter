@@ -22,6 +22,8 @@ public class TempRequest extends BaseRequest {
     propagateDimensions = pRequest.getPropagateDimensions();
     dynamicAggregateAttributes = pRequest.getDynamicAggregateAttributes();
     enhanceChildren = pRequest.enhanceChildren();
+    cacheAggregation = pRequest.tryCacheAggregation();
+    aggregateCacheTime = pRequest.getAggregateCacheTime();
   }
 
   public TempRequest(Class returnType, String typeName) {

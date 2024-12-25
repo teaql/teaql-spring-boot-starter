@@ -53,6 +53,10 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   Map<String, SearchRequest> enhanceChildren = new HashMap<>();
 
+  boolean cacheAggregation;
+
+  long aggregateCacheTime;
+
   public BaseRequest(Class<T> pReturnType) {
     returnType = pReturnType;
   }
@@ -678,7 +682,9 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         && Objects.equals(getAggregations(), that.getAggregations())
         && Objects.equals(getPropagateAggregations(), that.getPropagateAggregations())
         && Objects.equals(getPropagateDimensions(), that.getPropagateDimensions())
-        && Objects.equals(enhanceChildren, that.enhanceChildren);
+        && Objects.equals(enhanceChildren, that.enhanceChildren)
+        && Objects.equals(cacheAggregation, that.cacheAggregation)
+        && Objects.equals(aggregateCacheTime, that.aggregateCacheTime);
   }
 
   @Override
@@ -696,6 +702,33 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         getAggregations(),
         getPropagateAggregations(),
         getPropagateDimensions(),
-        enhanceChildren);
+        enhanceChildren,
+        cacheAggregation,
+        aggregateCacheTime);
+  }
+
+  public BaseRequest enableAggregationCache() {
+    cacheAggregation = true;
+    return this;
+  }
+
+  public BaseRequest disableAggregationCache() {
+    cacheAggregation = false;
+    return this;
+  }
+
+  @Override
+  public boolean tryCacheAggregation() {
+    return cacheAggregation;
+  }
+
+  @Override
+  public long getAggregateCacheTime() {
+    return aggregateCacheTime;
+  }
+
+  public BaseRequest aggregateCacheTime(long aggregateCacheTime) {
+    this.aggregateCacheTime = aggregateCacheTime;
+    return this;
   }
 }

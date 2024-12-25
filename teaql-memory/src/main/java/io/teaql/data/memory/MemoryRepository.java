@@ -98,7 +98,8 @@ public class MemoryRepository<T extends BaseEntity> extends AbstractRepository<T
   }
 
   @Override
-  protected AggregationResult aggregateInternal(UserContext userContext, SearchRequest<T> request) {
+  protected AggregationResult doAggregateInternal(
+      UserContext userContext, SearchRequest<T> request) {
     Aggregations aggregations = request.getAggregations();
     if (!request.hasSimpleAgg()) {
       return null;

@@ -135,4 +135,12 @@ public interface SearchRequest<T extends Entity> {
   default boolean tryUseSubQuery() {
     return true;
   }
+
+  default boolean tryCacheAggregation() {
+    return false;
+  }
+
+  default long getAggregateCacheTime() {
+    return 0l;
+  }
 }
