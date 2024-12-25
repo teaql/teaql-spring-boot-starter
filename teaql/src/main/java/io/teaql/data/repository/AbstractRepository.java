@@ -27,7 +27,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
   public static final String ID = "id";
 
   private Cache<RequestAggregationCacheKey, AggregationResult> aggregateCache =
-      CacheUtil.newTimedCache(60000);
+      CacheUtil.newLRUCache(1000, 60000);
 
   protected abstract void updateInternal(UserContext ctx, Collection<T> items);
 
