@@ -57,6 +57,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   long aggregateCacheTime;
 
+  boolean propagateAggregationCache;
+
   public BaseRequest(Class<T> pReturnType) {
     returnType = pReturnType;
   }
@@ -322,6 +324,11 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
   public void addAggregateDynamicProperty(
       String name, SearchRequest subRequest, boolean singleValueResult) {
+    if (propagateAggregationCache) {
+      if (subRequest instanceof BaseRequest baseRequest) {
+        baseRequest.propagateAggregationCache(this.aggregateCacheTime);
+      }
+    }
     this.dynamicAggregateAttributes.add(new SimpleAggregation(name, subRequest, singleValueResult));
   }
 
@@ -727,8 +734,20 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     return aggregateCacheTime;
   }
 
-  public BaseRequest aggregateCacheTime(long aggregateCacheTime) {
-    this.aggregateCacheTime = aggregateCacheTime;
+  public BaseRequest aggregateCacheTime(long aggregateCacheMillis) {
+    this.aggregateCacheTime = aggregateCacheMillis;
+    return this;
+  }
+
+  public BaseRequest propagateAggregationCache(long aggregateCacheMillis) {
+    enableAggregationCache();
+    aggregateCacheTime(aggregateCacheMillis);
+    for (SimpleAggregation dynamicAggregateAttribute : this.dynamicAggregateAttributes) {
+      SearchRequest aggregateRequest = dynamicAggregateAttribute.getAggregateRequest();
+      if (aggregateRequest instanceof BaseRequest baseRequest) {
+        baseRequest.propagateAggregationCache(aggregateCacheMillis);
+      }
+    }
     return this;
   }
 }
