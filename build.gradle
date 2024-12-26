@@ -45,6 +45,10 @@ allprojects {
                     password = System.getenv("TOKEN")
                 }
             }
+            maven {
+                name = "LocalRepo"
+                url = "${rootDir}/../repositories"
+            }
         }
     }
 }
