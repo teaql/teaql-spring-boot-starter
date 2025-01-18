@@ -532,6 +532,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     List<String> tables = collectAggregationTables(userContext, request);
     Map<String, Object> parameters = new HashMap();
     String idTable = tables.get(0);
+    Object preConfig = userContext.getObj(MULTI_TABLE);
     userContext.put(MULTI_TABLE, tables.size() > 1);
 
     try {
@@ -566,7 +567,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       SQLLogger.logNamedSQL(SQL_SELECT, userContext, sql, parameters, result);
       return result;
     } finally {
-      userContext.del(MULTI_TABLE);
+      userContext.put(MULTI_TABLE, preConfig);
     }
   }
 
@@ -695,8 +696,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     // pick the first the table as the id table(all tables have id column)
     String idTable = tables.get(0);
+    Object preConfig = userContext.getObj(MULTI_TABLE);
     userContext.put(MULTI_TABLE, tables.size() > 1);
-
     try {
       // condition
       String whereSql =
@@ -766,7 +767,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return sql;
       }
     } finally {
-      userContext.del(MULTI_TABLE);
+      userContext.put(MULTI_TABLE, preConfig);
     }
   }
 
