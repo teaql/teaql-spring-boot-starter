@@ -534,36 +534,40 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     String idTable = tables.get(0);
     userContext.put(MULTI_TABLE, tables.size() > 1);
 
-    String whereSql =
-        prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
-
-    if (SearchCriteria.FALSE.equalsIgnoreCase(whereSql)) {
-      return null;
-    }
-
-    String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
-    String sql = StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
-
-    if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
-      sql = StrUtil.format("{} WHERE {}", sql, whereSql);
-    }
-
-    String groupBy = collectAggregationGroupBySql(userContext, request, idTable, parameters);
-    if (!ObjectUtil.isEmpty(groupBy)) {
-      sql = StrUtil.format("{} {}", sql, groupBy);
-    }
-
-    List<AggregationItem> aggregationItems;
     try {
-      aggregationItems = jdbcTemplate.query(sql, parameters, getAggregationMapper(request));
-    } catch (DataAccessException pE) {
-      throw new RepositoryException(pE);
+      String whereSql =
+          prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
+
+      if (SearchCriteria.FALSE.equalsIgnoreCase(whereSql)) {
+        return null;
+      }
+
+      String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
+      String sql = StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
+
+      if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
+        sql = StrUtil.format("{} WHERE {}", sql, whereSql);
+      }
+
+      String groupBy = collectAggregationGroupBySql(userContext, request, idTable, parameters);
+      if (!ObjectUtil.isEmpty(groupBy)) {
+        sql = StrUtil.format("{} {}", sql, groupBy);
+      }
+
+      List<AggregationItem> aggregationItems;
+      try {
+        aggregationItems = jdbcTemplate.query(sql, parameters, getAggregationMapper(request));
+      } catch (DataAccessException pE) {
+        throw new RepositoryException(pE);
+      }
+      AggregationResult result = new AggregationResult();
+      result.setName(request.getAggregations().getName());
+      result.setData(aggregationItems);
+      SQLLogger.logNamedSQL(SQL_SELECT, userContext, sql, parameters, result);
+      return result;
+    } finally {
+      userContext.del(MULTI_TABLE);
     }
-    AggregationResult result = new AggregationResult();
-    result.setName(request.getAggregations().getName());
-    result.setData(aggregationItems);
-    SQLLogger.logNamedSQL(SQL_SELECT, userContext, sql, parameters, result);
-    return result;
   }
 
   private RowMapper<AggregationItem> getAggregationMapper(SearchRequest<T> request) {
@@ -693,72 +697,76 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     String idTable = tables.get(0);
     userContext.put(MULTI_TABLE, tables.size() > 1);
 
-    // condition
-    String whereSql =
-        prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
+    try {
+      // condition
+      String whereSql =
+          prepareCondition(userContext, idTable, request.getSearchCriteria(), parameters);
 
-    // condition is false, no result
-    if (SearchCriteria.FALSE.equalsIgnoreCase(whereSql)) {
-      return null;
-    }
+      // condition is false, no result
+      if (SearchCriteria.FALSE.equalsIgnoreCase(whereSql)) {
+        return null;
+      }
 
-    // no data is required
-    if (request.getSlice() != null && request.getSlice().getSize() == 0) {
-      return null;
-    }
+      // no data is required
+      if (request.getSlice() != null && request.getSlice().getSize() == 0) {
+        return null;
+      }
 
-    String tableSQl = joinTables(userContext, tables);
+      String tableSQl = joinTables(userContext, tables);
 
-    // selects
-    String selectSql = collectSelectSql(userContext, request, idTable, parameters);
+      // selects
+      String selectSql = collectSelectSql(userContext, request, idTable, parameters);
 
-    String partitionProperty = request.getPartitionProperty();
-    if (ObjectUtil.isNotEmpty(partitionProperty) && request.getSlice() != null) {
-      ensureOrderByForPartition(request);
-    }
+      String partitionProperty = request.getPartitionProperty();
+      if (ObjectUtil.isNotEmpty(partitionProperty) && request.getSlice() != null) {
+        ensureOrderByForPartition(request);
+      }
 
-    // order by
-    String orderBySql = prepareOrderBy(userContext, request, idTable, parameters);
-    if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
-      PropertyDescriptor partitionPropertyDescriptor = findProperty(partitionProperty);
-      SQLColumn sqlColumn = getSqlColumn(partitionPropertyDescriptor);
-      String partitionTable;
-      if (partitionPropertyDescriptor.isId()) {
-        partitionTable = idTable;
+      // order by
+      String orderBySql = prepareOrderBy(userContext, request, idTable, parameters);
+      if (!ObjectUtil.isEmpty(partitionProperty) && request.getSlice() != null) {
+        PropertyDescriptor partitionPropertyDescriptor = findProperty(partitionProperty);
+        SQLColumn sqlColumn = getSqlColumn(partitionPropertyDescriptor);
+        String partitionTable;
+        if (partitionPropertyDescriptor.isId()) {
+          partitionTable = idTable;
+        } else {
+          partitionTable = sqlColumn.getTableName();
+        }
+
+        if (whereSql != null) {
+          whereSql = "WHERE " + whereSql;
+        }
+
+        return StrUtil.format(
+            getPartitionSQL(),
+            selectSql,
+            userContext.getBool(MULTI_TABLE, false) ? tableAlias(partitionTable) + "." : "",
+            sqlColumn.getColumnName(),
+            orderBySql,
+            tableSQl,
+            whereSql,
+            request.getSlice().getOffset() + 1,
+            request.getSlice().getOffset() + request.getSlice().getSize() + 1);
       } else {
-        partitionTable = sqlColumn.getTableName();
-      }
+        String sql = StrUtil.format("SELECT {} FROM {}", selectSql, tableSQl);
 
-      if (whereSql != null) {
-        whereSql = "WHERE " + whereSql;
-      }
+        if (!SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
+          sql = StrUtil.format("{} WHERE {}", sql, whereSql);
+        }
 
-      return StrUtil.format(
-          getPartitionSQL(),
-          selectSql,
-          userContext.getBool(MULTI_TABLE, false) ? tableAlias(partitionTable) + "." : "",
-          sqlColumn.getColumnName(),
-          orderBySql,
-          tableSQl,
-          whereSql,
-          request.getSlice().getOffset() + 1,
-          request.getSlice().getOffset() + request.getSlice().getSize() + 1);
-    } else {
-      String sql = StrUtil.format("SELECT {} FROM {}", selectSql, tableSQl);
+        if (!ObjectUtil.isEmpty(orderBySql)) {
+          sql = StrUtil.format("{} {}", sql, orderBySql);
+        }
 
-      if (!SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
-        sql = StrUtil.format("{} WHERE {}", sql, whereSql);
+        String limitSql = prepareLimit(request);
+        if (!ObjectUtil.isEmpty(limitSql)) {
+          sql = StrUtil.format("{} {}", sql, limitSql);
+        }
+        return sql;
       }
-
-      if (!ObjectUtil.isEmpty(orderBySql)) {
-        sql = StrUtil.format("{} {}", sql, orderBySql);
-      }
-
-      String limitSql = prepareLimit(request);
-      if (!ObjectUtil.isEmpty(limitSql)) {
-        sql = StrUtil.format("{} {}", sql, limitSql);
-      }
-      return sql;
+    } finally {
+      userContext.del(MULTI_TABLE);
     }
   }
 
