@@ -16,10 +16,7 @@ import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.redis.RedisStore;
 import io.teaql.data.translation.Translator;
-import io.teaql.data.web.MultiReadFilter;
-import io.teaql.data.web.ServletUserContextInitializer;
-import io.teaql.data.web.UITemplateRender;
-import io.teaql.data.web.UserContextInitializer;
+import io.teaql.data.web.*;
 import jakarta.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +37,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -150,6 +148,12 @@ public class TQLAutoConfiguration {
     return tqlResolver;
   }
 
+  @Bean
+  @ConditionalOnMissingBean(name = "blobObjectMessageConverter")
+  public BlobObjectMessageConverter blobObjectMessageConverter() {
+    return new BlobObjectMessageConverter();
+  }
+
   @Configuration
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   public static class TQLContextResolver implements HandlerMethodArgumentResolver {
@@ -178,11 +182,17 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
-    public WebMvcConfigurer tqlConfigure(TQLContextResolver tqlResolver) {
+    public WebMvcConfigurer tqlConfigure(
+        TQLContextResolver tqlResolver, BlobObjectMessageConverter blobObjectMessageConverter) {
       return new WebMvcConfigurer() {
         @Override
         public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
           resolvers.add(tqlResolver);
+        }
+
+        @Override
+        public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+          converters.add(0, blobObjectMessageConverter);
         }
       };
     }
@@ -222,11 +232,15 @@ public class TQLAutoConfiguration {
         String toast = response.getHeaders().getFirst("toast");
         response.getHeaders().remove("toast");
         if (toast != null) {
-          Object toastObj = JSONUtil.toBean(Base64.decodeStr(toast), Map.class);
-          BeanUtil.setProperty(body, "toast", toastObj);
-          Object playSound = BeanUtil.getProperty(toastObj, "playSound");
-          if (playSound != null) {
-            BeanUtil.setProperty(body, "playSound", playSound);
+          try {
+            Object toastObj = JSONUtil.toBean(Base64.decodeStr(toast), Map.class);
+            BeanUtil.setProperty(body, "toast", toastObj);
+            Object playSound = BeanUtil.getProperty(toastObj, "playSound");
+            if (playSound != null) {
+              BeanUtil.setProperty(body, "playSound", playSound);
+            }
+          } catch (Exception e) {
+            // ignore toast setting
           }
         }
       }
