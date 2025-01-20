@@ -192,6 +192,7 @@ public class TQLAutoConfiguration {
 
         @Override
         public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+          converters.removeIf(c -> c == blobObjectMessageConverter);
           converters.add(0, blobObjectMessageConverter);
         }
       };

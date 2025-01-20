@@ -14,6 +14,11 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StreamUtils;
 
 public class BlobObjectMessageConverter extends AbstractHttpMessageConverter<BlobObject> {
+
+  public BlobObjectMessageConverter() {
+    super(MediaType.ALL);
+  }
+
   @Override
   protected boolean supports(Class<?> clazz) {
     return ClassUtil.isAssignable(BlobObject.class, clazz);
