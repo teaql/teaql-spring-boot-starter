@@ -29,8 +29,9 @@ public interface Checker<T extends BaseEntity> {
 
     switch (entity.get$status()) {
       case NEW:
-      case UPDATED:
         return true;
+      case UPDATED:
+        return ObjectUtil.isNotEmpty(entity.getUpdatedProperties());
       default:
         return false;
     }
