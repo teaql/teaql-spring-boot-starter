@@ -46,6 +46,14 @@ allprojects {
                 }
             }
             maven {
+                name = "TEAQL"
+                url = "https://nexus.teaql.io/repository/maven-snapshots/"
+                credentials {
+                    username = System.getenv("TEAQL_USERNAME")
+                    password = System.getenv("TEAQL_PASS")
+                }
+            }
+            maven {
                 name = "LocalRepo"
                 url = "${rootDir}/../repositories"
             }

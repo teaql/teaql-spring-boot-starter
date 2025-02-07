@@ -3,33 +3,33 @@ package io.teaql.data.redis;
 import io.teaql.data.DataStore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.redisson.api.RedissonClient;
 
 public class RedisStore implements DataStore {
-  private RedisTemplate<String, Object> redisTemplate;
+  private RedissonClient redissonClient;
 
-  public RedisStore(RedisTemplate<String, Object> pRedisTemplate) {
-    redisTemplate = pRedisTemplate;
+  public RedisStore(RedissonClient pRedissonClient) {
+    redissonClient = pRedissonClient;
   }
 
   @Override
   public void put(String key, Object object) {
-    redisTemplate.opsForValue().set(key, object);
+    redissonClient.getBucket(key).set(object);
   }
 
   @Override
   public void put(String key, Object object, long timeout) {
-    redisTemplate.opsForValue().set(key, object, timeout, TimeUnit.SECONDS);
+    redissonClient.getBucket(key).set(object, timeout, TimeUnit.SECONDS);
   }
 
   @Override
   public <T> T get(String key) {
-    return (T) redisTemplate.opsForValue().get(key);
+    return (T) redissonClient.getBucket(key).get();
   }
 
   @Override
   public <T> T getAndRemove(String key) {
-    return (T) redisTemplate.opsForValue().getAndDelete(key);
+    return (T) redissonClient.getBucket(key).getAndDelete();
   }
 
   @Override
@@ -38,17 +38,17 @@ public class RedisStore implements DataStore {
       return get(key);
     }
     T v = supplier.get();
-    redisTemplate.opsForValue().set(key, v);
+    redissonClient.getBucket(key).set(v);
     return v;
   }
 
   @Override
   public void remove(String key) {
-    redisTemplate.delete(key);
+    redissonClient.getBucket(key).delete();
   }
 
   @Override
   public boolean containsKey(String key) {
-    return redisTemplate.hasKey(key);
+    return redissonClient.getBucket(key).isExists();
   }
 }

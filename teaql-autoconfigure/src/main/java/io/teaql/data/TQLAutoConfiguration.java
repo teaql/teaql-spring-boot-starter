@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.redisson.api.RedissonClient;
+import org.redisson.codec.JsonJacksonCodec;
+import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,9 +36,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -79,18 +79,6 @@ public class TQLAutoConfiguration {
     return Translator.NOOP;
   }
 
-  @Bean("redisTemplate")
-  public RedisTemplate<String, Object> redisTemplate(
-      RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, Object> template = new RedisTemplate<>();
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.enableDefaultTyping(
-        ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
-    template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
-    template.setConnectionFactory(redisConnectionFactory);
-    return template;
-  }
-
   @Bean
   @ConditionalOnMissingBean(name = "templateRender")
   public UITemplateRender templateRender() {
@@ -98,8 +86,18 @@ public class TQLAutoConfiguration {
   }
 
   @Bean
-  public DataStore dataStore(RedisTemplate<String, Object> redisTemplate) {
-    return new RedisStore(redisTemplate);
+  public RedissonAutoConfigurationCustomizer codec() {
+    return config -> {
+      ObjectMapper objectMapper = new ObjectMapper();
+      objectMapper.enableDefaultTyping(
+          ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
+      config.setCodec(new JsonJacksonCodec(objectMapper));
+    };
+  }
+
+  @Bean
+  public DataStore dataStore(RedissonClient redissonClient) {
+    return new RedisStore(redissonClient);
   }
 
   @Bean
