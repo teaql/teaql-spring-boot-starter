@@ -13,6 +13,7 @@ import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.criteria.Operator;
+import io.teaql.data.lock.LockService;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
@@ -26,6 +27,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.slf4j.LoggerFactory;
@@ -577,6 +579,177 @@ public class UserContext
     request.appendSearchCriteria(
         request.createBasicSearchCriteria(BaseEntity.VERSION_PROPERTY, Operator.GREATER_THAN, 0l));
     return request;
+  }
+
+  /**
+   * execute task directly(in the same thread)
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execLocalTask(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock localLock = lockService.getLocalLock(this, lock);
+    runTask(task, localLock);
+  }
+
+  /**
+   * execute task in one thread of the pool
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execLocalTaskAsync(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock localLock = lockService.getLocalLock(this, lock);
+    runTaskAsync(task, localLock);
+  }
+
+  /**
+   * execute task directly(in the same thread), if this task is running, then do nothing
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execSingleLocalTask(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+    LockService lockService = getBean(LockService.class);
+    Lock localLock = lockService.getLocalLock(this, lock);
+    runSingleTask(task, localLock);
+  }
+
+  /**
+   * execute task in one thread of the pool
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execSingleLocalTaskAsync(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock localLock = lockService.getLocalLock(this, lock);
+    runSingleTaskAsync(task, localLock);
+  }
+
+  /**
+   * execute global task directly(in the same thread)
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execGlobalTask(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute global task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock distributeLock = lockService.getDistributeLock(this, lock);
+    runTask(task, distributeLock);
+  }
+
+  /**
+   * execute global task in one thread of the pool
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execGlobalTaskAsync(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute global task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock distributeLock = lockService.getDistributeLock(this, lock);
+    runTaskAsync(task, distributeLock);
+  }
+
+  /**
+   * execute global task directly(in the same thread), if this task is running, then do nothing
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execSingleGlobalTask(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+    LockService lockService = getBean(LockService.class);
+    Lock distributeLock = lockService.getDistributeLock(this, lock);
+    runSingleTask(task, distributeLock);
+  }
+
+  /**
+   * execute task in one thread of the pool, if this task is running, then do nothing
+   *
+   * @param lock the lock/task name
+   * @param task the task to execute
+   */
+  public void execSingleGlobalTaskAsync(String lock, Runnable task) {
+    if (ObjectUtil.isEmpty(lock)) {
+      throw new TQLException("lock cannot be empty to execute local task");
+    }
+
+    LockService lockService = getBean(LockService.class);
+    Lock distributeLock = lockService.getDistributeLock(this, lock);
+    runSingleTaskAsync(task, distributeLock);
+  }
+
+  private void runTask(Runnable task, Lock lock) {
+    if (task == null) {
+      return;
+    }
+    try {
+      if (lock != null) {
+        lock.lock();
+      }
+      task.run();
+    } finally {
+      if (lock != null) {
+        lock.unlock();
+      }
+    }
+  }
+
+  private void runTaskAsync(Runnable task, Lock lock) {
+    LockService.taskExecutor.execute(() -> runTask(task, lock));
+  }
+
+  private void runSingleTask(Runnable task, Lock lock) {
+    if (task == null) {
+      return;
+    }
+    boolean ready = false;
+    try {
+      if (lock != null) {
+        ready = lock.tryLock();
+      } else {
+        ready = true;
+      }
+      if (ready) {
+        task.run();
+      }
+    } finally {
+      if (lock != null && ready) {
+        lock.unlock();
+      }
+    }
+  }
+
+  private void runSingleTaskAsync(Runnable task, Lock lock) {
+    LockService.taskExecutor.execute(() -> runSingleTask(task, lock));
   }
 
   public void makeToast(String content, int duration, String type) {
