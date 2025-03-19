@@ -1,5 +1,6 @@
 package io.teaql.data.value;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface Expression<E, T> {
@@ -45,9 +46,20 @@ public interface Expression<E, T> {
     }
   }
 
+  default void whenIsNotNull(Consumer<T>  consumer) {
+    if (isNotNull() && consumer != null) {
+      consumer.accept(eval());
+    }
+  }
+
   default void whenIsEmpty(Runnable function) {
     if (isEmpty() && function != null) {
       function.run();
+    }
+  }
+  default void whenNotEmpty(Consumer<T>  consumer) {
+    if (isNotEmpty() && consumer != null) {
+      consumer.accept(eval());
     }
   }
 
