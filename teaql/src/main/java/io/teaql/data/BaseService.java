@@ -389,6 +389,7 @@ public abstract class BaseService {
     Class<? extends BaseEntity> entityClass = getEntityClass(type);
     BaseRequest baseRequest = ReflectUtil.newInstance(requestClass, entityClass);
     baseRequest.selectAll();
+    baseRequest.count();
     baseRequest.addOrderByDescending(BaseEntity.ID_PROPERTY);
     if (ObjectUtil.isNotEmpty(parameter)) {
       baseRequest.internalFindWithJsonExpr(parameter);
