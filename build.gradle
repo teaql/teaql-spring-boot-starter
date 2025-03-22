@@ -37,14 +37,6 @@ allprojects {
     version '1.139-RELEASE'
     publishing {
         repositories {
-//            maven {
-//                name = "GitHubPackages"
-//                url = "https://maven.pkg.github.com/teaql/teaql-spring-boot-starter"
-//                credentials {
-//                    username = System.getenv("USERNAME")
-//                    password = System.getenv("TOKEN")
-//                }
-//            }
             maven {
                 name = "TEAQL"
                 url = "https://nexus.teaql.io/repository/maven-releases/"
@@ -53,10 +45,7 @@ allprojects {
                     password = System.getenv("TEAQL_PASS")
                 }
             }
-            maven {
-                name = "LocalRepo"
-                url = "${rootDir}/../repositories"
-            }
+            mavenLocal()
         }
     }
 }

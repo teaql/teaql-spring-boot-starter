@@ -10,6 +10,14 @@ public interface SearchRequest<T extends Entity> {
     return StrUtil.removeSuffix(simpleName, "Request");
   }
 
+  /**
+   * raw sql for this search request when SQLRepository loadInternal
+   * @return custom provided full sql
+   */
+  default String getRawSql() {
+    return null;
+  }
+
   Class<? extends T> returnType();
 
   String comment();

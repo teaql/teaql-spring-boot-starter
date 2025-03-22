@@ -691,6 +691,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   public String buildDataSQL(
       UserContext userContext, SearchRequest request, Map<String, Object> parameters) {
 
+    //if rawSql is provided, we will not build Data SQL
+    String rawSql = request.getRawSql();
+    if (ObjectUtil.isNotEmpty(rawSql)){
+      return rawSql;
+    }
+
     // collect tables from the request
     List<String> tables = collectDataTables(userContext, request);
 

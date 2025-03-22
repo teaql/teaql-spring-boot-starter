@@ -1,9 +1,11 @@
 package io.teaql.data.criteria;
 
 import io.teaql.data.Expression;
+import io.teaql.data.SearchCriteria;
+
 import java.util.Objects;
 
-public class RawSql implements Expression {
+public class RawSql implements SearchCriteria {
   String sql;
 
   public RawSql(String pSql) {
