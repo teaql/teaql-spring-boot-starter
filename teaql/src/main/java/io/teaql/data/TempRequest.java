@@ -24,6 +24,7 @@ public class TempRequest extends BaseRequest {
     enhanceChildren = pRequest.enhanceChildren();
     cacheAggregation = pRequest.tryCacheAggregation();
     aggregateCacheTime = pRequest.getAggregateCacheTime();
+    rawSql = pRequest.getRawSql();
   }
 
   public TempRequest(Class returnType, String typeName) {
