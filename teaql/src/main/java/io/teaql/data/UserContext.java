@@ -422,7 +422,7 @@ public class UserContext
 
   @Override
   public String getRemoteAddress() {
-    return getRequestHolder().requestUri();
+    return getRequestHolder().getRemoteAddress();
   }
 
   public String getClientIp() {
