@@ -718,7 +718,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         return comment;
     }
 
-    public BaseRequest comment(String comment) {
+    protected BaseRequest internalComment(String comment) {
         this.comment = comment;
         return this;
     }
