@@ -1,8 +1,13 @@
 package io.teaql.data;
 
-import cn.hutool.core.util.StrUtil;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
+
+import cn.hutool.core.util.StrUtil;
 
 public interface SearchRequest<T extends Entity> {
   default String getTypeName() {
@@ -15,6 +20,24 @@ public interface SearchRequest<T extends Entity> {
    * @return custom provided full sql
    */
   default String getRawSql() {
+    return null;
+  }
+
+  /**
+   * distinct for the select properties
+   *
+   * @return distinct or not
+   */
+  default boolean distinct() {
+    return false;
+  }
+
+  /**
+   * add select from (inner request supports)
+   *
+   * @return inner request
+   */
+  default SearchRequest getInner() {
     return null;
   }
 

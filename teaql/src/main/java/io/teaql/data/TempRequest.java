@@ -25,6 +25,8 @@ public class TempRequest extends BaseRequest {
     cacheAggregation = pRequest.tryCacheAggregation();
     aggregateCacheTime = pRequest.getAggregateCacheTime();
     rawSql = pRequest.getRawSql();
+    distinct = pRequest.distinct();
+    innerRequest = pRequest.getInner();
   }
 
   public TempRequest(Class returnType, String typeName) {

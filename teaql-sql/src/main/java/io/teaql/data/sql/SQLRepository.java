@@ -1,14 +1,36 @@
 package io.teaql.data.sql;
 
-import static io.teaql.data.log.Markers.*;
+import static io.teaql.data.log.Markers.SQL_SELECT;
+import static io.teaql.data.log.Markers.SQL_UPDATE;
 
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.NamingCase;
-import cn.hutool.core.util.*;
-import io.teaql.data.*;
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
+import io.teaql.data.AggregationItem;
+import io.teaql.data.AggregationResult;
+import io.teaql.data.Aggregations;
+import io.teaql.data.BaseEntity;
+import io.teaql.data.ConcurrentModifyException;
+import io.teaql.data.Entity;
+import io.teaql.data.EntityStatus;
+import io.teaql.data.Expression;
+import io.teaql.data.OrderBy;
+import io.teaql.data.OrderBys;
+import io.teaql.data.Repository;
+import io.teaql.data.RepositoryException;
+import io.teaql.data.SearchCriteria;
+import io.teaql.data.SearchRequest;
+import io.teaql.data.SimpleNamedExpression;
+import io.teaql.data.Slice;
+import io.teaql.data.SmartList;
+import io.teaql.data.UserContext;
 import io.teaql.data.log.Markers;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
@@ -21,7 +43,17 @@ import io.teaql.data.sql.expression.SQLExpressionParser;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -544,7 +576,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       }
 
       String selectSql = collectAggregationSelectSql(userContext, request, idTable, parameters);
-      String sql = StrUtil.format("SELECT {} FROM {}", selectSql, joinTables(userContext, tables));
+      String sql =
+          StrUtil.format(
+              "SELECT {} FROM {}", selectSql, joinTables(userContext, request, parameters, tables));
 
       if (whereSql != null && !SearchCriteria.TRUE.equalsIgnoreCase(whereSql)) {
         sql = StrUtil.format("{} WHERE {}", sql, whereSql);
@@ -578,7 +612,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       List<SimpleNamedExpression> functions = aggregations.getAggregates();
       List<SimpleNamedExpression> dimensions = aggregations.getDimensions();
       for (SimpleNamedExpression function : functions) {
-
         item.addValue(function, ResultSetTool.getValue(rs, function.name()));
       }
       for (SimpleNamedExpression dimension : dimensions) {
@@ -719,7 +752,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return null;
       }
 
-      String tableSQl = joinTables(userContext, tables);
+      String tableSQl = joinTables(userContext, request, parameters, tables);
 
       // selects
       String selectSql = collectSelectSql(userContext, request, idTable, parameters);
@@ -784,7 +817,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
   }
 
-  public String joinTables(UserContext userContext, List<String> tables) {
+  public String joinTables(
+      UserContext userContext,
+      SearchRequest request,
+      Map<String, Object> parameters,
+      List<String> tables) {
     List<String> sortedTables = new ArrayList<>();
     for (String table : tables) {
       if (primaryTableNames.contains(table)) {
@@ -795,6 +832,17 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       if (!primaryTableNames.contains(table)) {
         sortedTables.add(table);
       }
+    }
+
+    SearchRequest innerRequest = request.getInner();
+    if (innerRequest != null) {
+      Repository<T> repository = userContext.resolveRepository(innerRequest.getTypeName());
+      if (repository instanceof SQLRepository) {
+        return StrUtil.format(
+            "({})t",
+            ((SQLRepository) repository).buildDataSQL(userContext, innerRequest, parameters));
+      }
+      // TODO: support other type of repository
     }
 
     if (!userContext.getBool(MULTI_TABLE, false)) {
@@ -823,6 +871,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     return sb.toString();
   }
 
+  private void checkInnerRequest(SearchRequest innerRequest) {}
+
   private String collectSelectSql(
       UserContext userContext,
       SearchRequest request,
@@ -847,6 +897,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
       if (ObjectUtil.isNotEmpty(typeSQL)) {
         selects = selects + ", " + typeSQL;
       }
+    }
+
+    if (request.distinct()) {
+      selects = "DISTINCT " + selects;
     }
     return selects;
   }
