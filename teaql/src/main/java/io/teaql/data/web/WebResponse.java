@@ -6,35 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WebResponse {
+  List<BaseEntity> data;
   private int resultCode;
   private String status;
   private String message;
   private int recordCount;
 
-  public int getRecordCount() {
-    return recordCount;
-  }
-
-  public void setRecordCount(int recordCount) {
-    this.recordCount = recordCount;
-  }
-
   public WebResponse() {
     data = new ArrayList<>();
   }
-
-  public List<BaseEntity> getData() {
-    if (data == null) {
-      data = new ArrayList<>();
-    }
-    return data;
-  }
-
-  public void setData(List<BaseEntity> data) {
-    this.data = data;
-  }
-
-  List<BaseEntity> data;
 
   public static WebResponse of(List<? extends BaseEntity> list) {
     WebResponse webResponse = success();
@@ -85,6 +65,25 @@ public class WebResponse {
       webResponse.setRecordCount(1);
     }
     return webResponse;
+  }
+
+  public int getRecordCount() {
+    return recordCount;
+  }
+
+  public void setRecordCount(int recordCount) {
+    this.recordCount = recordCount;
+  }
+
+  public List<BaseEntity> getData() {
+    if (data == null) {
+      data = new ArrayList<>();
+    }
+    return data;
+  }
+
+  public void setData(List<BaseEntity> data) {
+    this.data = data;
   }
 
   public int getResultCode() {

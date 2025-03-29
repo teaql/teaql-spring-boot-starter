@@ -1,7 +1,6 @@
 package io.teaql.data.sql;
 
 import io.teaql.data.RepositoryException;
-
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;

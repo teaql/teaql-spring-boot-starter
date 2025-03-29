@@ -33,6 +33,5 @@ public class HanaProperty extends GenericSQLProperty {
       throw new RuntimeException(e);
     }
     throw new IllegalArgumentException("Column '" + columnName + "' is not found in ResultSet");
-
   }
 }

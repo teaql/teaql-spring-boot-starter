@@ -10,17 +10,14 @@ import org.springframework.beans.factory.InitializingBean;
 public class LogConfiguration implements InitializingBean {
   public static final String TRACE_USER_ID = "TRACE_USER_ID";
   static LogConfiguration config;
+  Set<String> deniedUrls = new HashSet<>();
+  Set<Marker> enabledMarkers = new HashSet<>();
+  Map<String, Set<Marker>> userMarkers = new HashMap<>();
+  Set<String> enabledAllUsers = new HashSet<>();
 
   public static LogConfiguration get() {
     return config;
   }
-
-  Set<String> deniedUrls = new HashSet<>();
-  Set<Marker> enabledMarkers = new HashSet<>();
-
-  Map<String, Set<Marker>> userMarkers = new HashMap<>();
-
-  Set<String> enabledAllUsers = new HashSet<>();
 
   @Override
   public void afterPropertiesSet() throws Exception {

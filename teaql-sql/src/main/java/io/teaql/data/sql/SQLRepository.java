@@ -41,20 +41,13 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     implements SQLColumnResolver {
   public static final String TYPE_ALIAS = "_type_";
   public static final String IGNORE_SUBTYPES = "IGNORE_SUBTYPES";
+  public static final String MULTI_TABLE = "MULTI_TABLE";
+  private final EntityDescriptor entityDescriptor;
+  private final DataSource dataSource;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
   private String childType = "_child_type";
   private String childSqlType = "VARCHAR(100)";
   private String tqlIdSpaceTable = "teaql_id_space";
-
-  public static final String MULTI_TABLE = "MULTI_TABLE";
-
-  private final EntityDescriptor entityDescriptor;
-
-  public DataSource getDataSource() {
-    return dataSource;
-  }
-
-  private final DataSource dataSource;
-  private final NamedParameterJdbcTemplate jdbcTemplate;
   private String versionTableName;
   private List<String> primaryTableNames = new ArrayList<>();
   private String thisPrimaryTableName;
@@ -62,7 +55,6 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
   private List<String> types = new ArrayList<>();
   private List<String> auxiliaryTableNames;
   private List<PropertyDescriptor> allProperties = new ArrayList<>();
-
   private Map<Class, SQLExpressionParser> expressionParsers = new ConcurrentHashMap<>();
 
   public SQLRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
@@ -71,6 +63,10 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     initSQLMeta(entityDescriptor);
     initExpressionParsers(entityDescriptor, dataSource);
+  }
+
+  public DataSource getDataSource() {
+    return dataSource;
   }
 
   protected void initExpressionParsers(EntityDescriptor entityDescriptor, DataSource dataSource) {

@@ -45,9 +45,9 @@ public class UserContext
   public static final String TOAST = "toast";
   public static final String REQUEST_HOLDER = "$request:requestHolder";
   public static final String RESPONSE_HOLDER = "$response:responseHolder";
+  private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
   InternalIdGenerator internalIdGenerator;
   private TQLResolver resolver = GLobalResolver.getGlobalResolver();
-  private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
 
   public Repository resolveRepository(String type) {
     if (resolver != null) {

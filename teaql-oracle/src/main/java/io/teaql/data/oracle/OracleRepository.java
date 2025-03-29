@@ -1,17 +1,12 @@
 package io.teaql.data.oracle;
 
-import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.teaql.data.*;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
-import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,12 +16,12 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 public class OracleRepository<T extends Entity> extends SQLRepository<T> {
-  @Override
-  protected void ensureIndexAndForeignKey(UserContext ctx) {}
-
   public OracleRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
   }
+
+  @Override
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
 
   @Override
   protected String getPartitionSQL() {

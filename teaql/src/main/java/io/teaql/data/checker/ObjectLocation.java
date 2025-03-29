@@ -7,16 +7,16 @@ public class ObjectLocation {
     parent = pParent;
   }
 
-  public ObjectLocation getParent() {
-    return parent;
-  }
-
   public static ObjectLocation hashRoot(String memberName) {
     return new HashLocation(null, memberName);
   }
 
   public static ObjectLocation arrayRoot(int index) {
     return new ArrayLocation(null, index);
+  }
+
+  public ObjectLocation getParent() {
+    return parent;
   }
 
   public ObjectLocation member(String memberName) {

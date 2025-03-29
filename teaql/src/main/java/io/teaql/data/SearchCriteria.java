@@ -19,5 +19,4 @@ public interface SearchCriteria extends Expression {
   static SearchCriteria not(SearchCriteria sub) {
     return new NOT(sub);
   }
-
 }

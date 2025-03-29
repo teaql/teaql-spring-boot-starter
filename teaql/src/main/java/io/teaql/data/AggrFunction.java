@@ -15,5 +15,4 @@ public enum AggrFunction implements PropertyFunction {
   BIT_AND,
   BIT_OR,
   BIT_XOR,
-  
 }

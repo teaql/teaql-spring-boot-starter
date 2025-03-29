@@ -19,12 +19,15 @@ import java.util.stream.Collectors;
 public class TeaQLDataFetcher implements DataFetcher {
 
   public static final long VIRTUAL_ROOT_ID = Long.MIN_VALUE;
-  private final DataFetcherFactoryEnvironment env;
-
   static final String DATA_CACHE_KEY_PREFIX = "GraphQL-Data:";
+  private final DataFetcherFactoryEnvironment env;
 
   public TeaQLDataFetcher(DataFetcherFactoryEnvironment pEnv) {
     env = pEnv;
+  }
+
+  private static DataFetcherResult<Object> emptyResult() {
+    return DataFetcherResult.newResult().data(null).build();
   }
 
   @Override
@@ -133,10 +136,6 @@ public class TeaQLDataFetcher implements DataFetcher {
     }
   }
 
-  private static DataFetcherResult<Object> emptyResult() {
-    return DataFetcherResult.newResult().data(null).build();
-  }
-
   private String currentPath(DataFetchingEnvironment env) {
     String parentPath = parentPath(env);
     return parentPath + "/" + env.getField().getName();
@@ -238,7 +237,7 @@ public class TeaQLDataFetcher implements DataFetcher {
             graphqlQueryFactory.getRequestProperty(new GraphQLFetcherParam(ctx, outputType, name));
         PropertyDescriptor property =
             ctx.resolveEntityDescriptor(outputType).findProperty(queryProperty);
-        if (property !=null && !(property instanceof Relation)) {
+        if (property != null && !(property instanceof Relation)) {
           request.selectProperty(queryProperty);
         }
       }

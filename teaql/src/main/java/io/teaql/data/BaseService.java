@@ -43,7 +43,7 @@ public abstract class BaseService {
       return WebResponse.fail("missing beanName");
     }
     if (ObjectUtil.isEmpty(action)) {
-      return WebResponse.fail(String.format("missing action from bean: %s",beanName));
+      return WebResponse.fail(String.format("missing action from bean: %s", beanName));
     }
     Method method =
         ReflectUtil.getPublicMethod(this.getClass(), action, UserContext.class, String.class);
@@ -62,10 +62,10 @@ public abstract class BaseService {
     if (action.startsWith("list") && action.endsWith("ForCandidate")) {
       return doCandidate(ctx, action, parameter);
     }
-    return WebResponse.fail(StrUtil.format(
+    return WebResponse.fail(
+        StrUtil.format(
             "unknown action: %s from bean: %s, reference: %s/%s, method shuld declare like method(UserContext ctx, String params)",
-            action,beanName,beanName,action
-    ));
+            action, beanName, beanName, action));
   }
 
   public WebResponse doCandidate(UserContext ctx, String action, String parameter) {

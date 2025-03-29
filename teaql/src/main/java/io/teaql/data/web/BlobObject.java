@@ -11,138 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BlobObject {
-  private String fileName;
-  private String mimeType;
-  private byte[] data;
-  private Map<String, String> headers;
-
-  public static BlobObject jsonUTF8(String json) {
-    BlobObject blob = new BlobObject();
-    blob.setMimeType("application/json;charset=UTF-8");
-    blob.setData(json.getBytes(StandardCharsets.UTF_8));
-    blob.setHeaders(MapUtil.of("Charset", "UTF-8"));
-    return blob;
-  }
-
-  public static BlobObject plainUTF8Text(String text) {
-    return plainText(text, StandardCharsets.UTF_8);
-  }
-
-  public static BlobObject plainGBKText(String text) {
-    return plainText(text, CharsetUtil.CHARSET_GBK);
-  }
-
-  protected static BlobObject plainText(String text, Charset charset) {
-    BlobObject blob = new BlobObject();
-    blob.setMimeType(BlobObject.TYPE_TXT + "; charset=" + charset.name());
-    blob.setData(text.getBytes(charset));
-    return blob;
-  }
-
-  protected static BlobObject binaryFile(String fileName, byte[] content, String mimeType) {
-    BlobObject blob = new BlobObject();
-    blob.setMimeType(mimeType);
-    blob.setFileName(fileName);
-    blob.setData(content);
-    return blob;
-  }
-
-  public static BlobObject binaryStream(byte[] content, String mimeType) {
-    BlobObject blob = new BlobObject();
-    blob.setMimeType(mimeType);
-    blob.setData(content);
-    return blob;
-  }
-
-  public static BlobObject jpgImage(byte[] content) {
-    return binaryStream(content, BlobObject.TYPE_JPEG);
-  }
-
-  public static BlobObject pngImage(byte[] content) {
-    return binaryStream(content, BlobObject.TYPE_PNG);
-  }
-
-  public static BlobObject pdfFile(String fileName, byte[] content) {
-    return binaryFile(fileName, content, BlobObject.TYPE_PDF);
-  }
-
-  public static BlobObject textFile(String fileName, byte[] content) {
-    return binaryFile(fileName, content, BlobObject.TYPE_TXT);
-  }
-
-  public static BlobObject excelFile(String fileName, byte[] content) {
-    return binaryFile(fileName, content, BlobObject.TYPE_XLSX);
-  }
-
-  public static BlobObject jpgFile(String fileName, byte[] content) {
-    return binaryFile(fileName, content, BlobObject.TYPE_JPEG);
-  }
-
-  public static BlobObject pngFile(String fileName, byte[] content) {
-    return binaryFile(fileName, content, BlobObject.TYPE_PNG);
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-    String headerName = "Content-Disposition";
-    String attachmentHeader =
-        StrUtil.format(
-            "attachment; filename*=UTF-8''{}",
-            URLEncodeUtil.encode(fileName, CharsetUtil.CHARSET_UTF_8));
-    this.addHeader(headerName, attachmentHeader);
-    this.addHeader("X-File-Name-Base64", Base64.encode(fileName));
-  }
-
-  public BlobObject packPlainText(String content) {
-    BlobObject blob = new BlobObject();
-    blob.setMimeType(BlobObject.TYPE_TXT + "; charset=UTF-8");
-
-    if (content == null) {
-      return blob;
-    }
-    blob.setData(content.getBytes());
-
-    return blob;
-  }
-
-  public String getMimeType() {
-    return mimeType;
-  }
-
-  public void setMimeType(String mimeType) {
-    this.mimeType = mimeType;
-    addHeader("Content-Type", mimeType);
-  }
-
-  public byte[] getData() {
-    return data;
-  }
-
-  public void setData(byte[] data) {
-    this.data = data;
-    addHeader("Content-Length", String.valueOf(data.length));
-  }
-
-  public Map<String, String> getHeaders() {
-    if (headers == null) {
-      headers = new HashMap<String, String>();
-    }
-    return headers;
-  }
-
-  public void setHeaders(Map<String, String> headers) {
-    this.headers = headers;
-  }
-
-  public BlobObject addHeader(String name, String value) {
-    getHeaders().put(name, value);
-    return this;
-  }
-
   public static final String TYPE_X3D = "application/vnd.hzn-3d-crossword";
   public static final String TYPE_3GP = "video/3gpp";
   public static final String TYPE_3G2 = "video/3gpp2";
@@ -412,7 +280,6 @@ public class BlobObject {
   public static final String TYPE_JODA = "application/vnd.joost.joda-archive";
   public static final String TYPE_JPM = "video/jpm";
   public static final String TYPE_JPEG = "image/jpeg";
-
   public static final String TYPE_PJPEG = "image/pjpeg";
   public static final String TYPE_JPGV = "video/jpeg";
   public static final String TYPE_KTZ = "application/vnd.kahootz";
@@ -434,7 +301,6 @@ public class BlobObject {
   public static final String TYPE_LBD = "application/vnd.llamagraphics.life-balance.desktop";
   public static final String TYPE_LBE = "application/vnd.llamagraphics.life-balance.exchange+xml";
   public static final String TYPE_JAM = "application/vnd.jam";
-
   public static final String TYPE_APR = "application/vnd.lotus-approach";
   public static final String TYPE_PRE = "application/vnd.lotus-freelance";
   public static final String TYPE_NSF = "application/vnd.lotus-notes";
@@ -656,7 +522,6 @@ public class BlobObject {
   public static final String TYPE_PGN = "application/x-chess-pgn";
   public static final String TYPE_PGM = "image/x-portable-graymap";
   public static final String TYPE_PNG = "image/png";
-
   public static final String TYPE_PPM = "image/x-portable-pixmap";
   public static final String TYPE_PSKCXML = "application/pskc+xml";
   public static final String TYPE_PML = "application/vnd.ctc-posml";
@@ -664,7 +529,6 @@ public class BlobObject {
   public static final String TYPE_PFA = "application/x-font-type1";
   public static final String TYPE_PBD = "application/vnd.powerbuilder6";
   public static final String TYPE_PGP = "application/pgp-encrypted";
-
   public static final String TYPE_BOX = "application/vnd.previewsystems.box";
   public static final String TYPE_PTID = "application/vnd.pvi.ptid1";
   public static final String TYPE_PLS = "application/pls+xml";
@@ -843,4 +707,135 @@ public class BlobObject {
   public static final String TYPE_ZIP = "application/zip";
   public static final String TYPE_ZMM = "application/vnd.handheld-entertainment+xml";
   public static final String TYPE_ZAZ = "application/vnd.zzazz.deck+xml";
+  private String fileName;
+  private String mimeType;
+  private byte[] data;
+  private Map<String, String> headers;
+
+  public static BlobObject jsonUTF8(String json) {
+    BlobObject blob = new BlobObject();
+    blob.setMimeType("application/json;charset=UTF-8");
+    blob.setData(json.getBytes(StandardCharsets.UTF_8));
+    blob.setHeaders(MapUtil.of("Charset", "UTF-8"));
+    return blob;
+  }
+
+  public static BlobObject plainUTF8Text(String text) {
+    return plainText(text, StandardCharsets.UTF_8);
+  }
+
+  public static BlobObject plainGBKText(String text) {
+    return plainText(text, CharsetUtil.CHARSET_GBK);
+  }
+
+  protected static BlobObject plainText(String text, Charset charset) {
+    BlobObject blob = new BlobObject();
+    blob.setMimeType(BlobObject.TYPE_TXT + "; charset=" + charset.name());
+    blob.setData(text.getBytes(charset));
+    return blob;
+  }
+
+  protected static BlobObject binaryFile(String fileName, byte[] content, String mimeType) {
+    BlobObject blob = new BlobObject();
+    blob.setMimeType(mimeType);
+    blob.setFileName(fileName);
+    blob.setData(content);
+    return blob;
+  }
+
+  public static BlobObject binaryStream(byte[] content, String mimeType) {
+    BlobObject blob = new BlobObject();
+    blob.setMimeType(mimeType);
+    blob.setData(content);
+    return blob;
+  }
+
+  public static BlobObject jpgImage(byte[] content) {
+    return binaryStream(content, BlobObject.TYPE_JPEG);
+  }
+
+  public static BlobObject pngImage(byte[] content) {
+    return binaryStream(content, BlobObject.TYPE_PNG);
+  }
+
+  public static BlobObject pdfFile(String fileName, byte[] content) {
+    return binaryFile(fileName, content, BlobObject.TYPE_PDF);
+  }
+
+  public static BlobObject textFile(String fileName, byte[] content) {
+    return binaryFile(fileName, content, BlobObject.TYPE_TXT);
+  }
+
+  public static BlobObject excelFile(String fileName, byte[] content) {
+    return binaryFile(fileName, content, BlobObject.TYPE_XLSX);
+  }
+
+  public static BlobObject jpgFile(String fileName, byte[] content) {
+    return binaryFile(fileName, content, BlobObject.TYPE_JPEG);
+  }
+
+  public static BlobObject pngFile(String fileName, byte[] content) {
+    return binaryFile(fileName, content, BlobObject.TYPE_PNG);
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+    String headerName = "Content-Disposition";
+    String attachmentHeader =
+        StrUtil.format(
+            "attachment; filename*=UTF-8''{}",
+            URLEncodeUtil.encode(fileName, CharsetUtil.CHARSET_UTF_8));
+    this.addHeader(headerName, attachmentHeader);
+    this.addHeader("X-File-Name-Base64", Base64.encode(fileName));
+  }
+
+  public BlobObject packPlainText(String content) {
+    BlobObject blob = new BlobObject();
+    blob.setMimeType(BlobObject.TYPE_TXT + "; charset=UTF-8");
+
+    if (content == null) {
+      return blob;
+    }
+    blob.setData(content.getBytes());
+
+    return blob;
+  }
+
+  public String getMimeType() {
+    return mimeType;
+  }
+
+  public void setMimeType(String mimeType) {
+    this.mimeType = mimeType;
+    addHeader("Content-Type", mimeType);
+  }
+
+  public byte[] getData() {
+    return data;
+  }
+
+  public void setData(byte[] data) {
+    this.data = data;
+    addHeader("Content-Length", String.valueOf(data.length));
+  }
+
+  public Map<String, String> getHeaders() {
+    if (headers == null) {
+      headers = new HashMap<String, String>();
+    }
+    return headers;
+  }
+
+  public void setHeaders(Map<String, String> headers) {
+    this.headers = headers;
+  }
+
+  public BlobObject addHeader(String name, String value) {
+    getHeaders().put(name, value);
+    return this;
+  }
 }

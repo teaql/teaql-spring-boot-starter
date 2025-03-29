@@ -46,7 +46,7 @@ public interface Expression<E, T> {
     }
   }
 
-  default void whenIsNotNull(Consumer<T>  consumer) {
+  default void whenIsNotNull(Consumer<T> consumer) {
     if (isNotNull() && consumer != null) {
       consumer.accept(eval());
     }
@@ -57,7 +57,8 @@ public interface Expression<E, T> {
       function.run();
     }
   }
-  default void whenNotEmpty(Consumer<T>  consumer) {
+
+  default void whenNotEmpty(Consumer<T> consumer) {
     if (isNotEmpty() && consumer != null) {
       consumer.accept(eval());
     }

@@ -41,7 +41,6 @@ public class Aggregations {
     complexDimensions = pComplexDimensions;
   }
 
-
   public List<SimpleNamedExpression> getSelectedExpressions() {
     List<SimpleNamedExpression> ret = new ArrayList<>();
     ret.addAll(getAggregates());

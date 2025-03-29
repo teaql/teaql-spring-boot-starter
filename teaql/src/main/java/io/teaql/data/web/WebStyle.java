@@ -9,21 +9,6 @@ public class WebStyle {
 
   public String classNames;
 
-  public String getClassNames() {
-    return classNames;
-  }
-
-  public void setClassNames(String classNames) {
-    this.classNames = classNames;
-  }
-
-  public void bind(Entity entity) {
-    if (entity == null) {
-      return;
-    }
-    entity.appendDynamicProperty(STYLE, this);
-  }
-
   public static WebStyle withBackgroundColor(String color) {
     WebStyle style = new WebStyle();
     style.setBackgroundColor(color);
@@ -40,6 +25,21 @@ public class WebStyle {
     WebStyle style = new WebStyle();
     style.setBackgroundColor(color);
     return style;
+  }
+
+  public String getClassNames() {
+    return classNames;
+  }
+
+  public void setClassNames(String classNames) {
+    this.classNames = classNames;
+  }
+
+  public void bind(Entity entity) {
+    if (entity == null) {
+      return;
+    }
+    entity.appendDynamicProperty(STYLE, this);
   }
 
   public String getBackgroundColor() {

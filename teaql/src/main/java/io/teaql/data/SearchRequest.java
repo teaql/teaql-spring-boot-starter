@@ -12,6 +12,7 @@ public interface SearchRequest<T extends Entity> {
 
   /**
    * raw sql for this search request when SQLRepository loadInternal
+   *
    * @return custom provided full sql
    */
   default String getRawSql() {

@@ -4,9 +4,7 @@ import io.teaql.data.Expression;
 import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.OR;
-import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -9,6 +9,11 @@ public class TempRequest extends BaseRequest {
     copy(request);
   }
 
+  public TempRequest(Class returnType, String typeName) {
+    super(returnType);
+    type = typeName;
+  }
+
   private void copy(SearchRequest pRequest) {
     projections.addAll(pRequest.getProjections());
     simpleDynamicProperties.addAll(pRequest.getSimpleDynamicProperties());
@@ -25,11 +30,6 @@ public class TempRequest extends BaseRequest {
     cacheAggregation = pRequest.tryCacheAggregation();
     aggregateCacheTime = pRequest.getAggregateCacheTime();
     rawSql = pRequest.getRawSql();
-  }
-
-  public TempRequest(Class returnType, String typeName) {
-    super(returnType);
-    type = typeName;
   }
 
   @Override

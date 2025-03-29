@@ -3,9 +3,7 @@ package io.teaql.data.sql.expression;
 import io.teaql.data.Expression;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
-import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
-
 import java.util.Map;
 
 public interface SQLExpressionParser<T extends Expression> {

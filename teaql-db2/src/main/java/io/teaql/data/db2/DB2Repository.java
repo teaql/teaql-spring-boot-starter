@@ -8,13 +8,12 @@ import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import javax.sql.DataSource;
 
 public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
   public DB2Repository(EntityDescriptor entityDescriptor, DataSource dataSource) {

@@ -3,7 +3,6 @@ package io.teaql.data;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

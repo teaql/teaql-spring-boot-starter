@@ -7,25 +7,23 @@ import io.teaql.data.Entity;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
-import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
 public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
-  @Override
-  protected void ensureIndexAndForeignKey(UserContext ctx) {}
-
   public MysqlRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
     super(entityDescriptor, dataSource);
     registerExpressionParser(MysqlAggrExpressionParser.class);
     registerExpressionParser(MysqlParameterParser.class);
     registerExpressionParser(MysqlTwoOperatorExpressionParser.class);
   }
+
+  @Override
+  protected void ensureIndexAndForeignKey(UserContext ctx) {}
 
   @Override
   protected void ensure(

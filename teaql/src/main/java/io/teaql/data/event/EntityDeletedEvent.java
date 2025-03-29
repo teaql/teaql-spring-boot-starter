@@ -5,7 +5,7 @@ import io.teaql.data.BaseEntity;
 public class EntityDeletedEvent {
   private BaseEntity item;
 
-  //TODO: copy properties from item to local entity
+  // TODO: copy properties from item to local entity
   public EntityDeletedEvent(BaseEntity item) {
     this.item = item;
   }

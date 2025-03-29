@@ -14,50 +14,10 @@ public class WebAction {
   private String target;
   private String component;
   private String warningMessage;
-
-  public String getWarningMessage() {
-    return warningMessage;
-  }
-
-  public void setWarningMessage(String warningMessage) {
-    this.warningMessage = warningMessage;
-  }
-
-  public String getRoleForList() {
-    return roleForList;
-  }
-
-  public void setRoleForList(String roleForList) {
-    this.roleForList = roleForList;
-  }
-
   private String roleForList;
-
-  public String getComponent() {
-    return component;
-  }
-
-  public void setComponent(String component) {
-    this.component = component;
-  }
-
-  public String getRequestURL() {
-    return requestURL;
-  }
-
-  public void setRequestURL(String requestURL) {
-    this.requestURL = requestURL;
-  }
-
   private String requestURL;
 
   public WebAction() {}
-
-  public void bind(Entity entity) {
-    if (entity != null) {
-      entity.appendDynamicProperty(ACTION_LIST, this);
-    }
-  }
 
   public static WebAction viewWebAction() {
     WebAction webAction = new WebAction();
@@ -183,6 +143,44 @@ public class WebAction {
     webAction.setExecute("switchview");
     webAction.setTarget("batchupload");
     return webAction;
+  }
+
+  public String getWarningMessage() {
+    return warningMessage;
+  }
+
+  public void setWarningMessage(String warningMessage) {
+    this.warningMessage = warningMessage;
+  }
+
+  public String getRoleForList() {
+    return roleForList;
+  }
+
+  public void setRoleForList(String roleForList) {
+    this.roleForList = roleForList;
+  }
+
+  public String getComponent() {
+    return component;
+  }
+
+  public void setComponent(String component) {
+    this.component = component;
+  }
+
+  public String getRequestURL() {
+    return requestURL;
+  }
+
+  public void setRequestURL(String requestURL) {
+    this.requestURL = requestURL;
+  }
+
+  public void bind(Entity entity) {
+    if (entity != null) {
+      entity.appendDynamicProperty(ACTION_LIST, this);
+    }
   }
 
   public String getName() {

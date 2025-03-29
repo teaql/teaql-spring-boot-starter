@@ -41,14 +41,6 @@ public class Parameter implements Expression {
     this(name, value, true);
   }
 
-  public Object getValue() {
-    return value;
-  }
-
-  public String getName() {
-    return name;
-  }
-
   public static List flatValues(Object value) {
     List ret = new ArrayList();
     visit(ret, value);
@@ -76,6 +68,14 @@ public class Parameter implements Expression {
     } else {
       ret.add(pValue);
     }
+  }
+
+  public Object getValue() {
+    return value;
+  }
+
+  public String getName() {
+    return name;
   }
 
   public Operator getOperator() {

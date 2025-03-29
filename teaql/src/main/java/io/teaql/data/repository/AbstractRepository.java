@@ -233,8 +233,8 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
             T subItem = (T) item;
             Long id = subItem.getId();
             Integer location = itemLocation.get(id);
-            //this is for raw sql in child request
-            if (location == null){
+            // this is for raw sql in child request
+            if (location == null) {
               continue;
             }
             T oldItem = dataSet.get(location);
@@ -321,7 +321,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
       if (oldValue instanceof Entity) {
         Entity value = (Entity) map.get(((Entity) oldValue).getId());
         // this is for raw sql in enhance parent
-        if (value == null){
+        if (value == null) {
           continue;
         }
         result.addRelation(relation.getName(), value);

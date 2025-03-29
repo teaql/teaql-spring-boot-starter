@@ -79,27 +79,27 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
     return ResultSetTool.getValue(resultSet, getName());
   }
 
-  public void setTableName(String pTableName) {
-    tableName = pTableName;
-  }
-
-  public void setColumnName(String pColumnName) {
-    columnName = pColumnName;
-  }
-
-  public void setColumnType(String pColumnType) {
-    columnType = pColumnType;
-  }
-
   public String getTableName() {
     return tableName;
+  }
+
+  public void setTableName(String pTableName) {
+    tableName = pTableName;
   }
 
   public String getColumnName() {
     return columnName;
   }
 
+  public void setColumnName(String pColumnName) {
+    columnName = pColumnName;
+  }
+
   public String getColumnType() {
     return columnType;
+  }
+
+  public void setColumnType(String pColumnType) {
+    columnType = pColumnType;
   }
 }

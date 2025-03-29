@@ -38,6 +38,31 @@ public abstract class ViewRender {
   public static final String CTX = "ctx.";
   public static final String NO_VALIDATE_FIELD = "noValidateField";
 
+  public static void addValue(Object page, String key, Object value) {
+    Object current = getProperty(page, key);
+    if (current instanceof List) {
+      ((List) current).add(value);
+      return;
+    }
+    List l = new ArrayList();
+    if (current != null) {
+      l.add(current);
+    }
+    l.add(value);
+    setValue(page, key, l);
+  }
+
+  public static void setValue(Object page, String propertyPath, Object value) {
+    BeanUtil.setProperty(page, propertyPath, value);
+  }
+
+  public static Object getProperty(Object value, String property) {
+    if (value == null) {
+      return null;
+    }
+    return BeanUtil.getProperty(value, property);
+  }
+
   public abstract String getBeanName();
 
   public Object view(UserContext ctx, Object data) {
@@ -910,20 +935,6 @@ public abstract class ViewRender {
         .build();
   }
 
-  public static void addValue(Object page, String key, Object value) {
-    Object current = getProperty(page, key);
-    if (current instanceof List) {
-      ((List) current).add(value);
-      return;
-    }
-    List l = new ArrayList();
-    if (current != null) {
-      l.add(current);
-    }
-    l.add(value);
-    setValue(page, key, l);
-  }
-
   public String makeActionUrl(UserContext ctx, String action, Object data) {
     if (data == null) {
       return String.format("%s/%s/", getBeanName(), action);
@@ -988,10 +999,6 @@ public abstract class ViewRender {
     setValue(page, "id", data.getClass());
   }
 
-  public static void setValue(Object page, String propertyPath, Object value) {
-    BeanUtil.setProperty(page, propertyPath, value);
-  }
-
   public void addFormClass(UserContext ctx, Object page, Object meta, Object data) {
     ctx.setResponseHeader(X_CLASS, "com.terapico.caf.viewcomponent.GenericFormPage");
   }
@@ -1018,13 +1025,6 @@ public abstract class ViewRender {
 
   public List<String> getList(EntityDescriptor data, String key, List<String> defaultValue) {
     return data.getList(UI_ATTRIBUTE_PREFIX + key, defaultValue);
-  }
-
-  public static Object getProperty(Object value, String property) {
-    if (value == null) {
-      return null;
-    }
-    return BeanUtil.getProperty(value, property);
   }
 
   public void setFormAction(UserContext ctx, Object view, Object ret, String action) {

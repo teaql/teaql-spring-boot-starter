@@ -1,7 +1,6 @@
 package io.teaql.data.sql;
 
 import cn.hutool.core.collection.CollUtil;
-
 import java.util.List;
 
 public interface SQLColumnResolver {

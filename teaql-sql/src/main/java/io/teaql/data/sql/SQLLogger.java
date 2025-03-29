@@ -16,6 +16,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 
 public class SQLLogger {
 
+  private static final char SINGLE_QUOTE = '\'';
+
   protected static <T> String showResult(List<T> result) {
     if (result.isEmpty()) {
       return String.format("NO ROWS");
@@ -36,8 +38,6 @@ public class SQLLogger {
             .collect(Collectors.joining(","));
     return String.join("", className, "(", body, ")");
   }
-
-  private static final char SINGLE_QUOTE = '\'';
 
   public static void logNamedSQL(
       Marker marker,
@@ -67,20 +67,6 @@ public class SQLLogger {
         finalSQL,
         NamedParameterUtils.buildValueArray(sql, paramMap),
         resultString);
-  }
-
-  static class Counter {
-    int count = 0;
-
-    public void onChar(char ch) {
-      if (ch == SINGLE_QUOTE) {
-        count++;
-      }
-    }
-
-    public boolean outOfQuote() {
-      return count % 2 == 0;
-    }
   }
 
   public static <T> void logNamedSQL(
@@ -194,5 +180,19 @@ public class SQLLogger {
   protected static String sqlDateExpr(Date dateValue) {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     return simpleDateFormat.format(dateValue);
+  }
+
+  static class Counter {
+    int count = 0;
+
+    public void onChar(char ch) {
+      if (ch == SINGLE_QUOTE) {
+        count++;
+      }
+    }
+
+    public boolean outOfQuote() {
+      return count % 2 == 0;
+    }
   }
 }

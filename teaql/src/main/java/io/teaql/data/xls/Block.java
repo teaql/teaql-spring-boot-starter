@@ -4,6 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Block {
+  // the page
+  private String page;
+  // the region
+  private int top;
+  private int bottom;
+  private int left;
+  private int right;
+  // style references
+  private Block styleReferBlock;
+  // the value
+  private Object value;
+  // the properties, styles
+  private Map<String, Object> properties;
+
   public Block(String pPage, int x, int y, Object pValue) {
     page = pPage;
     top = y;
@@ -16,24 +30,6 @@ public class Block {
   public Block(BlockBuildContext pBuildContext, Object pValue) {
     this(pBuildContext.getPage(), pBuildContext.getX(), pBuildContext.getY(), pValue);
   }
-
-  // the page
-  private String page;
-
-  // the region
-  private int top;
-  private int bottom;
-  private int left;
-  private int right;
-
-  // style references
-  private Block styleReferBlock;
-
-  // the value
-  private Object value;
-
-  // the properties, styles
-  private Map<String, Object> properties;
 
   public Block() {}
 

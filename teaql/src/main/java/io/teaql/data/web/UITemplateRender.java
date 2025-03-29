@@ -33,6 +33,10 @@ public class UITemplateRender {
 
   ObjectMapper mapper = new ObjectMapper();
 
+  static String serviceRequestPopupKey(Entity request) {
+    return StrUtil.format("serviceRequest:popup:{}", request.getId());
+  }
+
   public void kv(
       UserContext ctx,
       PropertyDescriptor meta,
@@ -288,10 +292,6 @@ public class UITemplateRender {
     }
     BeanUtil.setProperty(popup, "playSound", playSound);
     ctx.putInStore(serviceRequestPopupKey(request), popup, 10);
-  }
-
-  static String serviceRequestPopupKey(Entity request) {
-    return StrUtil.format("serviceRequest:popup:{}", request.getId());
   }
 
   public void createConfirmOnlyPopup(

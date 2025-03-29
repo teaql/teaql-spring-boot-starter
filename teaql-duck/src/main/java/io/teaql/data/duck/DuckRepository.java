@@ -5,14 +5,11 @@ import io.teaql.data.Entity;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
-import io.teaql.data.meta.Relation;
-import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
+import javax.sql.DataSource;
 
 public class DuckRepository<T extends Entity> extends SQLRepository<T> {
   public DuckRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {

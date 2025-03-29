@@ -18,12 +18,12 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
   @Override
   public ServletInputStream getInputStream() throws IOException {
-      return new CachedBodyServletInputStream(cachedBody);
+    return new CachedBodyServletInputStream(cachedBody);
   }
 
-    @Override
-    public BufferedReader getReader() throws IOException {
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.cachedBody);
-        return new BufferedReader(new InputStreamReader(byteArrayInputStream));
-    }
+  @Override
+  public BufferedReader getReader() throws IOException {
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.cachedBody);
+    return new BufferedReader(new InputStreamReader(byteArrayInputStream));
+  }
 }

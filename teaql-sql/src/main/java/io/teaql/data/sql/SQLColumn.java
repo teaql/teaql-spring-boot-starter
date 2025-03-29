@@ -7,12 +7,13 @@ public class SQLColumn {
   String columnName;
   String type;
 
-  public boolean isIdColumn(){
-    return BaseEntity.ID_PROPERTY.equals(this.columnName);
-  }
   public SQLColumn(String pTableName, String pColumnName) {
     tableName = pTableName;
     columnName = pColumnName;
+  }
+
+  public boolean isIdColumn() {
+    return BaseEntity.ID_PROPERTY.equals(this.columnName);
   }
 
   public String getTableName() {

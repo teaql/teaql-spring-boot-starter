@@ -114,16 +114,6 @@ public class CheckResult {
     systemValue = pSystemValue;
   }
 
-  public enum RuleId {
-    MIN,
-    MAX,
-    MIN_STR_LEN,
-    MAX_STR_LEN,
-    MIN_DATE,
-    MAX_DATE,
-    REQUIRED
-  }
-
   @Override
   public String toString() {
     return "CheckResult{"
@@ -144,5 +134,15 @@ public class CheckResult {
 
   public void setNaturalLanguageStatement(String pNaturalLanguageStatement) {
     naturalLanguageStatement = pNaturalLanguageStatement;
+  }
+
+  public enum RuleId {
+    MIN,
+    MAX,
+    MIN_STR_LEN,
+    MAX_STR_LEN,
+    MIN_DATE,
+    MAX_DATE,
+    REQUIRED
   }
 }

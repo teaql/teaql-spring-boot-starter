@@ -155,6 +155,20 @@ public class TQLAutoConfiguration {
     return new BlobObjectMessageConverter();
   }
 
+  @Bean("multiReadFilter")
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  @Order
+  public Filter multiReadRequest() {
+    return new MultiReadFilter();
+  }
+
+  @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  @Order
+  public UserContextInitializer servletInitializer() {
+    return new ServletUserContextInitializer();
+  }
+
   @Configuration
   @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
   public static class TQLContextResolver implements HandlerMethodArgumentResolver {
@@ -283,19 +297,5 @@ public class TQLAutoConfiguration {
         }
       };
     }
-  }
-
-  @Bean("multiReadFilter")
-  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-  @Order
-  public Filter multiReadRequest() {
-    return new MultiReadFilter();
-  }
-
-  @Bean
-  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-  @Order
-  public UserContextInitializer servletInitializer() {
-    return new ServletUserContextInitializer();
   }
 }
