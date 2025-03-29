@@ -1,3 +1,4 @@
 package io.teaql.data;
 
-public interface PropertyFunction {}
+public interface PropertyFunction {
+}

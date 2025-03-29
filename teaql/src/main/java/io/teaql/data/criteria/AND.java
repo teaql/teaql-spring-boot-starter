@@ -5,7 +5,7 @@ import io.teaql.data.PropertyAware;
 import io.teaql.data.SearchCriteria;
 
 public class AND extends FunctionApply implements SearchCriteria, PropertyAware {
-  public AND(SearchCriteria... pSubs) {
-    super(LogicOperator.AND, pSubs);
-  }
+    public AND(SearchCriteria... pSubs) {
+        super(LogicOperator.AND, pSubs);
+    }
 }

@@ -5,11 +5,11 @@ import java.util.List;
 
 /**
  * @author Jackytin
- *     <p>the related properties
+ * <p>the related properties
  */
 public interface PropertyAware {
 
-  default List<String> properties(UserContext ctx) {
-    return Collections.emptyList();
-  }
+    default List<String> properties(UserContext ctx) {
+        return Collections.emptyList();
+    }
 }

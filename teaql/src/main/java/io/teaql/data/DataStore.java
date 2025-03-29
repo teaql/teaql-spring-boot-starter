@@ -2,22 +2,24 @@ package io.teaql.data;
 
 import java.util.function.Supplier;
 
-/** data store across context take redis as an example */
+/**
+ * data store across context take redis as an example
+ */
 public interface DataStore {
-  void put(String key, Object object);
+    void put(String key, Object object);
 
-  /**
-   * @param timeout timeout in seconds
-   */
-  void put(String key, Object object, long timeout);
+    /**
+     * @param timeout timeout in seconds
+     */
+    void put(String key, Object object, long timeout);
 
-  <T> T get(String key);
+    <T> T get(String key);
 
-  <T> T getAndRemove(String key);
+    <T> T getAndRemove(String key);
 
-  <T> T get(String key, Supplier<T> supplier);
+    <T> T get(String key, Supplier<T> supplier);
 
-  void remove(String key);
+    void remove(String key);
 
-  boolean containsKey(String key);
+    boolean containsKey(String key);
 }

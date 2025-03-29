@@ -1,16 +1,18 @@
 package io.teaql.data.meta;
 
-/** basic java property type */
+/**
+ * basic java property type
+ */
 public class SimplePropertyType implements PropertyType {
 
-  private Class javaType;
+    private Class javaType;
 
-  public SimplePropertyType(Class pJavaType) {
-    javaType = pJavaType;
-  }
+    public SimplePropertyType(Class pJavaType) {
+        javaType = pJavaType;
+    }
 
-  @Override
-  public Class javaType() {
-    return javaType;
-  }
+    @Override
+    public Class javaType() {
+        return javaType;
+    }
 }

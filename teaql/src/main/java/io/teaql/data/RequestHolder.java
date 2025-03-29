@@ -4,21 +4,21 @@ import java.util.List;
 
 public interface RequestHolder {
 
-  String method();
+    String method();
 
-  String getHeader(String name);
+    String getHeader(String name);
 
-  List<String> getHeaderNames();
+    List<String> getHeaderNames();
 
-  byte[] getPart(String name);
+    byte[] getPart(String name);
 
-  List<String> getParameterNames();
+    List<String> getParameterNames();
 
-  String getParameter(String name);
+    String getParameter(String name);
 
-  byte[] getBodyBytes();
+    byte[] getBodyBytes();
 
-  String requestUri();
+    String requestUri();
 
-  String getRemoteAddress();
+    String getRemoteAddress();
 }

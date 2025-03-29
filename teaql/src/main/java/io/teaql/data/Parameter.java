@@ -1,102 +1,110 @@
 package io.teaql.data;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
-import io.teaql.data.criteria.Operator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
+
+import io.teaql.data.criteria.Operator;
+
 public class Parameter implements Expression {
-  private String name;
-  private Object value;
-  private Operator operator;
+    private String name;
+    private Object value;
+    private Operator operator;
 
-  public Parameter(String name, Object value, Operator operator) {
-    this.name = name;
-    this.operator = operator;
-    List values = flatValues(value);
-    if (operator.hasMultiValue()) {
-      this.value = values;
-    } else {
-      Object first = CollectionUtil.getFirst(values);
-      this.value = first;
+    public Parameter(String name, Object value, Operator operator) {
+        this.name = name;
+        this.operator = operator;
+        List values = flatValues(value);
+        if (operator.hasMultiValue()) {
+            this.value = values;
+        }
+        else {
+            Object first = CollectionUtil.getFirst(values);
+            this.value = first;
+        }
     }
-  }
 
-  private Parameter(String name, Object value, boolean multiValue) {
-    this.name = name;
-    List values = flatValues(value);
-    if (multiValue) {
-      this.value = values.toArray();
-    } else {
-      Object first = CollectionUtil.getFirst(values);
-      this.value = first;
+    private Parameter(String name, Object value, boolean multiValue) {
+        this.name = name;
+        List values = flatValues(value);
+        if (multiValue) {
+            this.value = values.toArray();
+        }
+        else {
+            Object first = CollectionUtil.getFirst(values);
+            this.value = first;
+        }
     }
-  }
 
-  private Parameter(String name, Object value) {
-    this(name, value, true);
-  }
-
-  public static List flatValues(Object value) {
-    List ret = new ArrayList();
-    visit(ret, value);
-    return ret;
-  }
-
-  private static void visit(List ret, Object pValue) {
-    if (ObjectUtil.isEmpty(pValue)) {
-      return;
+    private Parameter(String name, Object value) {
+        this(name, value, true);
     }
-    if (ArrayUtil.isArray(pValue)) {
-      int length = ArrayUtil.length(pValue);
-      for (int i = 0; i < length; i++) {
-        visit(ret, ArrayUtil.get(pValue, i));
-      }
-    } else if (pValue instanceof Iterator) {
-      Iterator it = (Iterator) pValue;
-      while (it.hasNext()) {
-        visit(ret, it.next());
-      }
-    } else if (pValue instanceof Iterable) {
-      visit(ret, ((Iterable<?>) pValue).iterator());
-    } else if (pValue instanceof Entity) {
-      ret.add(((Entity) pValue).getId());
-    } else {
-      ret.add(pValue);
+
+    public static List flatValues(Object value) {
+        List ret = new ArrayList();
+        visit(ret, value);
+        return ret;
     }
-  }
 
-  public Object getValue() {
-    return value;
-  }
+    private static void visit(List ret, Object pValue) {
+        if (ObjectUtil.isEmpty(pValue)) {
+            return;
+        }
+        if (ArrayUtil.isArray(pValue)) {
+            int length = ArrayUtil.length(pValue);
+            for (int i = 0; i < length; i++) {
+                visit(ret, ArrayUtil.get(pValue, i));
+            }
+        }
+        else if (pValue instanceof Iterator) {
+            Iterator it = (Iterator) pValue;
+            while (it.hasNext()) {
+                visit(ret, it.next());
+            }
+        }
+        else if (pValue instanceof Iterable) {
+            visit(ret, ((Iterable<?>) pValue).iterator());
+        }
+        else if (pValue instanceof Entity) {
+            ret.add(((Entity) pValue).getId());
+        }
+        else {
+            ret.add(pValue);
+        }
+    }
 
-  public String getName() {
-    return name;
-  }
+    public Object getValue() {
+        return value;
+    }
 
-  public Operator getOperator() {
-    return operator;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public void setOperator(Operator pOperator) {
-    operator = pOperator;
-  }
+    public Operator getOperator() {
+        return operator;
+    }
 
-  @Override
-  public boolean equals(Object pO) {
-    if (this == pO) return true;
-    if (!(pO instanceof Parameter parameter)) return false;
-    return Objects.equals(getName(), parameter.getName())
-        && Objects.equals(getValue(), parameter.getValue())
-        && getOperator() == parameter.getOperator();
-  }
+    public void setOperator(Operator pOperator) {
+        operator = pOperator;
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(getName(), getValue(), getOperator());
-  }
+    @Override
+    public boolean equals(Object pO) {
+        if (this == pO) return true;
+        if (!(pO instanceof Parameter parameter)) return false;
+        return Objects.equals(getName(), parameter.getName())
+                && Objects.equals(getValue(), parameter.getValue())
+                && getOperator() == parameter.getOperator();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getValue(), getOperator());
+    }
 }

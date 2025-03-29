@@ -1,71 +1,72 @@
 package io.teaql.data;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ObjectUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.ObjectUtil;
+
 public class FunctionApply implements Expression {
-  PropertyFunction operator;
-  List<Expression> expressions;
+    PropertyFunction operator;
+    List<Expression> expressions;
 
-  public FunctionApply(PropertyFunction operator, Expression... expressions) {
-    if (ObjectUtil.isEmpty(expressions)) {
-      throw new RepositoryException("FunctionApply expressions cannot be empty");
+    public FunctionApply(PropertyFunction operator, Expression... expressions) {
+        if (ObjectUtil.isEmpty(expressions)) {
+            throw new RepositoryException("FunctionApply expressions cannot be empty");
+        }
+        this.operator = operator;
+        this.expressions = new ArrayList<>(ListUtil.of(expressions));
     }
-    this.operator = operator;
-    this.expressions = new ArrayList<>(ListUtil.of(expressions));
-  }
 
-  @Override
-  public List<String> properties(UserContext ctx) {
-    List<String> ret = new ArrayList<>();
+    @Override
+    public List<String> properties(UserContext ctx) {
+        List<String> ret = new ArrayList<>();
 
-    for (Expression expression : expressions) {
-      List<String> properties = expression.properties(ctx);
-      if (properties != null) {
-        ret.addAll(properties);
-      }
+        for (Expression expression : expressions) {
+            List<String> properties = expression.properties(ctx);
+            if (properties != null) {
+                ret.addAll(properties);
+            }
+        }
+        return ret;
     }
-    return ret;
-  }
 
-  public PropertyFunction getOperator() {
-    return operator;
-  }
+    public PropertyFunction getOperator() {
+        return operator;
+    }
 
-  public List<Expression> getExpressions() {
-    return expressions;
-  }
+    public List<Expression> getExpressions() {
+        return expressions;
+    }
 
-  public Expression first() {
-    return CollUtil.getFirst(expressions);
-  }
+    public Expression first() {
+        return CollUtil.getFirst(expressions);
+    }
 
-  public Expression second() {
-    return CollUtil.get(expressions, 1);
-  }
+    public Expression second() {
+        return CollUtil.get(expressions, 1);
+    }
 
-  public Expression third() {
-    return CollUtil.get(expressions, 2);
-  }
+    public Expression third() {
+        return CollUtil.get(expressions, 2);
+    }
 
-  public Expression last() {
-    return CollUtil.get(expressions, -1);
-  }
+    public Expression last() {
+        return CollUtil.get(expressions, -1);
+    }
 
-  @Override
-  public boolean equals(Object pO) {
-    if (this == pO) return true;
-    if (!(pO instanceof FunctionApply that)) return false;
-    return Objects.equals(getOperator(), that.getOperator())
-        && Objects.equals(getExpressions(), that.getExpressions());
-  }
+    @Override
+    public boolean equals(Object pO) {
+        if (this == pO) return true;
+        if (!(pO instanceof FunctionApply that)) return false;
+        return Objects.equals(getOperator(), that.getOperator())
+                && Objects.equals(getExpressions(), that.getExpressions());
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(getOperator(), getExpressions());
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hash(getOperator(), getExpressions());
+    }
 }

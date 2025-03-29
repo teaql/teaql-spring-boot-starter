@@ -1,7 +1,7 @@
 package io.teaql.data.translation;
 
 public interface Translator {
-  Translator NOOP = req -> null;
+    Translator NOOP = req -> null;
 
-  TranslationResponse translate(TranslationRequest req);
+    TranslationResponse translate(TranslationRequest req);
 }

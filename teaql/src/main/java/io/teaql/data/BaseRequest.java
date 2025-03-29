@@ -1,9 +1,20 @@
 package io.teaql.data;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
-import com.fasterxml.jackson.databind.JsonNode;
+
 import io.teaql.data.criteria.AND;
 import io.teaql.data.criteria.Between;
 import io.teaql.data.criteria.EQ;
@@ -15,14 +26,6 @@ import io.teaql.data.criteria.VersionSearchCriteria;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.Relation;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> {
 

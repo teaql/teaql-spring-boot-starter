@@ -1,11 +1,12 @@
 package io.teaql.data.meta;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.StrUtil;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * property meta in entity meta

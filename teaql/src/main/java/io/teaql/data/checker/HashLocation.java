@@ -1,27 +1,27 @@
 package io.teaql.data.checker;
 
 public class HashLocation extends ObjectLocation {
-  private String member;
+    private String member;
 
-  public HashLocation(ObjectLocation pParent) {
-    super(pParent);
-  }
-
-  public HashLocation(ObjectLocation pParent, String pMember) {
-    super(pParent);
-    member = pMember;
-  }
-
-  public String getMember() {
-    return member;
-  }
-
-  @Override
-  public String toString() {
-    ObjectLocation parent = getParent();
-    if (parent == null) {
-      return member;
+    public HashLocation(ObjectLocation pParent) {
+        super(pParent);
     }
-    return parent + "." + member;
-  }
+
+    public HashLocation(ObjectLocation pParent, String pMember) {
+        super(pParent);
+        member = pMember;
+    }
+
+    public String getMember() {
+        return member;
+    }
+
+    @Override
+    public String toString() {
+        ObjectLocation parent = getParent();
+        if (parent == null) {
+            return member;
+        }
+        return parent + "." + member;
+    }
 }

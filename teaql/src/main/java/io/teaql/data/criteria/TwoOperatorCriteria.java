@@ -6,7 +6,7 @@ import io.teaql.data.PropertyFunction;
 import io.teaql.data.SearchCriteria;
 
 public class TwoOperatorCriteria extends FunctionApply implements SearchCriteria {
-  public TwoOperatorCriteria(PropertyFunction operator, Expression left, Expression right) {
-    super(operator, left, right);
-  }
+    public TwoOperatorCriteria(PropertyFunction operator, Expression left, Expression right) {
+        super(operator, left, right);
+    }
 }

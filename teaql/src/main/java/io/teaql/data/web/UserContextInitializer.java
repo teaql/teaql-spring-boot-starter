@@ -4,7 +4,7 @@ import io.teaql.data.UserContext;
 
 public interface UserContextInitializer {
 
-  boolean support(Object request);
+    boolean support(Object request);
 
-  void init(UserContext userContext, Object request);
+    void init(UserContext userContext, Object request);
 }

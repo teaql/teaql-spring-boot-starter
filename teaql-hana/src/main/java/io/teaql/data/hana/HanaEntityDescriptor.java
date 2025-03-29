@@ -5,13 +5,13 @@ import io.teaql.data.sql.GenericSQLRelation;
 import io.teaql.data.sql.SQLEntityDescriptor;
 
 public class HanaEntityDescriptor extends SQLEntityDescriptor {
-  @Override
-  protected GenericSQLProperty createPropertyDescriptor() {
-    return new HanaProperty();
-  }
+    @Override
+    protected GenericSQLProperty createPropertyDescriptor() {
+        return new HanaProperty();
+    }
 
-  @Override
-  protected GenericSQLRelation createRelation() {
-    return new HanaRelation();
-  }
+    @Override
+    protected GenericSQLRelation createRelation() {
+        return new HanaRelation();
+    }
 }
