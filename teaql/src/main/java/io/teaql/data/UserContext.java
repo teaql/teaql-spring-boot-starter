@@ -1,34 +1,12 @@
 package io.teaql.data;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.spi.LocationAwareLogger;
-
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
 import cn.hutool.core.lang.caller.CallerUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.*;
 import cn.hutool.json.JSONUtil;
 
 import io.teaql.data.checker.CheckException;
@@ -47,6 +25,18 @@ import io.teaql.data.web.DuplicatedFormException;
 import io.teaql.data.web.ErrorMessageException;
 import io.teaql.data.web.UserContextInitializer;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.spi.LocationAwareLogger;
+
 public class UserContext
         implements NaturalLanguageTranslator,
         RequestHolder,
@@ -58,13 +48,13 @@ public class UserContext
     public static final String TOAST = "toast";
     public static final String REQUEST_HOLDER = "$request:requestHolder";
     public static final String RESPONSE_HOLDER = "$response:responseHolder";
-    private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
     InternalIdGenerator internalIdGenerator;
     private TQLResolver resolver = GLobalResolver.getGlobalResolver();
+    private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
 
     public Repository resolveRepository(String type) {
-        if (resolver != null) {
-            Repository repository = resolver.resolveRepository(type);
+        if (getResolver() != null) {
+            Repository repository = getResolver().resolveRepository(type);
             if (repository != null) {
                 return repository;
             }
@@ -73,8 +63,8 @@ public class UserContext
     }
 
     public DataConfigProperties config() {
-        if (resolver != null) {
-            DataConfigProperties bean = resolver.getBean(DataConfigProperties.class);
+        if (getResolver() != null) {
+            DataConfigProperties bean = getResolver().getBean(DataConfigProperties.class);
             if (bean != null) {
                 return bean;
             }
@@ -83,8 +73,8 @@ public class UserContext
     }
 
     public EntityDescriptor resolveEntityDescriptor(String type) {
-        if (resolver != null) {
-            EntityDescriptor entityDescriptor = resolver.resolveEntityDescriptor(type);
+        if (getResolver() != null) {
+            EntityDescriptor entityDescriptor = getResolver().resolveEntityDescriptor(type);
             if (entityDescriptor != null) {
                 return entityDescriptor;
             }
@@ -249,8 +239,8 @@ public class UserContext
     }
 
     public <T> T getBean(Class<T> clazz) {
-        if (resolver != null) {
-            T bean = resolver.getBean(clazz);
+        if (getResolver() != null) {
+            T bean = getResolver().getBean(clazz);
             if (bean != null) {
                 return bean;
             }
@@ -259,8 +249,8 @@ public class UserContext
     }
 
     public <T> T getBean(String name) {
-        if (resolver != null) {
-            T bean = resolver.getBean(name);
+        if (getResolver() != null) {
+            T bean = getResolver().getBean(name);
             if (bean != null) {
                 return bean;
             }
