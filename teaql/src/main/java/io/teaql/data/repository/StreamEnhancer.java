@@ -18,7 +18,7 @@ import io.teaql.data.SmartList;
 import io.teaql.data.UserContext;
 
 public class StreamEnhancer<T extends BaseEntity> implements Spliterator<T> {
-    static ExecutorService executor = ThreadUtil.newExecutorByBlockingCoefficient(0.5f);
+    static ExecutorService executor = EnhancerThreadUtil.threadPoolExecutor();
     UserContext userContext;
     Spliterator<T> spliterator;
     SearchRequest<T> request;
@@ -64,23 +64,10 @@ public class StreamEnhancer<T extends BaseEntity> implements Spliterator<T> {
                 })) {
             i++;
         }
-        Map<String, String> copyOfContextMap = MDC.getCopyOfContextMap();
-        Future<SmartList<T>> result =
-                executor.submit(
-                        () -> {
-                            MDC.setContextMap(copyOfContextMap);
-                            repository.enhanceChildren(userContext, currentBatch, request);
-                            repository.enhanceRelations(userContext, currentBatch, request);
-                            MDC.clear();
-                            return currentBatch;
-                        });
-        try {
-            currentBatch = result.get();
-            nextIndex = 0;
-        }
-        catch (Exception pE) {
-            throw new RuntimeException(pE);
-        }
+
+        repository.enhanceChildren(userContext, currentBatch, request);
+        repository.enhanceRelations(userContext, currentBatch, request);
+
         if (ObjectUtil.isNotEmpty(currentBatch) && nextIndex < currentBatch.size()) {
             action.accept(currentBatch.get(nextIndex++));
             return true;
