@@ -555,15 +555,16 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             return Stream.empty();
         }
         Stream<T> stream = jdbcTemplate.queryForStream(sql, params, getMapper(userContext, request));
-        return (Stream<T>)
-                StreamSupport.stream(
-                                new StreamEnhancer(userContext, this, stream, request, enhanceBatch), false)
-                        .map(
-                                item -> {
-                                    userContext.afterLoad(getEntityDescriptor(), (Entity) item);
-                                    return item;
-                                })
-                        .onClose(stream::close);
+        // return (Stream<T>)
+        //         StreamSupport.stream(
+        //                         new StreamEnhancer(userContext, this, stream, request, enhanceBatch), false)
+        //                 .map(
+        //                         item -> {
+        //                             userContext.afterLoad(getEntityDescriptor(), (Entity) item);
+        //                             return item;
+        //                         })
+        //                 .onClose(stream::close);
+        return stream;
     }
 
     protected AggregationResult doAggregateInternal(
@@ -615,7 +616,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
     }
 
-    private RowMapper<AggregationItem> getAggregationMapper(SearchRequest<T> request) {
+    protected RowMapper<AggregationItem> getAggregationMapper(SearchRequest<T> request) {
         return (rs, index) -> {
             AggregationItem item = new AggregationItem();
             Aggregations aggregations = request.getAggregations();
@@ -633,7 +634,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         };
     }
 
-    private String collectAggregationGroupBySql(
+    protected String collectAggregationGroupBySql(
             UserContext userContext,
             SearchRequest<T> request,
             String idTable,
@@ -657,7 +658,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 .collect(Collectors.joining(",", "GROUP BY ", ""));
     }
 
-    private String collectAggregationSelectSql(
+    protected String collectAggregationSelectSql(
             UserContext userContext,
             SearchRequest<T> request,
             String idTable,
@@ -668,11 +669,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 .collect(Collectors.joining(","));
     }
 
-    private List<String> collectAggregationTables(UserContext userContext, SearchRequest<T> request) {
+    protected List<String> collectAggregationTables(UserContext userContext, SearchRequest<T> request) {
         return collectTablesFromProperties(userContext, request.aggregationProperties(userContext));
     }
 
-    private RowMapper<T> getMapper(UserContext pUserContext, SearchRequest<T> pRequest) {
+    protected RowMapper<T> getMapper(UserContext pUserContext, SearchRequest<T> pRequest) {
         return (rs, rowIndex) -> {
             Class<? extends T> returnType = pRequest.returnType();
             T entity = ReflectUtil.newInstance(returnType);
@@ -700,7 +701,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         };
     }
 
-    private void setRealType(T entity, ResultSet rs) {
+    protected void setRealType(T entity, ResultSet rs) {
         try {
             entity.setRuntimeType(rs.getString(TYPE_ALIAS));
         }
@@ -708,7 +709,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
     }
 
-    private void setProperty(
+    protected void setProperty(
             UserContext userContext, T pEntity, PropertyDescriptor pProperty, ResultSet resultSet) {
         if (!shouldHandle(pProperty)) {
             return;
@@ -722,7 +723,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 "SQLRepository property[" + pProperty.getName() + "]error，only support SQLProperty");
     }
 
-    private boolean shouldHandle(PropertyDescriptor pProperty) {
+    protected boolean shouldHandle(PropertyDescriptor pProperty) {
         if (pProperty instanceof Relation) {
             return shouldHandle((Relation) pProperty);
         }
@@ -826,7 +827,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
     }
 
-    private void ensureOrderByForPartition(SearchRequest<T> request) {
+    protected void ensureOrderByForPartition(SearchRequest<T> request) {
         OrderBys orderBy = request.getOrderBy();
         if (orderBy.isEmpty()) {
             orderBy.addOrderBy(new OrderBy(ID));
@@ -872,7 +873,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return sb.toString();
     }
 
-    private String collectSelectSql(
+    protected String collectSelectSql(
             UserContext userContext,
             SearchRequest request,
             String idTable,
@@ -913,12 +914,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return typeSQL;
     }
 
-    private List<String> collectDataTables(UserContext userContext, SearchRequest<T> request) {
+    protected List<String> collectDataTables(UserContext userContext, SearchRequest<T> request) {
         List<String> allRelationProperties = request.dataProperties(userContext);
         return collectTablesFromProperties(userContext, allRelationProperties);
     }
 
-    private ArrayList<String> collectTablesFromProperties(
+    protected ArrayList<String> collectTablesFromProperties(
             UserContext userContext, List<String> properties) {
         Set<String> tables = new HashSet<>();
         for (String target : properties) {
@@ -1247,8 +1248,25 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             ensureConstant(ctx);
         }
     }
-
-    private void ensureConstant(UserContext ctx) {
+    protected Map<String, Object> queryForSingleMeta(UserContext ctx, String sql,Map<String, Object> params){
+        ctx.info("queryForSingleMeta: {}" ,sql);
+        return jdbcTemplate.queryForMap(sql,params);
+    }
+    protected List<Map<String, Object>> queryForListMeta(UserContext ctx, String sql,Map<String, Object> params){
+        ctx.info("queryForListMeta: {}" ,sql);
+        return jdbcTemplate.queryForList(sql,params);
+    }
+    protected void executeUpdate(UserContext ctx, String sql){
+        try {
+            ctx.info("executeUpdate: {}" ,sql);
+            jdbcTemplate.getJdbcTemplate().execute(sql);
+        }
+        catch (DataAccessException pE) {
+            ctx.error("Error when executeUpdate: {} ",sql);
+            throw new RepositoryException(pE);
+        }
+    }
+    protected void ensureConstant(UserContext ctx) {
         PropertyDescriptor identifier = entityDescriptor.getIdentifier();
         List<String> candidates = identifier.getCandidates();
         List<PropertyDescriptor> ownProperties = entityDescriptor.getOwnProperties();
@@ -1275,7 +1293,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                                 Collections.emptyMap());
             }
             catch (Exception e) {
-
+                ctx.warn("Non fatal exception {}", e.getMessage());
             }
 
             if (dbRootRow != null) {

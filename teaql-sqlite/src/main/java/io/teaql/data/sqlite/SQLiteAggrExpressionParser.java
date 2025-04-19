@@ -9,7 +9,7 @@ public class SQLiteAggrExpressionParser extends AggrExpressionParser {
     @Override
     public String genAggrSQL(AggrFunction operator, String sqlColumn) {
         if (operator == AggrFunction.GBK) {
-            return StrUtil.format("convert({} using gbk)", sqlColumn);
+            return StrUtil.format("{}", sqlColumn);
         }
         return super.genAggrSQL(operator, sqlColumn);
     }

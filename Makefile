@@ -5,4 +5,4 @@ remote:
 local:
 	./gradlew publish
 upload:
-	rsync -avz   --exclude={'build/','.idea/','.gradle/'}  ./  ubuntu@nexus.teaql.io:~/workspace/teaql-spring-starter/
+	rsync -avz   --exclude={'build/','.idea/','.gradle/','.git/'}  ./  ubuntu@nexus.teaql.io:~/workspace/teaql-spring-starter/
