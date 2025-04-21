@@ -1187,7 +1187,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             return;
         }
 
-        String statement=StrUtil.format("CREATE INDEX IF NOT EXISTS {} on {}({})",
+        String statement=StrUtil.format("CREATE INDEX IF NOT EXISTS {} ON {}({})",
                 indexName(propertyDescriptor),
                 tableName(getEntityDescriptor().getType()),
                 columnName(propertyDescriptor.getName())
@@ -1234,7 +1234,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     protected String indexName(PropertyDescriptor propertyDescriptor){
 
-        return StrUtil.format("idx_{}_of_{}",propertyDescriptor.getName(),NamingCase.toUnderlineCase(getEntityDescriptor().getType()));
+        return StrUtil.format("idx_{}_of_{}",NamingCase.toUnderlineCase(propertyDescriptor.getName()),NamingCase.toUnderlineCase(getEntityDescriptor().getType()));
     }
     protected String columnName(String propertyName){
         return NamingCase.toUnderlineCase(propertyName);
