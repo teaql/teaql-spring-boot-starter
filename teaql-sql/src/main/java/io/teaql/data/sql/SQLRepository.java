@@ -14,6 +14,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -54,6 +59,7 @@ import io.teaql.data.Entity;
 import io.teaql.data.EntityStatus;
 import io.teaql.data.Expression;
 import io.teaql.data.OrderBy;
+
 import io.teaql.data.OrderBys;
 import io.teaql.data.Repository;
 import io.teaql.data.RepositoryException;
@@ -68,6 +74,7 @@ import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.PropertyType;
 import io.teaql.data.meta.Relation;
+import io.teaql.data.meta.SimplePropertyType;
 import io.teaql.data.repository.AbstractRepository;
 import io.teaql.data.repository.StreamEnhancer;
 import io.teaql.data.sql.expression.ExpressionHelper;
@@ -1165,7 +1172,74 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             }
             ensureFK(ctx, constraints, table, "id", versionTableName, "id");
         }
+        this.getEntityDescriptor().getOwnProperties().forEach(propertyDescriptor -> {
+            ensureIndex(ctx,propertyDescriptor);
+        });
     }
+
+
+    protected void ensureIndex(UserContext ctx, PropertyDescriptor propertyDescriptor) {
+        if(propertyDescriptor.isId()){
+            return;
+        }
+
+        if(!isToCreateIndexFor(propertyDescriptor)){
+            return;
+        }
+
+        String statement=StrUtil.format("CREATE INDEX IF NOT EXISTS {} on {}({})",
+                indexName(propertyDescriptor),
+                tableName(getEntityDescriptor().getType()),
+                columnName(propertyDescriptor.getName())
+        );
+
+        this.executeUpdate(ctx,statement);
+    }
+
+    protected boolean isToCreateIndexFor(PropertyDescriptor propertyDescriptor) {
+
+        if(propertyDescriptor.isId()){
+            return false;
+        }
+        if(propertyDescriptor.isIdentifier()){
+            return true;
+        }
+        if(propertyDescriptor.getType() instanceof SimplePropertyType type){
+
+            if(Date.class.isAssignableFrom(type.javaType())){
+                return true;
+            }
+            if(BaseEntity.class.isAssignableFrom(type.javaType())){
+                return true;
+            }
+            if(Number.class.isAssignableFrom(type.javaType())){
+                return true;
+            }
+            if(Timestamp.class.isAssignableFrom(type.javaType())){
+                return true;
+            }
+            if(LocalDateTime.class.isAssignableFrom(type.javaType())){
+                return true;
+            }
+            //LocalDateTime
+            //type.javaType();
+
+            return false;
+        }
+
+        return  false;
+
+
+    }
+
+    protected String indexName(PropertyDescriptor propertyDescriptor){
+
+        return StrUtil.format("idx_{}_of_{}",propertyDescriptor.getName(),NamingCase.toUnderlineCase(getEntityDescriptor().getType()));
+    }
+    protected String columnName(String propertyName){
+        return NamingCase.toUnderlineCase(propertyName);
+    }
+
 
     private void ensureForeignKeyForRelation(
             UserContext ctx, List<SQLConstraint> constraints, Relation relation) {
@@ -1267,7 +1341,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             ensureConstant(ctx);
         }
     }
-    
+
     protected void ensureConstant(UserContext ctx) {
         PropertyDescriptor identifier = entityDescriptor.getIdentifier();
         List<String> candidates = identifier.getCandidates();
