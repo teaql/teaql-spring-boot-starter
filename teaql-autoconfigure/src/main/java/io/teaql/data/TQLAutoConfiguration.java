@@ -42,11 +42,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 
+import io.teaql.data.checker.Checker;
 import io.teaql.data.jackson.TeaQLModule;
 import io.teaql.data.lock.LockService;
 import io.teaql.data.lock.LockServiceImpl;
@@ -64,6 +66,11 @@ import reactor.core.publisher.Mono;
 
 @Configuration
 public class TQLAutoConfiguration {
+
+    @Bean("checkers")
+    public Map<String, Checker> checkers(List<Checker> checkers) {
+        return CollStreamUtil.toIdentityMap(checkers, Checker::type);
+    }
 
     @Bean
     @ConfigurationProperties(prefix = "teaql")

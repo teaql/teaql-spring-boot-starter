@@ -13,8 +13,11 @@ import io.teaql.data.UserContext;
  * check or set (default) values for the entity before persist
  */
 public interface Checker<T extends BaseEntity> {
+
     String TEAQL_DATA_CHECK_RESULT = "teaql_data_check_result";
     String TEAQL_DATA_CHECKED_ITEMS = "teaql_data_checkedItems";
+
+    String type();
 
     void checkAndFix(UserContext ctx, T entity, ObjectLocation location);
 

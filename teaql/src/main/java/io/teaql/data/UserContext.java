@@ -1,12 +1,34 @@
 package io.teaql.data;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.spi.LocationAwareLogger;
+
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
 import cn.hutool.core.lang.caller.CallerUtil;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 
 import io.teaql.data.checker.CheckException;
@@ -24,18 +46,6 @@ import io.teaql.data.translation.Translator;
 import io.teaql.data.web.DuplicatedFormException;
 import io.teaql.data.web.ErrorMessageException;
 import io.teaql.data.web.UserContextInitializer;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.spi.LocationAwareLogger;
 
 public class UserContext
         implements NaturalLanguageTranslator,
@@ -309,9 +319,12 @@ public class UserContext
     }
 
     public Checker getChecker(Entity entity) {
-        String name = entity.getClass().getName();
-        Checker checker = getBean(ClassUtil.loadClass(name + "Checker"));
-        return checker;
+        String type = entity.typeName();
+        Map<String, Checker> checkers = getBean("checkers");
+        if (checkers == null) {
+            return null;
+        }
+        return checkers.get(type);
     }
 
     public List<CheckResult> translateError(Entity pEntity, List<CheckResult> errors) {
