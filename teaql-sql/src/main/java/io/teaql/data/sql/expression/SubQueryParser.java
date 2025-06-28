@@ -20,7 +20,6 @@ import io.teaql.data.criteria.IN;
 import io.teaql.data.criteria.InLarge;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.criteria.RawSql;
-import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
 
 public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteria> {
@@ -46,7 +45,7 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
         Repository repository = userContext.resolveRepository(type);
 
         if (dependsOn.tryUseSubQuery()
-                && isRequestInDatasource(userContext, sqlColumnResolver, repository)) {
+                && hasSameDatasource(userContext, sqlColumnResolver, repository) && sqlColumnResolver.canMixinSubQuery(userContext, dependsOn)) {
             SQLRepository subRepository = (SQLRepository) repository;
             TempRequest tempRequest = new TempRequest(dependsOn.returnType(), dependsOn.getTypeName());
 
@@ -82,11 +81,11 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
         return ExpressionHelper.toSql(userContext, in, idTable, parameters, sqlColumnResolver);
     }
 
-    private boolean isRequestInDatasource(
-            UserContext pUserContext, SQLColumnResolver pSqlColumnResolver, Repository pRepository) {
+    private boolean hasSameDatasource(
+            UserContext pUserContext, SQLRepository pSqlColumnResolver, Repository pRepository) {
         if (!(pSqlColumnResolver instanceof SQLRepository)) {
             return false;
         }
-        return ((SQLRepository<?>) pSqlColumnResolver).isRequestInDatasource(pUserContext, pRepository);
+        return ((SQLRepository<?>) pSqlColumnResolver).hasSameDataSource(pUserContext, pRepository);
     }
 }

@@ -369,6 +369,8 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
         String typeName = childTempRequest.getTypeName();
         Repository repository = userContext.resolveRepository(typeName);
         PropertyDescriptor reverseProperty = relation.getReverseProperty();
+        // always select the parent property,  keep the children maintained in the parent
+        childTempRequest.selectProperty(reverseProperty.getName());
         if (childTempRequest.getSlice() != null) {
             childTempRequest.setPartitionProperty(reverseProperty.getName());
         }

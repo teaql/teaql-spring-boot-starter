@@ -12,6 +12,8 @@ import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.StrUtil;
 
 import io.teaql.data.Entity;
+import io.teaql.data.SearchRequest;
+import io.teaql.data.Slice;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.sql.SQLColumn;
@@ -51,5 +53,11 @@ public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
         catch (SQLException pE) {
             throw new RuntimeException(pE);
         }
+    }
+
+    @Override
+    public boolean canMixinSubQuery(UserContext userContext, SearchRequest subQuery) {
+        Slice slice = subQuery.getSlice();
+        return slice == null;
     }
 }

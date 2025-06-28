@@ -972,7 +972,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return ExpressionHelper.toSql(userContext, searchCriteria, idTable, parameters, this);
     }
 
-    public boolean isRequestInDatasource(UserContext pUserContext, Repository repository) {
+    public boolean hasSameDataSource(UserContext pUserContext, Repository repository) {
         if (repository instanceof SQLRepository) {
             return this.dataSource == ((SQLRepository<?>) repository).dataSource;
         }
@@ -1653,5 +1653,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     public Map<Class, SQLExpressionParser> getExpressionParsers() {
         return expressionParsers;
+    }
+
+    public boolean canMixinSubQuery(UserContext userContext, SearchRequest subQuery) {
+        return true;
     }
 }
