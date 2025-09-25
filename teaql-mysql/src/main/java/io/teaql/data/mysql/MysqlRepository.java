@@ -27,6 +27,15 @@ public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
         registerExpressionParser(MysqlTwoOperatorExpressionParser.class);
     }
 
+    protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
+        String alterColumnSql =
+                StrUtil.format(
+                        "ALTER TABLE {} MODIFY COLUMN {}  {}",
+                        column.getTableName(),
+                        column.getColumnName(),
+                        column.getType());
+        return alterColumnSql;
+    }
     @Override
     protected void ensureIndexAndForeignKey(UserContext ctx) {
     }
