@@ -36,8 +36,43 @@ public class MysqlRepository<T extends Entity> extends SQLRepository<T> {
                         column.getType());
         return alterColumnSql;
     }
+/*
+
+SELECT
+    tc.CONSTRAINT_NAME AS name,
+    tc.TABLE_NAME AS tableName,
+    kcu.COLUMN_NAME AS columnName,
+    kcu.REFERENCED_TABLE_NAME AS fTableName,
+    kcu.REFERENCED_COLUMN_NAME AS fColumnName
+FROM
+    information_schema.TABLE_CONSTRAINTS AS tc
+JOIN information_schema.KEY_COLUMN_USAGE AS kcu
+    ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+WHERE
+    tc.CONSTRAINT_TYPE = 'FOREIGN KEY';
+
+*/
+    protected String fetchFKsSQL() {
+        return """
+            SELECT
+                tc.CONSTRAINT_NAME AS name,
+                tc.TABLE_NAME AS tableName,
+                kcu.COLUMN_NAME AS columnName,
+                kcu.REFERENCED_TABLE_NAME AS fTableName,
+                kcu.REFERENCED_COLUMN_NAME AS fColumnName
+            FROM
+                information_schema.TABLE_CONSTRAINTS AS tc
+            JOIN information_schema.KEY_COLUMN_USAGE AS kcu
+                ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+            WHERE
+                tc.CONSTRAINT_TYPE = 'FOREIGN KEY';
+                """;
+    }
     @Override
     protected void ensureIndexAndForeignKey(UserContext ctx) {
+        super.ensureIndexAndForeignKey(ctx);
+
+
     }
 
     @Override
