@@ -101,6 +101,17 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         initExpressionParsers(entityDescriptor, dataSource);
     }
 
+    protected void executeUpdate(UserContext ctx, String sql){
+        try {
+            ctx.info("executeUpdate: {}" ,sql);
+            jdbcTemplate.getJdbcTemplate().execute(sql);
+        }
+        catch (DataAccessException pE) {
+            ctx.error("Error when executeUpdate: {} ",sql);
+            throw new RepositoryException(pE);
+        }
+    }
+
     public DataSource getDataSource() {
         return dataSource;
     }
@@ -1334,11 +1345,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         if (BaseEntity.class.isAssignableFrom(type.javaType())) {
             String referType = type.javaType().getSimpleName();
             EntityDescriptor refer = ctx.resolveEntityDescriptor(referType);
-            if (refer.isRoot()) {
-                return "1";
-            }
+//            if (refer.isRoot()) {
+//                return "1";
+//            }
             // set others as null
-            return null;
+            return "1";
         }
 
         String createFunction = property.getAdditionalInfo().get("createFunction");
@@ -1349,7 +1360,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         List<String> candidates = property.getCandidates();
 
         if (property.isIdentifier()) {
-            return NamingCase.toPascalCase(identifier);
+            return identifier;
+            //return NamingCase.toPascalCase(identifier);
         }
 
         if (ObjectUtil.isNotEmpty(candidates)) {
@@ -1357,7 +1369,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
 
         if (property.isId()) {
-            return genIdForCandidateCode(NamingCase.toPascalCase(identifier));
+            return genIdForCandidateCode(identifier);
         }
         return null;
     }

@@ -376,6 +376,11 @@ public class UserContext
     }
 
     public TQLResolver getResolver() {
+
+        if(resolver==null){
+            resolver = GLobalResolver.getGlobalResolver();
+        }
+
         return resolver;
     }
 
