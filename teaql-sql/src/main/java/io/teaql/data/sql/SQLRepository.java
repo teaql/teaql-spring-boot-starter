@@ -1028,7 +1028,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     protected String findTableColumnsSql(DataSource dataSource, String table) {
         return String.format("select * from information_schema.columns where table_name = '%s'", table);
     }
+    protected List<Map<String, Object>> queryForList(String sql, Map<?,?> map){
 
+        return jdbcTemplate.queryForList(sql, Collections.emptyMap());
+
+    }
     protected void ensureIdSpaceTable(UserContext ctx) {
         String sql = findIdSpaceTableSql();
         List<Map<String, Object>> dbTableInfo;
@@ -1483,7 +1487,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             String dbType = calculateDBType(field);
             if (isTypeMatch(dbType, type)) continue;
 
-            alterColumn(ctx, column);
+            alterColumn(ctx, tableInfo,table,columns,column);
         }
     }
 
@@ -1536,7 +1540,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
     }
 
-    protected void alterColumn(UserContext ctx, SQLColumn column) {
+    protected void alterColumn(UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns, SQLColumn column) {
         String alterColumnSql = generateAlterColumnSQL(ctx, column);
         ctx.info(alterColumnSql + ";");
         if (ctx.config() != null && ctx.config().isEnsureTable()) {
@@ -1592,7 +1596,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         return dbColumn;
     }
 
-    private void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
+    protected void createTable(UserContext ctx, String table, List<SQLColumn> columns) {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE ").append(table).append(" (\n");
         sb.append(

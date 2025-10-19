@@ -4,9 +4,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,10 +26,8 @@ import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
-import io.teaql.data.meta.Relation;
 import io.teaql.data.meta.SimplePropertyType;
 import io.teaql.data.sql.SQLColumn;
-import io.teaql.data.sql.SQLConstraint;
 import io.teaql.data.sql.SQLRepository;
 
 
@@ -78,6 +79,27 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
         return result;
     }
 
+    protected boolean isTypeMatch(String dbType, String type) {
+        if (dbType.equalsIgnoreCase(type)) {
+            return true;
+        }
+        return dbType.equalsIgnoreCase("real") && type.toLowerCase().startsWith("numeric(");
+    }
+    protected void alterColumn(UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns, SQLColumn column) {
+
+        String backupTableName=String.format("%s_000000",table);
+        //backup table
+        super.executeUpdate(ctx, String.format("ALTER TABLE %s RENAME TO %s",table,backupTableName));
+        //recreate
+        super.createTable(ctx,table,columns);
+        //import
+        super.executeUpdate(ctx,String.format("INSERT INTO %s SELECT * FROM %s",table,backupTableName));
+        //drop backup
+        super.executeUpdate(ctx,String.format("DROP TABLE %s",backupTableName));
+
+
+        //ctx.info("trying to alter {}" , column);
+    }
 
     protected String calculateDBType(Map<String, Object> columnInfo) {
         String dataType = (String) columnInfo.get("type");
@@ -120,10 +142,32 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     protected void ensureIndexAndForeignKey(UserContext ctx) {
 
         this.getEntityDescriptor().getOwnProperties().forEach(propertyDescriptor -> {
-            ensureIndex(ctx,propertyDescriptor);
+
+            if(needToCreateIndex(ctx,propertyDescriptor)){
+                ensureIndex(ctx,propertyDescriptor);
+            }
         });
 
+
     }
+
+    private Set<String> indexNames;
+
+
+
+    protected boolean needToCreateIndex(UserContext ctx,PropertyDescriptor propertyDescriptor){
+
+        if(indexNames==null){
+            indexNames=new HashSet<>();
+            List<Map<String, Object>> mapList = queryForList("select name from sqlite_master  where type='index'", Collections.emptyMap());
+            mapList.forEach(entry->{
+                indexNames.add(entry.get("name").toString());
+            });
+
+        }
+        return !indexNames.contains(indexName(propertyDescriptor));
+    }
+
 
     protected void ensureIndex(UserContext ctx, PropertyDescriptor propertyDescriptor) {
         if(propertyDescriptor.isId()){
@@ -180,7 +224,6 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     }
 
     protected String indexName(PropertyDescriptor propertyDescriptor){
-
         return StrUtil.format("idx_{}_of_{}",NamingCase.toUnderlineCase(propertyDescriptor.getName()),NamingCase.toUnderlineCase(getEntityDescriptor().getType()));
     }
     protected String columnName(String propertyName){
