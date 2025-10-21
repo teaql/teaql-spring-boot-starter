@@ -131,7 +131,7 @@ public class ChineseTranslator extends BaseLanguageTranslator{
     protected Object getArrayLocation(ObjectLocation location) {
         if (location instanceof ArrayLocation) {
             return StrUtil.format(
-                    "{} 的 {} 元素",
+                    "{} 的{}元素",
                     ordinal(((ArrayLocation) location).getIndex()),
                     translateLocation(location.getParent()));
         }

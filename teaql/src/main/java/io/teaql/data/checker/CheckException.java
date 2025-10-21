@@ -34,7 +34,7 @@ public class CheckException extends RuntimeException {
     public CheckException(List<CheckResult> pErrors) {
         this(
                 StrUtil.join(
-                        ";", CollStreamUtil.toList(pErrors, CheckResult::getNaturalLanguageStatement)));
+                        ";\n", CollStreamUtil.toList(pErrors, CheckResult::getNaturalLanguageStatement)));
         this.violates = pErrors;
     }
 

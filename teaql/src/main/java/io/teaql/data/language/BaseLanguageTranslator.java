@@ -175,12 +175,28 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
 
     protected String getSimpleLocation(ObjectLocation location) {
         if (location instanceof HashLocation) {
-            return StrUtil.toUnderlineCase(
-                    NamingCase.toPascalCase(((HashLocation) location).getMember(), ' '));
+            return convertToTitleCase(((HashLocation) location).getMember());
         }
         return location.toString();
     }
 
+    public static String convertToTitleCase(String input) {
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < input.length(); i++) {
+            char currentChar = input.charAt(i);
+            if (i == 0 || Character.isUpperCase(currentChar)) {
+                if (i != 0) {
+                    result.append(" ");  // 插入空格分隔单词
+                }
+                result.append(Character.toUpperCase(currentChar));  // 将首字母大写
+            } else {
+                result.append(Character.toLowerCase(currentChar));  // 其他字母小写
+            }
+        }
+
+        return result.toString();
+    }
 
     public String ordinal(int index) {
         int sequence = index + 1;
