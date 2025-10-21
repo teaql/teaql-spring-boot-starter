@@ -1,16 +1,19 @@
-package io.teaql.data;
+package io.teaql.data.language;
 
 import java.util.List;
 
 import cn.hutool.core.text.NamingCase;
 import cn.hutool.core.util.StrUtil;
 
+import io.teaql.data.Entity;
+import io.teaql.data.NaturalLanguageTranslator;
 import io.teaql.data.checker.ArrayLocation;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.HashLocation;
 import io.teaql.data.checker.ObjectLocation;
 
-public class EnglishTranslator implements NaturalLanguageTranslator {
+public class BaseLanguageTranslator implements NaturalLanguageTranslator {
+
     @Override
     public List<CheckResult> translateError(Entity pEntity, List<CheckResult> errors) {
         for (CheckResult error : errors) {
@@ -18,8 +21,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         }
         return errors;
     }
-
-    private void translate(CheckResult error) {
+    protected void translate(CheckResult error) {
         switch (error.getRuleId()) {
             case MIN:
                 translateMin(error);
@@ -45,7 +47,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         }
     }
 
-    private void translateMin(CheckResult error) {
+    protected void translateMin(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The {} should be equal or greater than {}, but input is {}",
@@ -55,11 +57,11 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private Object translateLocation(CheckResult error) {
+    protected Object translateLocation(CheckResult error) {
         return translateLocation(error.getLocation());
     }
 
-    private void translateMax(CheckResult error) {
+    protected void translateMax(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The {} should be equal or less than {}, but input is {} ",
@@ -69,7 +71,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private void translateMinStrLen(CheckResult error) {
+    protected void translateMinStrLen(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The length of {} should be equal or greater than {}, but the length of {} is {}",
@@ -80,7 +82,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private void translateMaxStrLen(CheckResult error) {
+    protected void translateMaxStrLen(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The length of {} should be equal or less than {}, but the length of {} is {}",
@@ -91,7 +93,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private void translateMinDate(CheckResult error) {
+    protected void translateMinDate(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The {} should be at or after {}, but input is {}",
@@ -101,7 +103,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private void translateMaxDate(CheckResult error) {
+    protected void translateMaxDate(CheckResult error) {
         String message =
                 StrUtil.format(
                         "The {} should be at or before {}, but input is {}",
@@ -111,12 +113,12 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         error.setNaturalLanguageStatement(message);
     }
 
-    private void translateRequired(CheckResult error) {
+    protected void translateRequired(CheckResult error) {
         String message = StrUtil.format("The {} is required", translateLocation(error));
         error.setNaturalLanguageStatement(message);
     }
 
-    private String translateLocation(ObjectLocation location) {
+    protected String translateLocation(ObjectLocation location) {
         // sku
 
         // product
@@ -161,7 +163,7 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         return location.toString();
     }
 
-    private Object getArrayLocation(ObjectLocation location) {
+    protected Object getArrayLocation(ObjectLocation location) {
         if (location instanceof ArrayLocation) {
             return StrUtil.format(
                     "{} element of the {}",
@@ -171,13 +173,14 @@ public class EnglishTranslator implements NaturalLanguageTranslator {
         return location.toString();
     }
 
-    private String getSimpleLocation(ObjectLocation location) {
+    protected String getSimpleLocation(ObjectLocation location) {
         if (location instanceof HashLocation) {
             return StrUtil.toUnderlineCase(
-                    NamingCase.toSymbolCase(((HashLocation) location).getMember(), ' '));
+                    NamingCase.toPascalCase(((HashLocation) location).getMember(), ' '));
         }
         return location.toString();
     }
+
 
     public String ordinal(int index) {
         int sequence = index + 1;

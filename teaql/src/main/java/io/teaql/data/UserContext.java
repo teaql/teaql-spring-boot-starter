@@ -36,6 +36,7 @@ import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
 import io.teaql.data.checker.ObjectLocation;
 import io.teaql.data.criteria.Operator;
+import io.teaql.data.language.EnglishTranslator;
 import io.teaql.data.lock.LockService;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
