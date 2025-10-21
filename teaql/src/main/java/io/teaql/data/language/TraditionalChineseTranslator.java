@@ -114,13 +114,13 @@ public class TraditionalChineseTranslator extends BaseLanguageTranslator {
             // [Location] attribute within the [Parent] -> [Parent] 內的 [Location] 屬性
             if (parent instanceof HashLocation) {
                 return StrUtil.format(
-                        "{}內的 {}", translateLocation(parent), getSimpleLocation(location));
+                        " {}內的{}", translateLocation(parent), getSimpleLocation(location));
             }
 
             // [Location] attribute within the [ArrayLocation] -> [ArrayLocation] 內的 [Location] 屬性
             if (parent instanceof ArrayLocation) {
                 return StrUtil.format(
-                        "{}內的 {}", getArrayLocation(parent), getSimpleLocation(location));
+                        " {}內的{}", getArrayLocation(parent), getSimpleLocation(location));
             }
         }
 
@@ -131,7 +131,7 @@ public class TraditionalChineseTranslator extends BaseLanguageTranslator {
         if (location instanceof ArrayLocation) {
             // [Ordinal] element of the [Parent] -> [Parent] 的第 [Ordinal] 個元素
             return StrUtil.format(
-                    "{}的 {}元素",
+                    "{}的{}元素",
                     translateLocation(location.getParent()),
                     ordinal(((ArrayLocation) location).getIndex()));
         }
