@@ -7,6 +7,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 
 import io.teaql.data.BaseEntity;
+import io.teaql.data.EntityStatus;
 import io.teaql.data.UserContext;
 
 /**
@@ -34,14 +35,10 @@ public interface Checker<T extends BaseEntity> {
             return false;
         }
 
-        switch (entity.get$status()) {
-            case NEW:
-                return true;
-            case UPDATED:
-                return ObjectUtil.isNotEmpty(entity.getUpdatedProperties());
-            default:
-                return false;
+        if (entity.get$status() == EntityStatus.REFER) {
+            return false;
         }
+        return true;
     }
 
     default ObjectLocation newLocation(ObjectLocation parent, String member) {
