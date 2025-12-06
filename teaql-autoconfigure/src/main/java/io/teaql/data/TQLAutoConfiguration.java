@@ -104,6 +104,7 @@ public class TQLAutoConfiguration {
 
 
     @ConditionalOnClass(name = "org.redisson.api.RedissonClient")
+    @Configuration
     public static class RedissonConfiguration {
         @Bean
         @ConditionalOnBean(RedissonClient.class)
