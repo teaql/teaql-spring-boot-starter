@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -40,6 +43,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.TimedCache;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollStreamUtil;
@@ -50,8 +55,9 @@ import cn.hutool.json.JSONUtil;
 
 import io.teaql.data.checker.Checker;
 import io.teaql.data.jackson.TeaQLModule;
+import io.teaql.data.lock.LocalLockService;
 import io.teaql.data.lock.LockService;
-import io.teaql.data.lock.LockServiceImpl;
+import io.teaql.data.lock.RedisLockService;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.SimpleEntityMetaFactory;
 import io.teaql.data.redis.RedisStore;
@@ -85,7 +91,7 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(Translator.class)
     public Translator translator() {
         return Translator.NOOP;
     }
@@ -96,27 +102,92 @@ public class TQLAutoConfiguration {
         return new UITemplateRender();
     }
 
+
+    @ConditionalOnClass(name = "org.redisson.api.RedissonClient")
+    public static class RedissonConfiguration {
+        @Bean
+        @ConditionalOnBean(RedissonClient.class)
+        public RedissonAutoConfigurationCustomizer codec() {
+            return config -> {
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.enableDefaultTyping(
+                        ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
+                config.setCodec(new JsonJacksonCodec(objectMapper));
+            };
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(DataStore.class)
+        @ConditionalOnBean(RedissonClient.class)
+        public DataStore redisDataStore(RedissonClient redissonClient) {
+            return new RedisStore(redissonClient);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(LockService.class)
+        @ConditionalOnBean(RedissonClient.class)
+        public LockService redisLockService(RedissonClient redissonClient) {
+            return new RedisLockService(redissonClient);
+        }
+    }
+
+
     @Bean
-    public RedissonAutoConfigurationCustomizer codec() {
-        return config -> {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enableDefaultTyping(
-                    ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
-            config.setCodec(new JsonJacksonCodec(objectMapper));
+    @ConditionalOnMissingBean(DataStore.class)
+    public DataStore memDataStore() {
+        TimedCache<Object, Object> cache = CacheUtil.newTimedCache(0);
+        return new DataStore() {
+            @Override
+            public void put(String key, Object object) {
+                cache.put(key, object);
+            }
+
+            @Override
+            public void put(String key, Object object, long timeout) {
+                cache.put(key, object, timeout);
+            }
+
+            @Override
+            public <T> T get(String key) {
+                return (T) cache.get(key);
+            }
+
+            @Override
+            public <T> T getAndRemove(String key) {
+                T t = get(key);
+                cache.remove(key);
+                return t;
+            }
+
+            @Override
+            public <T> T get(String key, Supplier<T> supplier) {
+                if (containsKey(key)) {
+                    return get(key);
+                }
+                T v = supplier.get();
+                put(key, v);
+                return v;
+            }
+
+            @Override
+            public void remove(String key) {
+                cache.remove(key);
+            }
+
+            @Override
+            public boolean containsKey(String key) {
+                return cache.containsKey(key);
+            }
         };
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public DataStore dataStore(RedissonClient redissonClient) {
-        return new RedisStore(redissonClient);
-    }
 
     @Bean
-    @ConditionalOnMissingBean
-    public LockService lockService() {
-        return new LockServiceImpl();
+    @ConditionalOnMissingBean(LockService.class)
+    public LockService simpleLockService() {
+        return new LocalLockService();
     }
+
 
     @Bean
     @ConditionalOnProperty(
@@ -136,6 +207,7 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(TQLResolver.class)
     public TQLResolver tqlResolver() {
         TQLResolver tqlResolver =
                 new TQLResolver() {

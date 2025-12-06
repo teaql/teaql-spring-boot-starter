@@ -7,11 +7,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.redisson.api.RedissonClient;
-
 import io.teaql.data.UserContext;
 
-public class LockServiceImpl implements LockService {
+public class LocalLockService implements LockService {
     private Map<String, Lock> localLocks = new ConcurrentHashMap<>();
 
     @Override
@@ -21,8 +19,7 @@ public class LockServiceImpl implements LockService {
 
     @Override
     public Lock getDistributeLock(UserContext ctx, String key) {
-        RedissonClient client = ctx.getBean(RedissonClient.class);
-        return client.getLock(key);
+        throw new UnsupportedOperationException("Distribute lock is not supported");
     }
 
     class LockWrapper implements Lock {

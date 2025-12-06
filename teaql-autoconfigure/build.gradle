@@ -1,7 +1,7 @@
 dependencies {
     api project(':teaql')
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
-    implementation 'org.redisson:redisson-spring-boot-starter:3.43.0'
+    compileOnly 'org.redisson:redisson-spring-boot-starter:3.43.0'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
 }
