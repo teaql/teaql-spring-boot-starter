@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import java.sql.Timestamp;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -315,6 +315,7 @@ public class DynamicSearchHelper {
 
     protected Object unwrapDateTimeValue(JsonNode node) {
         Object value = unwrapValue(node);
+        //return new Timestamp((Long) value);
         return new Date((Long) value);
     }
 

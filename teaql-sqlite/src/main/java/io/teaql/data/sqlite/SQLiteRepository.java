@@ -3,7 +3,12 @@ package io.teaql.data.sqlite;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -24,6 +29,7 @@ import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
+import io.teaql.data.log.Markers;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;
 import io.teaql.data.meta.SimplePropertyType;
@@ -77,6 +83,51 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
         }
 
         return result;
+    }
+    @Override
+    protected void processParametersForLoadInternal(UserContext userContext,Map<String, Object> params) {
+        //do nothing here
+        params.entrySet().forEach(stringObjectEntry -> {
+            if(stringObjectEntry.getValue() instanceof java.sql.Timestamp){
+                replaceTimeStampParameter(userContext,params,stringObjectEntry.getKey(),(java.sql.Timestamp)stringObjectEntry.getValue());
+            }
+            if(stringObjectEntry.getValue() instanceof java.util.Date){
+                replaceDateParameter(userContext,params,stringObjectEntry.getKey(),(java.util.Date)stringObjectEntry.getValue());
+            }
+        });
+
+    }
+
+    private void replaceDateParameter(UserContext userContext, Map<String, Object> params, String key, java.util.Date value) {
+
+        params.put(key,formatDateToLocal(value));
+
+    }
+
+    private Object formatDateToLocal(Date value) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        return  sdf.format(value);
+    }
+
+    private void replaceTimeStampParameter(UserContext userContext, Map<String, Object> params, String key, Timestamp value) {
+
+        params.put(key,formatTimeStampToLocal(value));
+
+    }
+
+    private String formatTimeStampToLocal(Timestamp value) {
+        if (value == null) {
+            return null;
+        }
+
+        // 使用系统默认时区
+        Instant instant = value.toInstant();
+        ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
+
+        // 格式化为ISO8601字符串
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        return localDateTime.format(formatter);
     }
 
     protected boolean isTypeMatch(String dbType, String type) {
@@ -259,5 +310,15 @@ FROM PRAGMA_table_info('表名')*/
         catch (SQLException pE) {
             throw new RuntimeException(pE);
         }
+    }
+
+    public static void main(String[] args) {
+        //1762185600000, 1762271999999
+        Date date=new Date();
+        date.setTime(1762271999999l);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        System.out.println(sdf.format(date));
+
+
     }
 }

@@ -104,6 +104,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     protected void executeUpdate(UserContext ctx, String sql){
         try {
             ctx.info("executeUpdate: {}" ,sql);
+
             jdbcTemplate.getJdbcTemplate().execute(sql);
         }
         catch (DataAccessException pE) {
@@ -543,9 +544,12 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     public SmartList<T> loadInternal(UserContext userContext, SearchRequest<T> request) {
         Map<String, Object> params = new HashMap<>();
         String sql = buildDataSQL(userContext, request, params);
+
+
         List<T> results = new ArrayList<>();
         if (!ObjectUtil.isEmpty(sql)) {
             try {
+                processParametersForLoadInternal(userContext,params);
                 results = jdbcTemplate.query(sql, params, getMapper(userContext, request));
             }
             catch (DataAccessException pE) {
@@ -556,6 +560,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         SmartList<T> smartList = new SmartList<>(results);
         return smartList;
     }
+
+    protected void processParametersForLoadInternal(UserContext userContext,Map<String, Object> params) {
+        //do nothing here
+    }
+
 
     @Override
     public Stream<T> executeForStream(
@@ -610,6 +619,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
             List<AggregationItem> aggregationItems;
             try {
+                processParametersForLoadInternal(userContext,parameters);
                 aggregationItems = jdbcTemplate.query(sql, parameters, getAggregationMapper(request));
             }
             catch (DataAccessException pE) {
