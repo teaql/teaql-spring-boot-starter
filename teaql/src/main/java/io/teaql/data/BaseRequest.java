@@ -153,6 +153,14 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         this.projections.add(new SimpleNamedExpression(propertyName, new RawSql(rawSqlSegment)));
     }
 
+    public void selectProperty(String propertyName, RawSql rawSqlSegment) {
+        if (rawSqlSegment ==  null) {
+            return;
+        }
+        unselectProperty(propertyName);
+        this.projections.add(new SimpleNamedExpression(propertyName, rawSqlSegment));
+    }
+
 
     public void unselectProperty(String propertyName) {
         if (ObjectUtil.isEmpty(propertyName)) {
