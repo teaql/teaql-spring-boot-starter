@@ -89,7 +89,30 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     public Class<? extends T> returnType() {
         return returnType;
     }
+    protected String prefix(String prefix, String value) {
+        if (value == null || value.isEmpty()) {
+            return prefix;
+        }
 
+        StringBuilder sb = new StringBuilder(prefix.length() + value.length());
+        sb.append(prefix)
+        .append(Character.toUpperCase(value.charAt(0)))
+        .append(value, 1, value.length());
+
+        return sb.toString();
+    }
+    protected String prefixSumOf(String value) {
+       return prefix("sumOf",value);
+    }
+    protected String prefixMaxOf(String value) {
+       return prefix("maxOf",value);
+    }
+    protected String prefixMinOf(String value) {
+       return prefix("minOf",value);
+    }
+    protected String prefixAvgOf(String value) {
+       return prefix("avarageOf",value);
+    }
     // load the item self
     public BaseRequest<T> selectSelf() {
         return this;

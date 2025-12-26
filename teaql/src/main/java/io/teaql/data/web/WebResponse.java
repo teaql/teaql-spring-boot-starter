@@ -2,6 +2,11 @@ package io.teaql.data.web;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+
+import cn.hutool.core.map.MapUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.SmartList;
@@ -25,6 +30,11 @@ public class WebResponse {
         webResponse.setRecordCount(list.size());
         webResponse.getData().addAll(list);
         return webResponse;
+    }
+
+    @JsonAnyGetter
+    public Map<String,Object> getAdditionalInfo(){
+        return MapUtil.of("version","1.001");
     }
 
     public static WebResponse emptyList(String message) {
