@@ -27,6 +27,7 @@ import io.teaql.data.Repository;
 import io.teaql.data.SearchRequest;
 import io.teaql.data.SmartList;
 import io.teaql.data.TQLException;
+import io.teaql.data.TeaQLConstants;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;
@@ -49,7 +50,7 @@ public class TeaQLDataFetcher implements DataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) throws Exception {
-        UserContext ctx = environment.getGraphQlContext().get("userContext");
+        UserContext ctx = environment.getGraphQlContext().get(TeaQLConstants.USER_CONTEXT);
         if (ctx == null) {
             throw new RuntimeException("No user context found");
         }
@@ -138,8 +139,8 @@ public class TeaQLDataFetcher implements DataFetcher {
         }
         Map<Object, Object> localContext =
                 MapUtil.builder()
-                        .put("parentRequestType", first.typeName())
-                        .put("parentPath", currentPath(environment))
+                        .put(TeaQLConstants.FETCHER_PARENT_REQUEST_TYPE, first.typeName())
+                        .put(TeaQLConstants.FETCHER_PARENT_PATH, currentPath(environment))
                         .build();
         // inspect the return type
         if (GraphQLTypeUtil.isObjectType(env.getFieldDefinition().getType())) {

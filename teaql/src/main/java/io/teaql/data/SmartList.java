@@ -1,6 +1,7 @@
 package io.teaql.data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 
 public class SmartList<T extends Entity> implements Iterable<T> {
@@ -98,12 +100,65 @@ public class SmartList<T extends Entity> implements Iterable<T> {
         return this;
     }
 
+//    public int getTotalCount() {
+//        if (ObjectUtil.isEmpty(aggregationResults)) {
+//            return size();
+//        }
+//        return aggregationResults.get(0).toInt();
+//    }
+
     public int getTotalCount() {
         if (ObjectUtil.isEmpty(aggregationResults)) {
             return size();
         }
-        return aggregationResults.get(0).toInt();
+        Map<String,Object> numberProps=aggregationNumberProperties();
+        if(numberProps.isEmpty()){
+            return size();
+        }
+        Object count = numberProps.get(TeaQLConstants.ROOT_LIST_PARAMETER_NAME);
+        if(count instanceof Number intCount){
+            return intCount.intValue();
+        }
+        throw new IllegalStateException("Number prop is expected a number, but it is now a " + count.getClass().getSimpleName());
+
+        //return aggregationResults.get(0).toInt();
     }
+
+    public Map<String,Object> aggregationProperties(Class<?> clazz){
+        if (ObjectUtil.isEmpty(aggregationResults)){
+            return MapUtil.empty();
+        }
+        Map<String, Object> result = MapUtil.createMap(HashMap.class);
+        getAggregationResults().forEach(aggregationResult -> {
+
+            //Map s=aggregationResult.toSimpleMap();
+            List<Map<String, Object>> resultList=aggregationResult.valueList();
+
+            resultList.forEach(map->{
+                map.entrySet().forEach(stringObjectEntry -> {
+
+                    if(clazz.isAssignableFrom( stringObjectEntry.getValue().getClass())){
+                        result.put(stringObjectEntry.getKey(),stringObjectEntry.getValue());
+                    }
+
+                });
+            });
+
+        });
+        return result;
+    }
+
+    public Map<String,Object> aggregationProperties(){
+        return aggregationProperties(Object.class);
+    }
+    public Map<String,Object> aggregationNumberProperties(){
+        return aggregationProperties(Number.class);
+    }
+
+
+
+
+
 
     public <R> List<R> toList(Function<T, R> function) {
         return CollStreamUtil.toList(data, function);

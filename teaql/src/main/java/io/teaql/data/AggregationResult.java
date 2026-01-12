@@ -99,6 +99,22 @@ public class AggregationResult {
         return ret;
     }
 
+    public List<Map<String, Object>> valueList() {
+        return data.stream()
+                .map(
+                        item -> {
+                            Map<String, Object> m = new HashMap();
+                            item.getValues()
+                                    .forEach(
+                                            (k, v) -> {
+                                                m.put(k.name(), v);
+                                            });
+
+                            return m;
+                        })
+                .collect(Collectors.toList());
+    }
+
     public List<Map<String, Object>> toList() {
         return data.stream()
                 .map(

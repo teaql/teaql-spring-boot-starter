@@ -536,7 +536,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     public BaseRequest<T> count() {
-        countProperty("count", BaseEntity.ID_PROPERTY);
+        countProperty(TeaQLConstants.ROOT_LIST_PARAMETER_NAME,BaseEntity.ID_PROPERTY);
         return this;
     }
 

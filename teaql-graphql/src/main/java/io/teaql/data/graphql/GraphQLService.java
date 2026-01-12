@@ -17,6 +17,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.teaql.data.DataConfigProperties;
 import io.teaql.data.TQLException;
+import io.teaql.data.TeaQLConstants;
 import io.teaql.data.UserContext;
 
 public class GraphQLService implements io.teaql.data.GraphQLService {
@@ -52,7 +53,7 @@ public class GraphQLService implements io.teaql.data.GraphQLService {
         ExecutionResult result =
                 graphQL.execute(
                         ExecutionInput.newExecutionInput()
-                                .graphQLContext(MapUtil.of("userContext", ctx))
+                                .graphQLContext(MapUtil.of(TeaQLConstants.USER_CONTEXT, ctx))
                                 .query(query));
         if (result.getErrors() != null && !result.getErrors().isEmpty()) {
             throw new TQLException(result.getErrors().toString());

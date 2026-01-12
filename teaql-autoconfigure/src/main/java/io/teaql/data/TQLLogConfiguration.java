@@ -36,19 +36,19 @@ public class TQLLogConfiguration {
     @Controller
     public static class LogController {
 
-        @GetMapping("/logConfig/enableGlobalMarker/{name}/")
+        @GetMapping("/logConfig/enableGlobalMarker/{markerName}/")
         @ResponseBody
         public Object enableGlobalMarker(
-                @TQLContext UserContext ctx, @PathVariable("name") String name) {
-            ctx.getBean(LogConfiguration.class).enableGlobalMarker(name);
+                @TQLContext UserContext ctx, @PathVariable("markerName") String markerName) {
+            ctx.getBean(LogConfiguration.class).enableGlobalMarker(markerName);
             return MapUtil.of("success", true);
         }
 
-        @GetMapping("/logConfig/disableGlobalMarker/{name}/")
+        @GetMapping("/logConfig/disableGlobalMarker/{markerName}/")
         @ResponseBody
         public Object disableGlobalMarker(
-                @TQLContext UserContext ctx, @PathVariable("name") String name) {
-            ctx.getBean(LogConfiguration.class).disableGlobalMarker(name);
+                @TQLContext UserContext ctx, @PathVariable("markerName") String markerName) {
+            ctx.getBean(LogConfiguration.class).disableGlobalMarker(markerName);
             return MapUtil.of("success", true);
         }
 
@@ -68,19 +68,19 @@ public class TQLLogConfiguration {
             return MapUtil.of("success", true);
         }
 
-        @GetMapping("/logConfig/enableUserMarker/{names}/")
+        @GetMapping("/logConfig/enableUserMarker/{markerNames}/")
         @ResponseBody
         public Object enableUserMarker(
-                @TQLContext UserContext ctx, @PathVariable("names") String names) {
-            ctx.getBean(LogConfiguration.class).enableUserMarker(ctx, names);
+                @TQLContext UserContext ctx, @PathVariable("markerNames") String markerNames) {
+            ctx.getBean(LogConfiguration.class).enableUserMarker(ctx, markerNames);
             return MapUtil.of("success", true);
         }
 
-        @GetMapping("/logConfig/disableUserMarker/{names}/")
+        @GetMapping("/logConfig/disableUserMarker/{markerNames}/")
         @ResponseBody
         public Object disableUserMarker(
-                @TQLContext UserContext ctx, @PathVariable("names") String names) {
-            ctx.getBean(LogConfiguration.class).disableUserMarker(ctx, names);
+                @TQLContext UserContext ctx, @PathVariable("markerNames") String markerNames) {
+            ctx.getBean(LogConfiguration.class).disableUserMarker(ctx, markerNames);
             return MapUtil.of("success", true);
         }
 
