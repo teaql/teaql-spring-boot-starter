@@ -1,7 +1,9 @@
 package io.teaql.data.value;
 
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface Expression<E, T> {
     T eval(E e);
@@ -16,6 +18,32 @@ public interface Expression<E, T> {
 
     default T eval() {
         return eval($getRoot());
+    }
+
+    default T orElse(T defaultValue) {
+        T value = eval();
+        if(cn.hutool.core.util.ObjectUtil.isEmpty(value)){
+            return defaultValue;
+        }
+        return value;
+    }
+    default T orElseThrow() {
+        T value = eval();
+        if (value == null) {
+            throw new NoSuchElementException("No value present");
+        }
+        return value;
+    }
+
+    default <X> T orElseThrow(Supplier<? extends Throwable> exceptionSupplier)
+            throws Throwable{
+
+        T value = eval();
+        if(cn.hutool.core.util.ObjectUtil.isEmpty(value)){
+            throw exceptionSupplier.get();
+        }
+        return value;
+
     }
 
     default boolean isNull() {
