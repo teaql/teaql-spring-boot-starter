@@ -41,6 +41,7 @@ import io.teaql.data.lock.LockService;
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;
 import io.teaql.data.meta.PropertyDescriptor;
+import io.teaql.data.meta.Relation;
 import io.teaql.data.translation.TranslationRequest;
 import io.teaql.data.translation.TranslationResponse;
 import io.teaql.data.translation.Translator;
@@ -102,7 +103,56 @@ public class UserContext
     }
 
     public <T extends Entity> SearchRequest<T> edit(SearchRequest<T> request) {
+        editFacetRequest(request);
         return request;
+    }
+
+    private <T extends Entity> void editFacetRequest(SearchRequest<T> request) {
+        // check if facet requests are valid
+        List<FacetRequest> facetRequests = request.getFacetRequests();
+        if (ObjectUtil.isEmpty(facetRequests)) {
+            return;
+        }
+
+        // find the repository and entity descriptor
+        Repository repository = resolveRepository(request.getTypeName());
+        EntityDescriptor entityDescriptor = repository.getEntityDescriptor();
+        for (FacetRequest facetRequest : facetRequests) {
+            String relationName = facetRequest.getRelationName();
+            PropertyDescriptor propertyDescriptor = entityDescriptor.findProperty(relationName);
+            SearchRequest facetSearchRequest = facetRequest.getRequest();
+            // facet requests are relations
+            if (propertyDescriptor instanceof Relation) {
+                // copy facet request, as we wil edit the request
+                // 1. add the current request criteria in the dynamic attribute aggregation request
+                // 2. if mergeCriteria = true, we also copy the  request criteria to the facet request
+                TempRequest tempRequest = new TempRequest(facetSearchRequest);
+                facetRequest.setRequest(tempRequest);
+                boolean mergeCriteria = facetRequest.isMergeCriteria();
+                if (mergeCriteria) {
+                    // copy current request criteria to the facet request
+                    tempRequest.appendSearchCriteria(new SubQuerySearchCriteria(BaseEntity.ID_PROPERTY, copyCriteriaOnly(request), relationName));
+                }
+                // real aggregations, we will append criteria
+                List<SimpleAggregation> dynamicAggregateAttributes = tempRequest.getDynamicAggregateAttributes();
+                dynamicAggregateAttributes.forEach(
+                        (dynamicAggregate) -> {
+                            SearchRequest aggregateRequest = dynamicAggregate.getAggregateRequest();
+                            // only append criteria if the sub request is for the same type
+                            // TODO: now it works, but needs it remove duplicate version criteria?
+                            if (aggregateRequest.getTypeName().equals(request.getTypeName())) {
+                                aggregateRequest.appendSearchCriteria(request.getSearchCriteria());
+                            }
+                        }
+                );
+            }
+        }
+    }
+
+    private <T extends Entity> SearchRequest copyCriteriaOnly(SearchRequest request) {
+        SearchRequest requestCopy = new TempRequest(request.returnType(), request.getTypeName());
+        requestCopy.appendSearchCriteria(request.getSearchCriteria());
+        return requestCopy;
     }
 
     public <T extends Entity> SmartList<T> executeForList(SearchRequest searchRequest) {
@@ -378,7 +428,7 @@ public class UserContext
 
     public TQLResolver getResolver() {
 
-        if(resolver==null){
+        if (resolver == null) {
             resolver = GLobalResolver.getGlobalResolver();
         }
 

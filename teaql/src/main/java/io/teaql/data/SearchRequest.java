@@ -56,6 +56,8 @@ public interface SearchRequest<T extends Entity> {
 
     SearchRequest<T> appendSearchCriteria(SearchCriteria searchCriteria);
 
+    List<FacetRequest> getFacetRequests();
+
     default T execute(UserContext userContext) {
         if (userContext == null) {
             throw new RepositoryException("userContext is null");
@@ -145,6 +147,7 @@ public interface SearchRequest<T extends Entity> {
         }
         return new ArrayList<>(allRelationProperties);
     }
+
 
     default boolean tryUseSubQuery() {
         return true;
