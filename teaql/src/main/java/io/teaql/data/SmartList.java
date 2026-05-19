@@ -20,6 +20,8 @@ public class SmartList<T extends Entity> implements Iterable<T> {
 
     List<AggregationResult> aggregationResults = new ArrayList<>();
 
+    Map<String, SmartList> facets = new HashMap<>();
+
     public SmartList() {
     }
 
@@ -100,23 +102,17 @@ public class SmartList<T extends Entity> implements Iterable<T> {
         return this;
     }
 
-//    public int getTotalCount() {
-//        if (ObjectUtil.isEmpty(aggregationResults)) {
-//            return size();
-//        }
-//        return aggregationResults.get(0).toInt();
-//    }
 
     public int getTotalCount() {
         if (ObjectUtil.isEmpty(aggregationResults)) {
             return size();
         }
-        Map<String,Object> numberProps=aggregationNumberProperties();
-        if(numberProps.isEmpty()){
+        Map<String, Object> numberProps = aggregationNumberProperties();
+        if (numberProps.isEmpty()) {
             return size();
         }
         Object count = numberProps.get(TeaQLConstants.ROOT_LIST_PARAMETER_NAME);
-        if(count instanceof Number intCount){
+        if (count instanceof Number intCount) {
             return intCount.intValue();
         }
         throw new IllegalStateException("Number prop is expected a number, but it is now a " + count.getClass().getSimpleName());
@@ -124,21 +120,21 @@ public class SmartList<T extends Entity> implements Iterable<T> {
         //return aggregationResults.get(0).toInt();
     }
 
-    public Map<String,Object> aggregationProperties(Class<?> clazz){
-        if (ObjectUtil.isEmpty(aggregationResults)){
+    public Map<String, Object> aggregationProperties(Class<?> clazz) {
+        if (ObjectUtil.isEmpty(aggregationResults)) {
             return MapUtil.empty();
         }
         Map<String, Object> result = MapUtil.createMap(HashMap.class);
         getAggregationResults().forEach(aggregationResult -> {
 
             //Map s=aggregationResult.toSimpleMap();
-            List<Map<String, Object>> resultList=aggregationResult.valueList();
+            List<Map<String, Object>> resultList = aggregationResult.valueList();
 
-            resultList.forEach(map->{
+            resultList.forEach(map -> {
                 map.entrySet().forEach(stringObjectEntry -> {
 
-                    if(clazz.isAssignableFrom( stringObjectEntry.getValue().getClass())){
-                        result.put(stringObjectEntry.getKey(),stringObjectEntry.getValue());
+                    if (clazz.isAssignableFrom(stringObjectEntry.getValue().getClass())) {
+                        result.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
                     }
 
                 });
@@ -148,16 +144,17 @@ public class SmartList<T extends Entity> implements Iterable<T> {
         return result;
     }
 
-    public Map<String,Object> aggregationProperties(){
+    public void addFacet(String name, SmartList facet) {
+        facets.put(name, facet);
+    }
+
+    public Map<String, Object> aggregationProperties() {
         return aggregationProperties(Object.class);
     }
-    public Map<String,Object> aggregationNumberProperties(){
+
+    public Map<String, Object> aggregationNumberProperties() {
         return aggregationProperties(Number.class);
     }
-
-
-
-
 
 
     public <R> List<R> toList(Function<T, R> function) {

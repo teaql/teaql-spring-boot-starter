@@ -77,6 +77,8 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     String rawSql;
 
+    List<FacetRequest> facetRequests = new ArrayList<>();
+
     public BaseRequest(Class<T> pReturnType) {
         returnType = pReturnType;
     }
@@ -89,6 +91,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     public Class<? extends T> returnType() {
         return returnType;
     }
+
     protected String prefix(String prefix, String value) {
         if (value == null || value.isEmpty()) {
             return prefix;
@@ -96,23 +99,28 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
         StringBuilder sb = new StringBuilder(prefix.length() + value.length());
         sb.append(prefix)
-        .append(Character.toUpperCase(value.charAt(0)))
-        .append(value, 1, value.length());
+                .append(Character.toUpperCase(value.charAt(0)))
+                .append(value, 1, value.length());
 
         return sb.toString();
     }
+
     protected String prefixSumOf(String value) {
-       return prefix("sumOf",value);
+        return prefix("sumOf", value);
     }
+
     protected String prefixMaxOf(String value) {
-       return prefix("maxOf",value);
+        return prefix("maxOf", value);
     }
+
     protected String prefixMinOf(String value) {
-       return prefix("minOf",value);
+        return prefix("minOf", value);
     }
+
     protected String prefixAvgOf(String value) {
-       return prefix("avarageOf",value);
+        return prefix("avarageOf", value);
     }
+
     // load the item self
     public BaseRequest<T> selectSelf() {
         return this;
@@ -154,7 +162,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     public void selectProperty(String propertyName, RawSql rawSqlSegment) {
-        if (rawSqlSegment ==  null) {
+        if (rawSqlSegment == null) {
             return;
         }
         unselectProperty(propertyName);
@@ -220,7 +228,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         return this;
     }
 
-    protected List<Expression> extractSearchCriteriaExcludeVersion(BaseRequest<T> anotherRequest) {
+    protected List<Expression> extractSearchCriteriaExcludeVersion(SearchRequest<T> anotherRequest) {
         AND andSearchCriteria = (AND) anotherRequest.getSearchCriteria();
         List<Expression> subExpression =
                 andSearchCriteria.getExpressions().stream()
@@ -243,7 +251,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
         return newReq;
     }
 
-    protected BaseRequest<T> internalMatchAny(BaseRequest<T> anotherRequest) {
+    protected BaseRequest<T> internalMatchAny(SearchRequest<T> anotherRequest) {
         if (searchCriteria == null) {
             return this;
         }
@@ -536,7 +544,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     public BaseRequest<T> count() {
-        countProperty(TeaQLConstants.ROOT_LIST_PARAMETER_NAME,BaseEntity.ID_PROPERTY);
+        countProperty(TeaQLConstants.ROOT_LIST_PARAMETER_NAME, BaseEntity.ID_PROPERTY);
         return this;
     }
 
@@ -830,5 +838,20 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
             }
         }
         return this;
+    }
+
+    public BaseRequest addFacet(String facetName, String relationName, SearchRequest request, boolean includeAllFacets) {
+        FacetRequest facetRequest = new FacetRequest();
+        facetRequest.setFacetName(facetName);
+        facetRequest.setRequest(request);
+        facetRequest.setRelationName(relationName);
+        facetRequest.setMergeCriteria(!includeAllFacets);
+        facetRequests.add(facetRequest);
+        return this;
+    }
+
+    @Override
+    public List<FacetRequest> getFacetRequests() {
+        return facetRequests;
     }
 }

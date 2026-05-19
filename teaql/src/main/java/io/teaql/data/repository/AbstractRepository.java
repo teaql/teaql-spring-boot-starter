@@ -25,6 +25,7 @@ import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;
 import io.teaql.data.EntityAction;
 import io.teaql.data.Expression;
+import io.teaql.data.FacetRequest;
 import io.teaql.data.FunctionApply;
 import io.teaql.data.PropertyFunction;
 import io.teaql.data.PropertyReference;
@@ -214,6 +215,7 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
         enhanceRelations(userContext, smartList, request);
         enhanceWithAggregation(userContext, smartList, request);
         addDynamicAggregations(userContext, smartList, request);
+        addFacets(userContext, smartList, request);
         for (T t : smartList) {
             userContext.afterLoad(getEntityDescriptor(), t);
         }
@@ -221,6 +223,19 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
             userContext.info(Markers.SEARCH_REQUEST_END, "end execute request: {}", comment);
         }
         return smartList;
+    }
+
+    private void addFacets(UserContext userContext, SmartList<T> smartList, SearchRequest<T> request) {
+        List<FacetRequest> facetRequests = request.getFacetRequests();
+        if (ObjectUtil.isEmpty(facetRequests)) {
+            return;
+        }
+        for (FacetRequest facetRequest : facetRequests) {
+            String facetName = facetRequest.getFacetName();
+            SearchRequest facetSearchRequest = facetRequest.getRequest();
+            SmartList facet = facetSearchRequest.executeForList(userContext);
+            smartList.addFacet(facetName, facet);
+        }
     }
 
     public Stream<T> executeForStream(

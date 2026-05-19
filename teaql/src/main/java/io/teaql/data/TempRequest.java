@@ -30,6 +30,7 @@ public class TempRequest extends BaseRequest {
         cacheAggregation = pRequest.tryCacheAggregation();
         aggregateCacheTime = pRequest.getAggregateCacheTime();
         rawSql = pRequest.getRawSql();
+        facetRequests = pRequest.getFacetRequests();
     }
 
     @Override
