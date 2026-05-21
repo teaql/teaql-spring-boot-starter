@@ -99,15 +99,23 @@ public class UserContext
     }
 
     public <T extends Entity> T execute(SearchRequest<T> searchRequest) {
-        return RepositoryAdaptor.execute(this, edit(searchRequest));
+        return RepositoryAdaptor.execute(this, submitRequest(searchRequest));
     }
 
-    public <T extends Entity> SearchRequest<T> edit(SearchRequest<T> request) {
-        editFacetRequest(request);
+    private <T extends Entity> SearchRequest<T> submitRequest(SearchRequest<T> request) {
+        normalizeRequest(request);
+        return enforceRequestPolicy(request);
+    }
+
+    private <T extends Entity> void normalizeRequest(SearchRequest<T> request) {
+        normalizeFacetRequest(request);
+    }
+
+    protected <T extends Entity> SearchRequest<T> enforceRequestPolicy(SearchRequest<T> request) {
         return request;
     }
 
-    private <T extends Entity> void editFacetRequest(SearchRequest<T> request) {
+    private <T extends Entity> void normalizeFacetRequest(SearchRequest<T> request) {
         // check if facet requests are valid
         List<FacetRequest> facetRequests = request.getFacetRequests();
         if (ObjectUtil.isEmpty(facetRequests)) {
@@ -156,16 +164,16 @@ public class UserContext
     }
 
     public <T extends Entity> SmartList<T> executeForList(SearchRequest searchRequest) {
-        return RepositoryAdaptor.executeForList(this, edit(searchRequest));
+        return RepositoryAdaptor.executeForList(this, submitRequest(searchRequest));
     }
 
     public <T extends Entity> Stream<T> executeForStream(SearchRequest searchRequest) {
-        return RepositoryAdaptor.executeForStream(this, edit(searchRequest));
+        return RepositoryAdaptor.executeForStream(this, submitRequest(searchRequest));
     }
 
     public <T extends Entity> Stream<T> executeForStream(
             SearchRequest searchRequest, int enhanceBatch) {
-        return RepositoryAdaptor.executeForStream(this, edit(searchRequest), enhanceBatch);
+        return RepositoryAdaptor.executeForStream(this, submitRequest(searchRequest), enhanceBatch);
     }
 
     public void delete(Entity pEntity) {
@@ -238,7 +246,7 @@ public class UserContext
     }
 
     public <T extends Entity> AggregationResult aggregation(SearchRequest request) {
-        return RepositoryAdaptor.aggregation(this, request);
+        return RepositoryAdaptor.aggregation(this, submitRequest(request));
     }
 
     public void put(String key, Object value) {
