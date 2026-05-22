@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import cn.hutool.core.map.MapUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.SmartList;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WebResponse {
     List<BaseEntity> data;
     private int resultCode;

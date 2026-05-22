@@ -4,6 +4,12 @@ dependencies {
     compileOnly 'org.redisson:redisson-spring-boot-starter:3.43.0'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 publishing {

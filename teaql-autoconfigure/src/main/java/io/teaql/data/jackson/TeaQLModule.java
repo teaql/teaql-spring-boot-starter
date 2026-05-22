@@ -22,7 +22,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TemporalAccessorUtil;
 
-import io.teaql.data.BaseEntity;
 import io.teaql.data.SmartList;
 
 public class TeaQLModule extends SimpleModule {
@@ -31,7 +30,6 @@ public class TeaQLModule extends SimpleModule {
     private TeaQLModule() {
         super("TeaQL");
         addSerializer(SmartList.class, new SmartListAsListSerializer(SmartList.class));
-        addSerializer(BaseEntity.class,new BaseEntitySerializer(BaseEntity.class));
 
         setDeserializerModifier(
                 new BeanDeserializerModifier() {
