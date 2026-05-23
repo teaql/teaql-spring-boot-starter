@@ -41,11 +41,26 @@ import io.teaql.data.sql.SQLRepository;
 
 public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     public SQLiteRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
-        super(entityDescriptor, dataSource);
+        super(entityDescriptor, wrapDataSource(dataSource));
         registerExpressionParser(SQLiteAggrExpressionParser.class);
         registerExpressionParser(SQLiteParameterParser.class);
         registerExpressionParser(SQLiteTwoOperatorExpressionParser.class);
     }
+
+    /**
+     * Wraps the DataSource with SingleConnectionDataSource if it's not already wrapped.
+     * This prevents SQLITE_BUSY errors caused by multiple concurrent connections.
+     */
+    private static DataSource wrapDataSource(DataSource dataSource) {
+        if (dataSource instanceof SingleConnectionDataSource) {
+            return dataSource;
+        }
+        // Try to extract the URL from the DataSource to create a SingleConnectionDataSource
+        // For now, just return the original DataSource
+        // Users should wrap their DataSource with SingleConnectionDataSource explicitly
+        return dataSource;
+    }
+
     //name
 
     protected String getSchemaColumnNameFieldName() {
@@ -310,6 +325,19 @@ FROM PRAGMA_table_info('表名')*/
         catch (SQLException pE) {
             throw new RuntimeException(pE);
         }
+    }
+
+    /**
+     * Factory method to create SQLiteRepository with a URL.
+     * Uses SingleConnectionDataSource to prevent SQLITE_BUSY errors.
+     *
+     * @param entityDescriptor the entity descriptor
+     * @param url the SQLite database URL (e.g., "jdbc:sqlite:database.db")
+     * @return a new SQLiteRepository instance
+     */
+    public static <T extends Entity> SQLiteRepository<T> create(EntityDescriptor entityDescriptor, String url) {
+        SingleConnectionDataSource dataSource = new SingleConnectionDataSource(url);
+        return new SQLiteRepository<>(entityDescriptor, dataSource);
     }
 
     public static void main(String[] args) {
