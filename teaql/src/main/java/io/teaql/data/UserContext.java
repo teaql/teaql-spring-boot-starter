@@ -98,8 +98,8 @@ public class UserContext
         RepositoryAdaptor.saveGraph(this, items);
     }
 
-    public <T extends Entity> T execute(SearchRequest<T> searchRequest) {
-        return RepositoryAdaptor.execute(this, submitRequest(searchRequest));
+    public <T extends Entity> T executeForOne(SearchRequest<T> searchRequest) {
+        return RepositoryAdaptor.executeForOne(this, submitRequest(searchRequest));
     }
 
     private <T extends Entity> SearchRequest<T> submitRequest(SearchRequest<T> request) {
@@ -645,7 +645,7 @@ public class UserContext
         BaseRequest<T> tempRequest = initRequest(entity.getClass());
         tempRequest.appendSearchCriteria(
                 tempRequest.createBasicSearchCriteria(BaseEntity.ID_PROPERTY, Operator.EQUAL, id));
-        T item = tempRequest.execute(this);
+        T item = tempRequest.executeForOne(this);
         EntityDescriptor entityDescriptor = resolveEntityDescriptor(entity.typeName());
         while (entityDescriptor != null) {
             List<PropertyDescriptor> properties = entityDescriptor.getProperties();

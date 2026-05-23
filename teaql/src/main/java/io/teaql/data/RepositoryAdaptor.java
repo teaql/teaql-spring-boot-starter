@@ -160,9 +160,9 @@ public class RepositoryAdaptor {
         repository.delete(userContext, entity);
     }
 
-    public static <T extends Entity> T execute(UserContext userContext, SearchRequest<T> request) {
+    public static <T extends Entity> T executeForOne(UserContext userContext, SearchRequest<T> request) {
         Repository<T> repository = userContext.resolveRepository(request.getTypeName());
-        return repository.execute(userContext, request);
+        return repository.executeForOne(userContext, request);
     }
 
     public static <T extends Entity> SmartList<T> executeForList(

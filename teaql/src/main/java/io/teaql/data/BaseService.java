@@ -388,7 +388,7 @@ public abstract class BaseService {
                 ReflectUtil.invoke(baseRequest, StrUtil.upperFirstAndAddPre(name, "select"));
             }
         }
-        return (BaseEntity) baseRequest.execute(ctx);
+        return (BaseEntity) baseRequest.executeForOne(ctx);
     }
 
     public BaseEntity parseEntity(UserContext ctx, String type, String parameter) {

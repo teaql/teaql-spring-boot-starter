@@ -58,11 +58,11 @@ public interface SearchRequest<T extends Entity> {
 
     List<FacetRequest> getFacetRequests();
 
-    default T execute(UserContext userContext) {
+    default T executeForOne(UserContext userContext) {
         if (userContext == null) {
             throw new RepositoryException("userContext is null");
         }
-        return userContext.execute(this);
+        return userContext.executeForOne(this);
     }
 
     default SmartList<T> executeForList(UserContext userContext) {

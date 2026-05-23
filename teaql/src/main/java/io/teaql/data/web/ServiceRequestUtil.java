@@ -186,7 +186,7 @@ public class ServiceRequestUtil {
             loadRequest.appendSearchCriteria(
                     loadRequest.createBasicSearchCriteria(
                             BaseEntity.ID_PROPERTY, Operator.EQUAL, request.getId()));
-            request = (BaseEntity) loadRequest.execute(ctx);
+            request = (BaseEntity) loadRequest.executeForOne(ctx);
             view.setProperty(serviceRequestRelation.getName(), request);
         }
         return view;

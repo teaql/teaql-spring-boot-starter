@@ -79,7 +79,7 @@ public interface Repository<T extends Entity> {
         save(userContext, entities);
     }
 
-    default T execute(UserContext userContext, SearchRequest<T> request) {
+    default T executeForOne(UserContext userContext, SearchRequest<T> request) {
         if (request instanceof BaseRequest) {
             ((BaseRequest<T>) request).top(1);
         }
