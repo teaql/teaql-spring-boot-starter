@@ -1,5 +1,7 @@
 package io.teaql.data.sqlite;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -13,6 +15,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -55,10 +58,36 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
         if (dataSource instanceof SingleConnectionDataSource) {
             return dataSource;
         }
-        // Try to extract the URL from the DataSource to create a SingleConnectionDataSource
-        // For now, just return the original DataSource
-        // Users should wrap their DataSource with SingleConnectionDataSource explicitly
+
+        String url = extractJdbcUrl(dataSource);
+        if (url != null && url.toLowerCase(Locale.ROOT).startsWith("jdbc:sqlite:")) {
+            return new SingleConnectionDataSource(url);
+        }
+
         return dataSource;
+    }
+
+    private static String extractJdbcUrl(DataSource dataSource) {
+        for (String methodName : List.of("getJdbcUrl", "getUrl")) {
+            String url = invokeStringGetter(dataSource, methodName);
+            if (url != null) {
+                return url;
+            }
+        }
+        return null;
+    }
+
+    private static String invokeStringGetter(DataSource dataSource, String methodName) {
+        try {
+            Method method = dataSource.getClass().getMethod(methodName);
+            Object value = method.invoke(dataSource);
+            if (value instanceof String) {
+                return (String) value;
+            }
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return null;
+        }
+        return null;
     }
 
     //name

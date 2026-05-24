@@ -1,6 +1,9 @@
 package io.teaql.data.sqlite;
 
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,6 +22,7 @@ import javax.sql.DataSource;
 public class SingleConnectionDataSource implements DataSource {
     private final String url;
     private Connection connection;
+    private Connection connectionProxy;
     private boolean closed = false;
 
     public SingleConnectionDataSource(String url) {
@@ -32,8 +36,9 @@ public class SingleConnectionDataSource implements DataSource {
         }
         if (connection == null || connection.isClosed()) {
             connection = DriverManager.getConnection(url);
+            connectionProxy = createConnectionProxy(connection);
         }
-        return connection;
+        return connectionProxy;
     }
 
     @Override
@@ -87,6 +92,30 @@ public class SingleConnectionDataSource implements DataSource {
             } catch (SQLException e) {
                 // Ignore
             }
+        }
+    }
+
+    private Connection createConnectionProxy(Connection target) {
+        return (Connection)
+                Proxy.newProxyInstance(
+                        Connection.class.getClassLoader(),
+                        new Class[] {Connection.class},
+                        new SuppressCloseInvocationHandler(target));
+    }
+
+    private static class SuppressCloseInvocationHandler implements InvocationHandler {
+        private final Connection target;
+
+        private SuppressCloseInvocationHandler(Connection target) {
+            this.target = target;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if ("close".equals(method.getName())) {
+                return null;
+            }
+            return method.invoke(target, args);
         }
     }
 }
