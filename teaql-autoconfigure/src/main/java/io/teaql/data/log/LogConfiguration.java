@@ -27,6 +27,7 @@ public class LogConfiguration implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         config = this;
+        enabledMarkers.add(Markers.SQL_SELECT);
         enabledMarkers.add(Markers.SQL_UPDATE);
         enabledMarkers.add(Markers.SEARCH_REQUEST_START);
         enabledMarkers.add(Markers.SEARCH_REQUEST_END);
