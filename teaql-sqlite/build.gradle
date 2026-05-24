@@ -19,4 +19,12 @@ publishing {
 
 dependencies {
     api project(':teaql-sql')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework:spring-jdbc'
+    testRuntimeOnly 'org.xerial:sqlite-jdbc:3.45.3.0'
+}
+
+test {
+    useJUnitPlatform()
 }
