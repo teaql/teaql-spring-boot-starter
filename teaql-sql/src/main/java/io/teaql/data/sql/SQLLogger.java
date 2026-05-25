@@ -111,7 +111,7 @@ public class SQLLogger {
         }
         String comment = org.slf4j.MDC.get("comment");
         if (cn.hutool.core.util.StrUtil.isNotEmpty(comment)) {
-            userContext.debug(marker, "/* {} */ [{}] {}", comment, result, finalSQL.toString());
+            userContext.debug(marker, "[{}] [{}] {}", comment, result, finalSQL.toString());
         } else {
             userContext.debug(marker, "[{}] {}", result, finalSQL.toString());
         }
