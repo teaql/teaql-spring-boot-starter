@@ -34,12 +34,12 @@ subprojects {
 
 allprojects {
     group 'io.teaql'
-    version '1.193-RELEASE'
+    version '1.194-RELEASE'
     publishing {
         repositories {
             maven {
                 name = "TEAQL"
-                url = "https://nexus.teaql.io/repository/maven-releases/"
+                url = "https://maven.teaql.io/repository/maven-releases/"
                 credentials {
                     username = System.getenv("TEAQL_USERNAME")
                     password = System.getenv("TEAQL_PASS")
