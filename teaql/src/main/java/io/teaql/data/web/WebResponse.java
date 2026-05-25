@@ -19,6 +19,7 @@ public class WebResponse {
     private String status;
     private String message;
     private int recordCount;
+    private Map<String, SmartList> facets;
 
     public WebResponse() {
         data = new ArrayList<>();
@@ -63,11 +64,14 @@ public class WebResponse {
 
     public static WebResponse of(SmartList<? extends BaseEntity> smartList) {
         WebResponse webResponse = success();
-        if (smartList == null || smartList.isEmpty()) {
+        if (smartList == null) {
             return webResponse;
         }
         webResponse.setRecordCount(smartList.getTotalCount());
         webResponse.getData().addAll(smartList.getData());
+        if (smartList.getFacets() != null && !smartList.getFacets().isEmpty()) {
+            webResponse.setFacets(smartList.getFacets());
+        }
         return webResponse;
     }
 
@@ -121,5 +125,13 @@ public class WebResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Map<String, SmartList> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(Map<String, SmartList> facets) {
+        this.facets = facets;
     }
 }

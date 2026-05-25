@@ -148,6 +148,26 @@ public class SmartList<T extends Entity> implements Iterable<T> {
         facets.put(name, facet);
     }
 
+    public Map<String, SmartList> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(Map<String, SmartList> facets) {
+        this.facets = facets;
+    }
+
+    public SmartList getFacet(String name) {
+        return facets.get(name);
+    }
+
+    public SmartList removeFacet(String name) {
+        return facets.remove(name);
+    }
+
+    public void clearFacets() {
+        facets.clear();
+    }
+
     public Map<String, Object> aggregationProperties() {
         return aggregationProperties(Object.class);
     }
