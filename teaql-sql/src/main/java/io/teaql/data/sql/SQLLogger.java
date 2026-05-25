@@ -109,7 +109,12 @@ public class SQLLogger {
             }
             finalSQL.append(ch);
         }
-        userContext.debug(marker, "[{}] {}", result, finalSQL.toString());
+        String comment = org.slf4j.MDC.get("comment");
+        if (cn.hutool.core.util.StrUtil.isNotEmpty(comment)) {
+            userContext.debug(marker, "/* {} */ [{}] {}", comment, result, finalSQL.toString());
+        } else {
+            userContext.debug(marker, "[{}] {}", result, finalSQL.toString());
+        }
     }
 
     protected static String join(Object... objs) {

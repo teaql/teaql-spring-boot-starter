@@ -208,21 +208,28 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
     public SmartList<T> executeForList(UserContext userContext, SearchRequest<T> request) {
         String comment = request.comment();
         if (ObjectUtil.isNotEmpty(comment)) {
+            org.slf4j.MDC.put("comment", comment);
             userContext.info(Markers.SEARCH_REQUEST_START, "start execute request: {}", comment);
         }
-        SmartList<T> smartList = loadInternal(userContext, request);
-        enhanceChildren(userContext, smartList, request);
-        enhanceRelations(userContext, smartList, request);
-        enhanceWithAggregation(userContext, smartList, request);
-        addDynamicAggregations(userContext, smartList, request);
-        addFacets(userContext, smartList, request);
-        for (T t : smartList) {
-            userContext.afterLoad(getEntityDescriptor(), t);
+        try {
+            SmartList<T> smartList = loadInternal(userContext, request);
+            enhanceChildren(userContext, smartList, request);
+            enhanceRelations(userContext, smartList, request);
+            enhanceWithAggregation(userContext, smartList, request);
+            addDynamicAggregations(userContext, smartList, request);
+            addFacets(userContext, smartList, request);
+            for (T t : smartList) {
+                userContext.afterLoad(getEntityDescriptor(), t);
+            }
+            if (ObjectUtil.isNotEmpty(comment)) {
+                userContext.info(Markers.SEARCH_REQUEST_END, "end execute request: {}", comment);
+            }
+            return smartList;
+        } finally {
+            if (ObjectUtil.isNotEmpty(comment)) {
+                org.slf4j.MDC.remove("comment");
+            }
         }
-        if (ObjectUtil.isNotEmpty(comment)) {
-            userContext.info(Markers.SEARCH_REQUEST_END, "end execute request: {}", comment);
-        }
-        return smartList;
     }
 
     private void addFacets(UserContext userContext, SmartList<T> smartList, SearchRequest<T> request) {
@@ -240,15 +247,25 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
 
     public Stream<T> executeForStream(
             UserContext userContext, SearchRequest<T> request, int enhanceBatch) {
-        SmartList<T> smartList = loadInternal(userContext, request);
-        enhanceChildren(userContext, smartList, request);
-        enhanceRelations(userContext, smartList, request);
-        return smartList.stream()
-                .map(
-                        item -> {
-                            userContext.afterLoad(getEntityDescriptor(), item);
-                            return item;
-                        });
+        String comment = request.comment();
+        if (ObjectUtil.isNotEmpty(comment)) {
+            org.slf4j.MDC.put("comment", comment);
+        }
+        try {
+            SmartList<T> smartList = loadInternal(userContext, request);
+            enhanceChildren(userContext, smartList, request);
+            enhanceRelations(userContext, smartList, request);
+            return smartList.stream()
+                    .map(
+                            item -> {
+                                userContext.afterLoad(getEntityDescriptor(), item);
+                                return item;
+                            });
+        } finally {
+            if (ObjectUtil.isNotEmpty(comment)) {
+                org.slf4j.MDC.remove("comment");
+            }
+        }
     }
 
     public void enhanceChildren(
