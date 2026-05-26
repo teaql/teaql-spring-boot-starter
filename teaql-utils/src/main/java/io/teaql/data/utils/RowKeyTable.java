@@ -17,4 +17,16 @@ public class RowKeyTable<R, C, V> {
         }
         return rowMap.get(col);
     }
+
+    public V remove(R row, C col) {
+        Map<C, V> rowMap = table.get(row);
+        if (rowMap == null) {
+            return null;
+        }
+        V val = rowMap.remove(col);
+        if (rowMap.isEmpty()) {
+            table.remove(row);
+        }
+        return val;
+    }
 }
