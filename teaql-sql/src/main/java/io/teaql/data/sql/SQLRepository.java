@@ -95,8 +95,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     public SQLRepository(EntityDescriptor entityDescriptor, DataSource dataSource) {
         this.entityDescriptor = entityDescriptor;
-        this.dataSource = dataSource;
-        this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        this.dataSource = TracedDataSource.wrap(dataSource);
+        this.jdbcTemplate = new NamedParameterJdbcTemplate(this.dataSource);
         initSQLMeta(entityDescriptor);
         initExpressionParsers(entityDescriptor, dataSource);
     }
