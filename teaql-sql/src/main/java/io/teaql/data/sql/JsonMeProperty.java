@@ -8,10 +8,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ZipUtil;
+import io.teaql.data.utils.Base64;
+import io.teaql.data.utils.Convert;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.ZipUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.RepositoryException;

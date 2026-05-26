@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.TemporalAccessorUtil;
+import io.teaql.data.utils.Convert;
+import io.teaql.data.utils.DateUtil;
+import io.teaql.data.utils.TemporalAccessorUtil;
 
 import io.teaql.data.SmartList;
 

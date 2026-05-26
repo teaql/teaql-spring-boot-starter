@@ -2,7 +2,7 @@ package io.teaql.data.graphql;
 
 import java.lang.reflect.Method;
 
-import cn.hutool.core.util.ReflectUtil;
+import io.teaql.data.utils.ReflectUtil;
 
 import io.teaql.data.BaseRequest;
 import io.teaql.data.UserContext;

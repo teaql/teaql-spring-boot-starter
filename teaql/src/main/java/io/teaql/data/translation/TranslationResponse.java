@@ -3,7 +3,7 @@ package io.teaql.data.translation;
 import java.util.Map;
 import java.util.Set;
 
-import cn.hutool.core.collection.CollStreamUtil;
+import io.teaql.data.utils.CollStreamUtil;
 
 public class TranslationResponse {
     private Set<TranslationRecord> records;

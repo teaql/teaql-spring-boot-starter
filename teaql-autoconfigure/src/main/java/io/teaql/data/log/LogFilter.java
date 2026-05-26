@@ -4,8 +4,8 @@ import java.util.Set;
 
 import org.slf4j.Marker;
 
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.Filter;

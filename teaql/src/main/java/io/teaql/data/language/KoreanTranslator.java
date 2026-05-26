@@ -2,8 +2,8 @@ package io.teaql.data.language;
 
 import java.util.List;
 
-import cn.hutool.core.text.NamingCase;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.NamingCase;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.NaturalLanguageTranslator;

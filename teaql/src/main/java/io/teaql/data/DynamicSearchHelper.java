@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 
-import cn.hutool.core.util.PageUtil;
+import io.teaql.data.utils.PageUtil;
 
 import io.teaql.data.criteria.Operator;
 

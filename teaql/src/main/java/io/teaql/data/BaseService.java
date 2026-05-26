@@ -12,12 +12,12 @@ import java.util.Set;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.ClassUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.meta.EntityDescriptor;

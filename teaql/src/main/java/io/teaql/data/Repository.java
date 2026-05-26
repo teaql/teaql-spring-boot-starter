@@ -3,9 +3,9 @@ package io.teaql.data;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.IdUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.meta.EntityDescriptor;
 

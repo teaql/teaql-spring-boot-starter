@@ -7,7 +7,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import cn.hutool.core.map.MapUtil;
+import io.teaql.data.utils.MapUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.SmartList;

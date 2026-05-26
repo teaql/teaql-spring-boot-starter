@@ -7,8 +7,8 @@ import java.util.List;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.io.IoUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.IoUtil;
 
 import io.teaql.data.RequestHolder;
 import io.teaql.data.ResponseHolder;

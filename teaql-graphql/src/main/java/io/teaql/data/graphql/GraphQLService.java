@@ -1,7 +1,7 @@
 package io.teaql.data.graphql;
 
-import cn.hutool.core.io.resource.ResourceUtil;
-import cn.hutool.core.map.MapUtil;
+import io.teaql.data.utils.ResourceUtil;
+import io.teaql.data.utils.MapUtil;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 

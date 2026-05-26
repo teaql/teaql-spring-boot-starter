@@ -1,6 +1,6 @@
 package io.teaql.data.graphql;
 
-import cn.hutool.core.util.ClassUtil;
+import io.teaql.data.utils.ClassUtil;
 
 import io.teaql.data.BaseRequest;
 import io.teaql.data.UserContext;

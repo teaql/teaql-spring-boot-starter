@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 public interface SearchRequest<T extends Entity> {
     default String getTypeName() {

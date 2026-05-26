@@ -12,3 +12,5 @@ include 'teaql-graphql'
 include 'teaql-memory'
 include 'teaql-duck'
 include 'teaql-sqlite'
+include 'teaql-utils'
+

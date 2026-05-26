@@ -31,16 +31,16 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.text.NamingCase;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.NamingCase;
+import io.teaql.data.utils.ClassUtil;
+import io.teaql.data.utils.NumberUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import static io.teaql.data.log.Markers.SQL_SELECT;
 import static io.teaql.data.log.Markers.SQL_UPDATE;

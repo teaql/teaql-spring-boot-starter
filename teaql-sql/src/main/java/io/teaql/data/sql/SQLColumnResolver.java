@@ -2,7 +2,7 @@ package io.teaql.data.sql;
 
 import java.util.List;
 
-import cn.hutool.core.collection.CollUtil;
+import io.teaql.data.utils.CollUtil;
 
 public interface SQLColumnResolver {
 

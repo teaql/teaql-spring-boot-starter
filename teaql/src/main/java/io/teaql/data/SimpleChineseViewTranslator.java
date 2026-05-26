@@ -2,7 +2,7 @@ package io.teaql.data;
 
 import java.util.List;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.HashLocation;

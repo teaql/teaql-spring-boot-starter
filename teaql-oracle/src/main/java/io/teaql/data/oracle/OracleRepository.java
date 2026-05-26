@@ -9,9 +9,9 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.LocalDateTimeUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.RepositoryException;

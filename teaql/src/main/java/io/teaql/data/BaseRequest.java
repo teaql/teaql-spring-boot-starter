@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
 
 import io.teaql.data.criteria.AND;
 import io.teaql.data.criteria.Between;

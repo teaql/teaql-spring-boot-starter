@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;

@@ -10,13 +10,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import cn.hutool.cache.Cache;
-import cn.hutool.cache.CacheUtil;
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.comparator.CompareUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.Cache;
+import io.teaql.data.utils.CacheUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.CollUtil;
+import io.teaql.data.utils.CompareUtil;
+import io.teaql.data.utils.NumberUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.AggrFunction;
 import io.teaql.data.AggregationItem;

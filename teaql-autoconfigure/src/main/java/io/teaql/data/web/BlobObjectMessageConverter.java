@@ -12,8 +12,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StreamUtils;
 
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ClassUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ClassUtil;
 
 public class BlobObjectMessageConverter extends AbstractHttpMessageConverter<BlobObject> {
 

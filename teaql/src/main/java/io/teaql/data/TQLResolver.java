@@ -2,7 +2,7 @@ package io.teaql.data;
 
 import java.util.List;
 
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.EntityMetaFactory;

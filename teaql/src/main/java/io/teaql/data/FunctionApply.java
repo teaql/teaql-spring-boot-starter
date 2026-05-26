@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.CollUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 public class FunctionApply implements Expression {
     PropertyFunction operator;

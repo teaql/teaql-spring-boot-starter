@@ -2,8 +2,8 @@ package io.teaql.data.language;
 
 import java.util.List;
 
-import cn.hutool.core.text.NamingCase;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.NamingCase;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.NaturalLanguageTranslator;
@@ -24,10 +24,10 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
         try {
             String path = System.getProperty("teaql.i18n.path");
             String jsonStr;
-            if (cn.hutool.core.util.StrUtil.isNotEmpty(path) && cn.hutool.core.io.FileUtil.exist(path)) {
+            if (io.teaql.data.utils.StrUtil.isNotEmpty(path) && cn.hutool.core.io.FileUtil.exist(path)) {
                 jsonStr = cn.hutool.core.io.FileUtil.readUtf8String(path);
             } else {
-                jsonStr = cn.hutool.core.io.resource.ResourceUtil.readUtf8Str("teaql-i18n.json");
+                jsonStr = io.teaql.data.utils.ResourceUtil.readUtf8Str("teaql-i18n.json");
             }
             i18nDict = cn.hutool.json.JSONUtil.parseObj(jsonStr);
         } catch (Exception e) {
@@ -40,7 +40,7 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
         String langKey = getLanguageKey();
         if (!"en".equals(langKey)) {
             String path = System.getProperty("teaql.i18n.path");
-            if (cn.hutool.core.util.StrUtil.isEmpty(path)) {
+            if (io.teaql.data.utils.StrUtil.isEmpty(path)) {
                 throw new IllegalStateException("Translation dictionary is required for non-English locale '" + langKey 
                     + "'. Please configure the JVM parameter -Dteaql.i18n.path pointing to the translated JSON file.");
             }

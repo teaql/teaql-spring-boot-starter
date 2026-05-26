@@ -3,8 +3,8 @@ package io.teaql.data.sql;
 import java.sql.ResultSet;
 import java.util.List;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ReflectUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.ReflectUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;

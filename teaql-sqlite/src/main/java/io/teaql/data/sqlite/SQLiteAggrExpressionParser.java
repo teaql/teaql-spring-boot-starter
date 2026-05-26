@@ -1,6 +1,6 @@
 package io.teaql.data.sqlite;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.AggrFunction;
 import io.teaql.data.sql.expression.AggrExpressionParser;

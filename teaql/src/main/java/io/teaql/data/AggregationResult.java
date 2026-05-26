@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.Convert;
+import io.teaql.data.utils.ObjectUtil;
 
 public class AggregationResult {
     private String name;

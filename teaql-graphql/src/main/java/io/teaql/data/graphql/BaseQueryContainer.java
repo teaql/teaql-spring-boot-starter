@@ -3,8 +3,8 @@ package io.teaql.data.graphql;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjUtil;
+import io.teaql.data.utils.ClassUtil;
+import io.teaql.data.utils.ObjUtil;
 
 import io.teaql.data.BaseRequest;
 import io.teaql.data.UserContext;

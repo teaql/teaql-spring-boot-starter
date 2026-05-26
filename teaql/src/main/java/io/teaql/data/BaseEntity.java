@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
 
 import io.teaql.data.meta.EntityDescriptor;
 import io.teaql.data.meta.PropertyDescriptor;

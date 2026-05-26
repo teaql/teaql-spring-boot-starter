@@ -5,9 +5,9 @@ import java.util.List;
 import org.slf4j.MDC;
 import org.springframework.core.PriorityOrdered;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.IdUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.UserContext;
 import io.teaql.data.web.UserContextInitializer;

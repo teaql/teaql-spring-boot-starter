@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Marker;
 import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.LocalDateTimeUtil;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.AggregationResult;
 import io.teaql.data.BaseEntity;
@@ -110,7 +110,7 @@ public class SQLLogger {
             finalSQL.append(ch);
         }
         String comment = org.slf4j.MDC.get("comment");
-        if (cn.hutool.core.util.StrUtil.isNotEmpty(comment)) {
+        if (io.teaql.data.utils.StrUtil.isNotEmpty(comment)) {
             userContext.debug(marker, "[{}] [{}] {}", comment, result, finalSQL.toString());
         } else {
             userContext.debug(marker, "[{}] {}", result, finalSQL.toString());

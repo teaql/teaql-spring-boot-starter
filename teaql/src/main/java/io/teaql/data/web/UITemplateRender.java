@@ -10,15 +10,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.io.resource.ResourceUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.BeanUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.ResourceUtil;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.BooleanUtil;
+import io.teaql.data.utils.NumberUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;

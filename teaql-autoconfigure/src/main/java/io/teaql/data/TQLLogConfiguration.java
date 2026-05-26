@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.net.URLDecoder;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.URLDecoder;
 
 import io.teaql.data.log.LogConfiguration;
 import io.teaql.data.log.RequestLogger;

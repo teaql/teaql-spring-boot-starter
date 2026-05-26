@@ -7,9 +7,9 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.CaseInsensitiveMap;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.SearchRequest;

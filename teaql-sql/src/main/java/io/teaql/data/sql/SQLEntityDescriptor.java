@@ -1,6 +1,6 @@
 package io.teaql.data.sql;
 
-import cn.hutool.core.bean.BeanUtil;
+import io.teaql.data.utils.BeanUtil;
 
 import io.teaql.data.meta.EntityDescriptor;
 

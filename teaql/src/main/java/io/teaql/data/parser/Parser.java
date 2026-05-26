@@ -3,9 +3,9 @@ package io.teaql.data.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.hutool.core.text.StrBuilder;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrBuilder;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.StrUtil;
 
 public class Parser {
 

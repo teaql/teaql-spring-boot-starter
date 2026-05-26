@@ -5,11 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.net.URLEncodeUtil;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.Base64;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.URLEncodeUtil;
+import io.teaql.data.utils.CharsetUtil;
+import io.teaql.data.utils.StrUtil;
 
 public class BlobObject {
     public static final String TYPE_X3D = "application/vnd.hzn-3d-crossword";

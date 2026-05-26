@@ -3,8 +3,8 @@ package io.teaql.data.sql.expression;
 import java.util.List;
 import java.util.Map;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.Expression;
 import io.teaql.data.SearchCriteria;

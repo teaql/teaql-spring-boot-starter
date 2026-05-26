@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+}
+
+publishing {
+    publications {
+        utils(MavenPublication) {
+            groupId = "${groupId}"
+            artifactId = 'teaql-utils'
+            version = "${version}"
+            from components.java
+        }
+    }
+}
+
+dependencies {
+    api 'cn.hutool:hutool-all:5.8.15'
+    implementation 'org.slf4j:slf4j-api'
+    compileOnly 'org.springframework:spring-context'
+}

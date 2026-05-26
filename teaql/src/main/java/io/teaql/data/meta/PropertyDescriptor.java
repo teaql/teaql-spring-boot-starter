@@ -4,9 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.BooleanUtil;
+import io.teaql.data.utils.StrUtil;
 
 /**
  * property meta in entity meta

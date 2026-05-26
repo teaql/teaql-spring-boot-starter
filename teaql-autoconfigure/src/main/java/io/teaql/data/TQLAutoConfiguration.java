@@ -43,15 +43,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cn.hutool.cache.CacheUtil;
-import cn.hutool.cache.impl.TimedCache;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
+import io.teaql.data.utils.CacheUtil;
+import io.teaql.data.utils.TimedCache;
+import io.teaql.data.utils.BeanUtil;
+import io.teaql.data.utils.Base64;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.SpringUtil;
+import io.teaql.data.utils.JSONUtil;
 
 import io.teaql.data.checker.Checker;
 import io.teaql.data.jackson.TeaQLModule;

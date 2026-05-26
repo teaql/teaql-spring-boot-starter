@@ -2,9 +2,9 @@ package io.teaql.data.memory.filter;
 
 import java.util.List;
 
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.Entity;

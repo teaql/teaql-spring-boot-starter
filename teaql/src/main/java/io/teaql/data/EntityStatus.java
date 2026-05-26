@@ -1,7 +1,7 @@
 package io.teaql.data;
 
-import cn.hutool.core.map.multi.RowKeyTable;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.RowKeyTable;
+import io.teaql.data.utils.StrUtil;
 
 import static io.teaql.data.EntityAction.DELETE;
 import static io.teaql.data.EntityAction.PERSIST;

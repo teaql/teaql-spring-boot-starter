@@ -17,19 +17,19 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.spi.LocationAwareLogger;
 
-import cn.hutool.cache.Cache;
-import cn.hutool.cache.CacheUtil;
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.getter.OptNullBasicTypeFromObjectGetter;
-import cn.hutool.core.lang.caller.CallerUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import io.teaql.data.utils.Cache;
+import io.teaql.data.utils.CacheUtil;
+import io.teaql.data.utils.Base64;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.OptNullBasicTypeFromObjectGetter;
+import io.teaql.data.utils.CallerUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.BooleanUtil;
+import io.teaql.data.utils.ClassUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
+import io.teaql.data.utils.JSONUtil;
 
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
@@ -552,7 +552,7 @@ public class UserContext
     }
 
     public <T> T get(String key, Supplier<T> supplier) {
-        return (T) localStorage.get(key, () -> supplier.get());
+        return (T) localStorage.get(key, supplier);
     }
 
     public <T> T advancedGet(String key, Supplier<T> supplier) {

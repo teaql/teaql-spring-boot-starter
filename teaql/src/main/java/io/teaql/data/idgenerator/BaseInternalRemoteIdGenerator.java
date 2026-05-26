@@ -1,7 +1,7 @@
 package io.teaql.data.idgenerator;
 
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
+import io.teaql.data.utils.HttpUtil;
+import io.teaql.data.utils.JSONUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.InternalIdGenerator;

@@ -3,8 +3,8 @@ package io.teaql.data.checker;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.hutool.core.collection.CollStreamUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollStreamUtil;
+import io.teaql.data.utils.StrUtil;
 
 public class CheckException extends RuntimeException {
 

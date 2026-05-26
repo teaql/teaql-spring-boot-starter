@@ -2,9 +2,9 @@ package io.teaql.data.checker;
 
 import java.time.LocalDateTime;
 
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.NumberUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.EntityStatus;

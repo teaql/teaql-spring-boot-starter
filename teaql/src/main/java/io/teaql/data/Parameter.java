@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.criteria.Operator;
 

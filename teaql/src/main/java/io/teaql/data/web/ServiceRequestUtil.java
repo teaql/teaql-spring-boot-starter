@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.BooleanUtil;
+import io.teaql.data.utils.ClassUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import static io.teaql.data.web.UITemplateRender.serviceRequestPopupKey;
 

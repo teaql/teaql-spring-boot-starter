@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import cn.hutool.core.map.MapUtil;
+import io.teaql.data.utils.MapUtil;
 
 import graphql.execution.DataFetcherResult;
 import graphql.language.Field;

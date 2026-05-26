@@ -2,7 +2,7 @@ package io.teaql.data.sql.expression;
 
 import java.util.Map;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 import io.teaql.data.PropertyReference;
 import io.teaql.data.UserContext;

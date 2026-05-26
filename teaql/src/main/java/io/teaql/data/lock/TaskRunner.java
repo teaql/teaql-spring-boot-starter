@@ -10,13 +10,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.stream.StreamUtil;
-import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.log.StaticLog;
+import io.teaql.data.utils.ListUtil;
+import io.teaql.data.utils.StreamUtil;
+import io.teaql.data.utils.ThreadUtil;
+import io.teaql.data.utils.ArrayUtil;
+import io.teaql.data.utils.ObjUtil;
+import io.teaql.data.utils.StrUtil;
+import io.teaql.data.utils.StaticLog;
 
 import io.teaql.data.Entity;
 

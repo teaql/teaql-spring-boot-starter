@@ -8,7 +8,7 @@ import org.springframework.boot.web.servlet.filter.OrderedFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 import static io.teaql.data.web.ServletUserContextInitializer.USER_CONTEXT;
 

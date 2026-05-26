@@ -22,7 +22,7 @@ public interface Expression<E, T> {
 
     default T orElse(T defaultValue) {
         T value = eval();
-        if(cn.hutool.core.util.ObjectUtil.isEmpty(value)){
+        if(io.teaql.data.utils.ObjectUtil.isEmpty(value)){
             return defaultValue;
         }
         return value;
@@ -39,7 +39,7 @@ public interface Expression<E, T> {
             throws Throwable{
 
         T value = eval();
-        if(cn.hutool.core.util.ObjectUtil.isEmpty(value)){
+        if(io.teaql.data.utils.ObjectUtil.isEmpty(value)){
             throw exceptionSupplier.get();
         }
         return value;
@@ -55,11 +55,11 @@ public interface Expression<E, T> {
     }
 
     default boolean isEmpty() {
-        return cn.hutool.core.util.ObjectUtil.isEmpty(eval());
+        return io.teaql.data.utils.ObjectUtil.isEmpty(eval());
     }
 
     default boolean isNotEmpty() {
-        return cn.hutool.core.util.ObjectUtil.isNotEmpty(eval());
+        return io.teaql.data.utils.ObjectUtil.isNotEmpty(eval());
     }
 
     default void whenIsNull(Runnable function) {

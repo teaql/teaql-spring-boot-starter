@@ -8,12 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.CollectionUtil;
+import io.teaql.data.utils.MapUtil;
+import io.teaql.data.utils.BooleanUtil;
+import io.teaql.data.utils.ObjectUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
 
 import static io.teaql.data.meta.MetaConstants.VIEW_OBJECT;
 

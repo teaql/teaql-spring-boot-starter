@@ -1,6 +1,6 @@
 package io.teaql.data.checker;
 
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.StrUtil;
 
 public class ArrayLocation extends ObjectLocation {
 

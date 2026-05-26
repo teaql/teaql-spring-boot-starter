@@ -9,8 +9,8 @@ import java.util.stream.Stream;
 
 import org.slf4j.MDC;
 
-import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.ThreadUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.BaseEntity;
 import io.teaql.data.SearchRequest;

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import cn.hutool.core.util.ObjectUtil;
+import io.teaql.data.utils.ObjectUtil;
 
 import io.teaql.data.Entity;
 import io.teaql.data.Parameter;

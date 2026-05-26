@@ -3,9 +3,9 @@ package io.teaql.data;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import io.teaql.data.utils.BeanUtil;
+import io.teaql.data.utils.ReflectUtil;
+import io.teaql.data.utils.StrUtil;
 
 // the super interface in TEAQL repository
 public interface Entity {
