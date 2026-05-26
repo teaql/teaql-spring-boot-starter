@@ -343,6 +343,50 @@ public class UtilsTest {
         assertEquals("John", map.get("name"));
     }
 
+    @Test
+    public void testExceptionalFlows() {
+        // 1. TypeReference raw construct error
+        assertThrows(IllegalArgumentException.class, () -> {
+            new TypeReference() {}; // No type information!
+        });
+
+        // 2. SpringUtil empty lookup safety
+        assertNull(SpringUtil.getBean("someBean"));
+        assertNull(SpringUtil.getBean(String.class));
+        assertTrue(SpringUtil.getBeansOfType(String.class).isEmpty());
+
+        // 3. RowKeyTable missing rows and columns
+        RowKeyTable<String, String, Integer> table = new RowKeyTable<>();
+        assertNull(table.get("missingRow", "col"));
+        assertNull(table.remove("missingRow", "col"));
+        table.put("row", "col", 1);
+        assertNull(table.get("row", "missingCol"));
+        assertNull(table.remove("row", "missingCol"));
+
+        // 4. OptNullBasicTypeFromObjectGetter fallback and exceptions
+        OptNullBasicTypeFromObjectGetter<String> getter = new OptNullBasicTypeFromObjectGetter<String>() {
+            @Override
+            public Object getObj(String key, Object defaultValue) {
+                if ("nullValue".equals(key)) return null;
+                if ("badInt".equals(key)) return "abc";
+                if ("badLong".equals(key)) return "xyz";
+                return defaultValue;
+            }
+        };
+
+        assertEquals("fallback", getter.getStr("nullValue", "fallback"));
+        assertEquals(Integer.valueOf(42), getter.getInt("nullValue", 42));
+        assertEquals(Long.valueOf(99L), getter.getLong("nullValue", 99L));
+        assertTrue(getter.getBool("nullValue", true));
+
+        assertThrows(NumberFormatException.class, () -> {
+            getter.getInt("badInt");
+        });
+        assertThrows(NumberFormatException.class, () -> {
+            getter.getLong("badLong");
+        });
+    }
+
     // Test helper classes
     public static class Person {
         private String name;
