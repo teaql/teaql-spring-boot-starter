@@ -42,6 +42,9 @@ public class TeaQLModule extends SimpleModule {
                         if (beanClass.equals(SmartList.class)) {
                             return new ListAsSmartListDeserializer<>(beanDesc.getType());
                         }
+                        if (io.teaql.data.Entity.class.isAssignableFrom(beanClass)) {
+                            return new RemoteInputCheckingDeserializer((JsonDeserializer<Object>) deserializer, beanClass);
+                        }
                         return super.modifyDeserializer(config, beanDesc, deserializer);
                     }
                 });

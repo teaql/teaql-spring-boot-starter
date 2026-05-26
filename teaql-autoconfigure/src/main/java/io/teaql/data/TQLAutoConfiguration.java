@@ -304,6 +304,21 @@ public class TQLAutoConfiguration {
 
     @ControllerAdvice
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public static class TeaQLRequestAdvice {
+        @org.springframework.web.bind.annotation.InitBinder
+        public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+            Object target = binder.getTarget();
+            if (target != null) {
+                Class<?> clazz = target.getClass();
+                if (Entity.class.isAssignableFrom(clazz) && !RemoteInput.class.isAssignableFrom(clazz)) {
+                    throw new IllegalArgumentException("Binding of " + clazz.getName() + " is rejected because it does not implement " + RemoteInput.class.getName());
+                }
+            }
+        }
+    }
+
+    @ControllerAdvice
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     public static class TeaQLResponseAdvice implements ResponseBodyAdvice {
         @Override
         public boolean supports(MethodParameter returnType, Class converterType) {

@@ -90,6 +90,89 @@ class WebResponseDataSerializationTest {
         assertTrue(parentList.getFacets().isEmpty());
     }
 
+    @Test
+    void testRemoteInputChecking() throws Exception {
+        String json = "{\"id\":1,\"name\":\"USB-C Cable\"}";
+
+        // Without active request, it should deserialize fine
+        Product product = mapper.readValue(json, Product.class);
+        assertNotNull(product);
+        assertEquals("USB-C Cable", product.getName());
+
+        // With active request, since Product does not implement RemoteInput, it should fail
+        try {
+            System.setProperty("io.teaql.data.jackson.testing.forceRemoteInputCheck", "true");
+
+            Exception exception = org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> {
+                mapper.readValue(json, Product.class);
+            });
+            assertTrue(exception.getMessage().contains("is rejected because it does not implement"));
+
+            // RemoteProduct implements RemoteInput, so it should deserialize fine even with active request
+            RemoteProduct remoteProduct = mapper.readValue(json, RemoteProduct.class);
+            assertNotNull(remoteProduct);
+            assertEquals("USB-C Cable", remoteProduct.getName());
+        } finally {
+            System.clearProperty("io.teaql.data.jackson.testing.forceRemoteInputCheck");
+        }
+    }
+
+    @Test
+    void testDictionaryBasedTranslation() throws Exception {
+        // 1. Without system property, instantiating ChineseTranslator should throw IllegalStateException
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> {
+            new io.teaql.data.language.ChineseTranslator();
+        });
+
+        // 2. With valid system property, instantiating should succeed and translate correctly
+        try {
+            java.io.File file = new java.io.File("src/test/resources/teaql-i18n.json");
+            if (!file.exists()) {
+                file = new java.io.File("teaql-autoconfigure/src/test/resources/teaql-i18n.json");
+            }
+            System.setProperty("teaql.i18n.path", file.getAbsolutePath());
+            
+            // Force reload dictionary using reflection
+            java.lang.reflect.Field loadedField = io.teaql.data.language.BaseLanguageTranslator.class.getDeclaredField("loaded");
+            loadedField.setAccessible(true);
+            loadedField.set(null, false);
+
+            io.teaql.data.language.ChineseTranslator zhTranslator = new io.teaql.data.language.ChineseTranslator();
+            io.teaql.data.checker.CheckResult errorZh = io.teaql.data.checker.CheckResult.required(
+                new io.teaql.data.checker.HashLocation(null, "workedHour")
+            );
+            
+            zhTranslator.translateError(null, java.util.Collections.singletonList(errorZh));
+            assertEquals("工作时间 是必填项", errorZh.getNaturalLanguageStatement());
+
+            io.teaql.data.language.SpanishTranslator esTranslator = new io.teaql.data.language.SpanishTranslator();
+            io.teaql.data.checker.CheckResult errorEs = io.teaql.data.checker.CheckResult.required(
+                new io.teaql.data.checker.HashLocation(null, "workedHour")
+            );
+            
+            esTranslator.translateError(null, java.util.Collections.singletonList(errorEs));
+            assertEquals("Hora trabajada es requerido/a", errorEs.getNaturalLanguageStatement());
+        } finally {
+            System.clearProperty("teaql.i18n.path");
+            // Force reset back to default using reflection
+            java.lang.reflect.Field loadedField = io.teaql.data.language.BaseLanguageTranslator.class.getDeclaredField("loaded");
+            loadedField.setAccessible(true);
+            loadedField.set(null, false);
+        }
+    }
+
+    static class RemoteProduct extends BaseEntity implements io.teaql.data.RemoteInput {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
     static class Product extends BaseEntity {
         private String name;
 

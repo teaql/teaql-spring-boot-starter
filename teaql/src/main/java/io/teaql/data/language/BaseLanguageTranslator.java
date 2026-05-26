@@ -14,6 +14,86 @@ import io.teaql.data.checker.ObjectLocation;
 
 public class BaseLanguageTranslator implements NaturalLanguageTranslator {
 
+    private static cn.hutool.json.JSONObject i18nDict;
+    private static boolean loaded = false;
+
+    private static synchronized void loadDict() {
+        if (loaded) {
+            return;
+        }
+        try {
+            String path = System.getProperty("teaql.i18n.path");
+            String jsonStr;
+            if (cn.hutool.core.util.StrUtil.isNotEmpty(path) && cn.hutool.core.io.FileUtil.exist(path)) {
+                jsonStr = cn.hutool.core.io.FileUtil.readUtf8String(path);
+            } else {
+                jsonStr = cn.hutool.core.io.resource.ResourceUtil.readUtf8Str("teaql-i18n.json");
+            }
+            i18nDict = cn.hutool.json.JSONUtil.parseObj(jsonStr);
+        } catch (Exception e) {
+            i18nDict = new cn.hutool.json.JSONObject();
+        }
+        loaded = true;
+    }
+
+    public BaseLanguageTranslator() {
+        String langKey = getLanguageKey();
+        if (!"en".equals(langKey)) {
+            String path = System.getProperty("teaql.i18n.path");
+            if (cn.hutool.core.util.StrUtil.isEmpty(path)) {
+                throw new IllegalStateException("Translation dictionary is required for non-English locale '" + langKey 
+                    + "'. Please configure the JVM parameter -Dteaql.i18n.path pointing to the translated JSON file.");
+            }
+            if (!cn.hutool.core.io.FileUtil.exist(path)) {
+                throw new IllegalStateException("The configured translation dictionary file at '" + path 
+                    + "' does not exist. Please check the JVM parameter -Dteaql.i18n.path.");
+            }
+            loadDict();
+            if (i18nDict == null || i18nDict.isEmpty()) {
+                throw new IllegalStateException("The translation dictionary file at '" + path 
+                    + "' could not be loaded or is empty.");
+            }
+        } else {
+            loadDict();
+        }
+    }
+
+    protected String getLanguageKey() {
+        String className = this.getClass().getSimpleName();
+        if (className.endsWith("Translator")) {
+            String name = className.substring(0, className.length() - "Translator".length());
+            switch (name) {
+                case "Arabic": return "ar";
+                case "Chinese": return "zh_CN";
+                case "TraditionalChinese": return "zh_TW";
+                case "Spanish": return "es";
+                case "French": return "fr";
+                case "German": return "de";
+                case "Japanese": return "ja";
+                case "Korean": return "ko";
+                case "Portuguese": return "pt";
+                case "Thai": return "th";
+                case "Ukrainian": return "uk";
+                case "Filipino": return "fil";
+                case "Indonesian": return "id";
+                case "English": return "en";
+            }
+        }
+        return "en";
+    }
+
+    protected String lookupTranslation(String term, String languageKey) {
+        loadDict();
+        if (i18nDict == null || term == null || languageKey == null) {
+            return null;
+        }
+        cn.hutool.json.JSONObject termObj = i18nDict.getJSONObject(term);
+        if (termObj != null) {
+            return termObj.getStr(languageKey);
+        }
+        return null;
+    }
+
     @Override
     public List<CheckResult> translateError(Entity pEntity, List<CheckResult> errors) {
         for (CheckResult error : errors) {
@@ -175,7 +255,12 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
 
     protected String getSimpleLocation(ObjectLocation location) {
         if (location instanceof HashLocation) {
-            return convertToTitleCase(((HashLocation) location).getMember());
+            String member = ((HashLocation) location).getMember();
+            String translation = lookupTranslation(member, getLanguageKey());
+            if (translation != null) {
+                return translation;
+            }
+            return convertToTitleCase(member);
         }
         return location.toString();
     }
