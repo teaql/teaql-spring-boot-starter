@@ -6,7 +6,7 @@
 
     <groupId>io.teaql</groupId>
     <artifactId>teaql-spring-boot-starter-parent</artifactId>
-    <version>1.194-RELEASE</version>
+    <version>1.195-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>teaql-spring-boot-starter-parent</name>
