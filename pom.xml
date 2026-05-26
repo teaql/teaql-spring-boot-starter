@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.teaql</groupId>
+    <artifactId>teaql-spring-boot-starter-parent</artifactId>
+    <version>1.194-RELEASE</version>
+    <packaging>pom</packaging>
+
+    <name>teaql-spring-boot-starter-parent</name>
+    <description>Parent POM for TeaQL Spring Boot Starter modules</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot.version>3.2.0</spring-boot.version>
+    </properties>
+
+    <modules>
+        <module>teaql-utils</module>
+        <module>teaql</module>
+        <module>teaql-sql</module>
+        <module>teaql-sqlite</module>
+        <module>teaql-mysql</module>
+        <module>teaql-oracle</module>
+        <module>teaql-hana</module>
+        <module>teaql-db2</module>
+        <module>teaql-mssql</module>
+        <module>teaql-snowflake</module>
+        <module>teaql-graphql</module>
+        <module>teaql-memory</module>
+        <module>teaql-duck</module>
+        <module>teaql-autoconfigure</module>
+        <module>teaql-starter</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- TeaQL Modules -->
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-utils</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-sql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-sqlite</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-mysql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-oracle</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-hana</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-db2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-mssql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-snowflake</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-graphql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-memory</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-duck</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-spring-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>TEAQL</id>
+            <name>TEAQL Maven releases repository</name>
+            <url>https://maven.teaql.io/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+</project>
