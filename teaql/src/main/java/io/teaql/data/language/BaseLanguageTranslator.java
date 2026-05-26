@@ -14,7 +14,7 @@ import io.teaql.data.checker.ObjectLocation;
 
 public class BaseLanguageTranslator implements NaturalLanguageTranslator {
 
-    private static cn.hutool.json.JSONObject i18nDict;
+    private static io.teaql.data.utils.JSONObject i18nDict;
     private static boolean loaded = false;
 
     private static synchronized void loadDict() {
@@ -24,14 +24,14 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
         try {
             String path = System.getProperty("teaql.i18n.path");
             String jsonStr;
-            if (io.teaql.data.utils.StrUtil.isNotEmpty(path) && cn.hutool.core.io.FileUtil.exist(path)) {
-                jsonStr = cn.hutool.core.io.FileUtil.readUtf8String(path);
+            if (io.teaql.data.utils.StrUtil.isNotEmpty(path) && new java.io.File(path).exists()) {
+                jsonStr = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(path)), java.nio.charset.StandardCharsets.UTF_8);
             } else {
                 jsonStr = io.teaql.data.utils.ResourceUtil.readUtf8Str("teaql-i18n.json");
             }
-            i18nDict = cn.hutool.json.JSONUtil.parseObj(jsonStr);
+            i18nDict = io.teaql.data.utils.JSONUtil.parseObj(jsonStr);
         } catch (Exception e) {
-            i18nDict = new cn.hutool.json.JSONObject();
+            i18nDict = new io.teaql.data.utils.JSONObject();
         }
         loaded = true;
     }
@@ -44,7 +44,7 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
                 throw new IllegalStateException("Translation dictionary is required for non-English locale '" + langKey 
                     + "'. Please configure the JVM parameter -Dteaql.i18n.path pointing to the translated JSON file.");
             }
-            if (!cn.hutool.core.io.FileUtil.exist(path)) {
+            if (!new java.io.File(path).exists()) {
                 throw new IllegalStateException("The configured translation dictionary file at '" + path 
                     + "' does not exist. Please check the JVM parameter -Dteaql.i18n.path.");
             }
@@ -87,7 +87,7 @@ public class BaseLanguageTranslator implements NaturalLanguageTranslator {
         if (i18nDict == null || term == null || languageKey == null) {
             return null;
         }
-        cn.hutool.json.JSONObject termObj = i18nDict.getJSONObject(term);
+        io.teaql.data.utils.JSONObject termObj = i18nDict.getJSONObject(term);
         if (termObj != null) {
             return termObj.getStr(languageKey);
         }

@@ -4,14 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CaseInsensitiveMap<K, V> extends HashMap<K, V> {
-    private final cn.hutool.core.map.CaseInsensitiveMap<K, V> delegate;
+    private final org.apache.commons.collections4.map.CaseInsensitiveMap<K, V> delegate;
 
     public CaseInsensitiveMap() {
-        this.delegate = new cn.hutool.core.map.CaseInsensitiveMap<>();
+        this.delegate = new org.apache.commons.collections4.map.CaseInsensitiveMap<>();
     }
 
     public CaseInsensitiveMap(Map<? extends K, ? extends V> m) {
-        this.delegate = new cn.hutool.core.map.CaseInsensitiveMap<>(m);
+        this.delegate = new org.apache.commons.collections4.map.CaseInsensitiveMap<>(m);
     }
 
     @Override

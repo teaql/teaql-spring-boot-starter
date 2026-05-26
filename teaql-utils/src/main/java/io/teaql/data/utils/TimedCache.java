@@ -1,44 +1,68 @@
 package io.teaql.data.utils;
 
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
+
 public class TimedCache<K, V> implements Cache<K, V> {
-    private final cn.hutool.cache.impl.TimedCache<K, V> delegate;
+    private final com.google.common.cache.Cache<K, V> delegate;
 
     public TimedCache(long timeout) {
-        this.delegate = new cn.hutool.cache.impl.TimedCache<>(timeout);
+        CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
+        if (timeout > 0) {
+            builder.expireAfterWrite(timeout, TimeUnit.MILLISECONDS);
+        }
+        this.delegate = builder.build();
     }
 
     @Override
     public void put(K key, V value) {
-        delegate.put(key, value);
+        if (key != null && value != null) {
+            delegate.put(key, value);
+        }
     }
 
     @Override
     public void put(K key, V value, long timeout) {
-        delegate.put(key, value, timeout);
+        put(key, value);
     }
 
     @Override
     public V get(K key) {
-        return delegate.get(key);
+        return key != null ? delegate.getIfPresent(key) : null;
     }
 
     @Override
     public V get(K key, boolean isUpdate) {
-        return delegate.get(key, isUpdate);
+        return get(key);
     }
 
     @Override
     public V get(K key, java.util.function.Supplier<? extends V> supplier) {
-        return delegate.get(key, () -> supplier.get());
+        if (key == null) {
+            return null;
+        }
+        if (supplier == null) {
+            throw new RuntimeException("Supplier is null");
+        }
+        V val = delegate.getIfPresent(key);
+        if (val == null) {
+            val = supplier.get();
+            if (val != null) {
+                delegate.put(key, val);
+            }
+        }
+        return val;
     }
 
     @Override
     public void remove(K key) {
-        delegate.remove(key);
+        if (key != null) {
+            delegate.invalidate(key);
+        }
     }
 
     @Override
     public boolean containsKey(K key) {
-        return delegate.containsKey(key);
+        return key != null && delegate.getIfPresent(key) != null;
     }
 }

@@ -1,13 +1,20 @@
 package io.teaql.data.utils;
 
 public class StrBuilder implements Appendable, java.io.Serializable, CharSequence {
-    private final cn.hutool.core.text.StrBuilder delegate;
+    private final StringBuilder delegate;
 
     public StrBuilder() {
-        this.delegate = new cn.hutool.core.text.StrBuilder();
+        this.delegate = new StringBuilder();
     }
 
-    public StrBuilder(cn.hutool.core.text.StrBuilder delegate) {
+    public StrBuilder(int capacity) {
+        if (capacity < 0) {
+            throw new NegativeArraySizeException("Negative capacity: " + capacity);
+        }
+        this.delegate = new StringBuilder(capacity);
+    }
+
+    public StrBuilder(StringBuilder delegate) {
         this.delegate = delegate;
     }
 
@@ -55,7 +62,7 @@ public class StrBuilder implements Appendable, java.io.Serializable, CharSequenc
     }
 
     public StrBuilder clear() {
-        delegate.clear();
+        delegate.setLength(0);
         return this;
     }
 }

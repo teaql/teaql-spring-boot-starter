@@ -666,7 +666,7 @@ public class UtilsTest {
         assertEquals(0, sb.length());
 
         // Exceptional / boundary branches
-        assertThrows(NegativeArraySizeException.class, () -> new StrBuilder(new cn.hutool.core.text.StrBuilder(-5)));
+        assertThrows(NegativeArraySizeException.class, () -> new StrBuilder(-5));
         
         StrBuilder sb2 = new StrBuilder();
         assertDoesNotThrow(() -> sb2.append((String) null));
