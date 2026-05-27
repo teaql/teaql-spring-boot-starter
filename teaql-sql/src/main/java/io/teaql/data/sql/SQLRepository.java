@@ -1487,7 +1487,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             if (i > 0) {
                 preColumnName = columns.get(i - 1).getColumnName();
             }
-            String dbColumnName = getPureColumnName(columnName);
+            String dbColumnName = getPureColumnName(columnName).toLowerCase();
             Map<String, Object> field = fields.get(dbColumnName);
             if (field == null) {
                 addColumn(ctx, preColumnName, column);
@@ -1507,15 +1507,32 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
 
     protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
         return CollStreamUtil.toIdentityMap(
-                tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())));
+                tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())).toLowerCase());
     }
 
     protected String getSchemaColumnNameFieldName() {
         return "column_name";
     }
 
+    /**
+     * Strip wrapping identifier quotes from a SQL column name.
+     * Handles double-quotes, backticks, and square brackets so that
+     * column names from entity descriptors can be compared with bare
+     * names returned by database introspection.
+     */
     protected String getPureColumnName(String columnName) {
-        return StrUtil.unWrap(columnName, '\"');
+        if (columnName == null || columnName.length() < 2) {
+            return columnName;
+        }
+        // double-quote
+        String result = StrUtil.unWrap(columnName, '"');
+        if (!result.equals(columnName)) return result;
+        // backtick
+        result = StrUtil.unWrap(columnName, '`');
+        if (!result.equals(columnName)) return result;
+        // square brackets
+        result = StrUtil.unWrap(columnName, '[', ']');
+        return result;
     }
 
     protected String calculateDBType(Map<String, Object> columnInfo) {
