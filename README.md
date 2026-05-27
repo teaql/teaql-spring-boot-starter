@@ -46,6 +46,44 @@ an entity successfully when the flow includes both:
 
 The behavior is covered by `teaql-sqlite` tests.
 
+## Usage
+
+`UserContext` serves as the primary entry point for business logic. In a Spring MVC or WebFlux controller, you can directly declare `UserContext` as a parameter. It will be automatically resolved and initialized via the configured `UserContextFactory`:
+
+```java
+import io.teaql.data.UserContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class MyController {
+
+    @GetMapping("/action")
+    public Object action(UserContext ctx) {
+        // execute query via UserContext
+        return ctx.executeForList(request);
+    }
+}
+```
+
+An explicit `@TQLContext` annotation is also supported for backwards compatibility:
+
+```java
+import io.teaql.data.TQLContext;
+import io.teaql.data.UserContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class MyController {
+
+    @GetMapping("/action")
+    public Object action(@TQLContext UserContext ctx) {
+        return ctx.executeForList(request);
+    }
+}
+```
+
 ## Development
 
 Run the SQLite module tests:

@@ -64,6 +64,9 @@ public class UserContext
     private TQLResolver resolver = GLobalResolver.getGlobalResolver();
     private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public Repository resolveRepository(String type) {
         if (getResolver() != null) {
             Repository repository = getResolver().resolveRepository(type);
@@ -84,6 +87,9 @@ public class UserContext
         return new DataConfigProperties();
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public EntityDescriptor resolveEntityDescriptor(String type) {
         if (getResolver() != null) {
             EntityDescriptor entityDescriptor = getResolver().resolveEntityDescriptor(type);
@@ -307,6 +313,9 @@ public class UserContext
         return false;
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public <T> T getBean(Class<T> clazz) {
         if (getResolver() != null) {
             T bean = getResolver().getBean(clazz);
@@ -317,6 +326,9 @@ public class UserContext
         throw new TQLException("No bean defined for type:" + clazz);
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public <T> T getBean(String name) {
         if (getResolver() != null) {
             T bean = getResolver().getBean(name);
@@ -400,7 +412,13 @@ public class UserContext
         return new EnglishTranslator();
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public void init(Object request) {
+        if (getResolver() == null) {
+            return;
+        }
         List<UserContextInitializer> initializers =
                 getResolver().getBeans(UserContextInitializer.class);
         if (initializers != null) {
@@ -434,6 +452,9 @@ public class UserContext
         item.clearUpdatedProperties();
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public TQLResolver getResolver() {
 
         if (resolver == null) {
@@ -443,6 +464,9 @@ public class UserContext
         return resolver;
     }
 
+    /**
+     * Framework support API. Subject to change or internalization.
+     */
     public void setResolver(TQLResolver pResolver) {
         resolver = pResolver;
     }

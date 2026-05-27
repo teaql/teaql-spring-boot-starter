@@ -251,6 +251,12 @@ public class TQLAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public UserContextFactory userContextFactory(DataConfigProperties config) {
+        return new DefaultUserContextFactory(config);
+    }
+
+    @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     @Order
     public UserContextInitializer servletInitializer() {
@@ -260,15 +266,16 @@ public class TQLAutoConfiguration {
     @Configuration
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     public static class TQLContextResolver implements HandlerMethodArgumentResolver {
-        private DataConfigProperties config;
+        private final UserContextFactory userContextFactory;
 
-        public TQLContextResolver(@Autowired DataConfigProperties config) {
-            this.config = config;
+        public TQLContextResolver(UserContextFactory userContextFactory) {
+            this.userContextFactory = userContextFactory;
         }
 
         @Override
         public boolean supportsParameter(MethodParameter parameter) {
-            return parameter.hasParameterAnnotation(TQLContext.class);
+            return parameter.hasParameterAnnotation(TQLContext.class)
+                    || UserContext.class.isAssignableFrom(parameter.getParameterType());
         }
 
         @Override
@@ -278,10 +285,7 @@ public class TQLAutoConfiguration {
                 NativeWebRequest webRequest,
                 WebDataBinderFactory binderFactory)
                 throws Exception {
-            Class<? extends UserContext> contextType = config.getContextClass();
-            UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
-            userContext.init(webRequest);
-            return userContext;
+            return userContextFactory.create(webRequest);
         }
 
         @Bean
@@ -371,24 +375,22 @@ public class TQLAutoConfiguration {
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
     public static class TQLReactiveContextResolver
             implements org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver {
-        private DataConfigProperties config;
+        private final UserContextFactory userContextFactory;
 
-        public TQLReactiveContextResolver(@Autowired DataConfigProperties config) {
-            this.config = config;
+        public TQLReactiveContextResolver(UserContextFactory userContextFactory) {
+            this.userContextFactory = userContextFactory;
         }
 
         @Override
         public boolean supportsParameter(MethodParameter parameter) {
-            return parameter.hasParameterAnnotation(TQLContext.class);
+            return parameter.hasParameterAnnotation(TQLContext.class)
+                    || UserContext.class.isAssignableFrom(parameter.getParameterType());
         }
 
         @Override
         public Mono<Object> resolveArgument(
                 MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
-            Class<? extends UserContext> contextType = config.getContextClass();
-            UserContext userContext = ReflectUtil.newInstanceIfPossible(contextType);
-            userContext.init(exchange);
-            return Mono.just(userContext);
+            return Mono.just(userContextFactory.create(exchange));
         }
 
         @Bean
