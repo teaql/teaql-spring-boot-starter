@@ -2,7 +2,6 @@ package io.teaql.data.db2;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,9 +60,6 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
         return "name";
     }
 
-    protected String getPureColumnName(String columnName) {
-        return StrUtil.unWrap(columnName, '\"').toUpperCase();
-    }
 
     protected String calculateDBType(Map<String, Object> columnInfo) {
         String dataType = ((String) columnInfo.get("coltype")).toLowerCase().trim();
@@ -101,15 +97,8 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
     }
 
     protected Map<String, Map<String, Object>> getFields(List<Map<String, Object>> tableInfo) {
-        Map<String, Map<String, Object>> result = CollStreamUtil.toIdentityMap(tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())));
-        List<String> keys = new ArrayList<>(result.keySet());
-        for (String key : keys) {
-            if (key.equals(key.toUpperCase())) {
-                continue;
-            }
-            result.put(key.toUpperCase(), result.get(key));
-        }
-        return result;
+        return CollStreamUtil.toIdentityMap(
+                tableInfo, m -> String.valueOf(m.get(getSchemaColumnNameFieldName())).toLowerCase());
     }
 
     @Override

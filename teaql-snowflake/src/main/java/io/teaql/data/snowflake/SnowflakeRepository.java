@@ -41,10 +41,7 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
         }
     }
 
-    @Override
-    protected String getPureColumnName(String columnName) {
-        return StrUtil.unWrap(columnName.toUpperCase(), '\"');
-    }
+
 
     @Override
     protected String getSQLForUpdateWhenPrepareId() {
@@ -100,16 +97,16 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
     @Override
     protected void ensure(
             UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {
-        List<Map<String, Object>> upperCaseTableInfo = new ArrayList<>();
+        List<Map<String, Object>> normalizedTableInfo = new ArrayList<>();
         for (Map<String, Object> column : tableInfo) {
-            Map<String, Object> upperCase = new HashMap<>();
+            Map<String, Object> normalized = new HashMap<>();
             for (Map.Entry<String, Object> field : column.entrySet()) {
                 if (field.getValue() != null) {
-                    upperCase.put(field.getKey().toLowerCase(), field.getValue().toString().toUpperCase());
+                    normalized.put(field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
                 }
             }
-            upperCaseTableInfo.add(upperCase);
+            normalizedTableInfo.add(normalized);
         }
-        super.ensure(ctx, upperCaseTableInfo, table, columns);
+        super.ensure(ctx, normalizedTableInfo, table, columns);
     }
 }

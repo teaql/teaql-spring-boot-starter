@@ -82,10 +82,6 @@ WHERE
         super.ensure(ctx, tableInfo, table, columns);
     }
 
-    protected String getPureColumnName(String columnName) {
-        return StrUtil.unWrap(columnName, '`');
-    }
-
     @Override
     protected String findTableColumnsSql(DataSource dataSource, String table) {
         try (Connection connection = dataSource.getConnection()) {

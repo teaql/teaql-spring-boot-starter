@@ -38,13 +38,8 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
         }
     }
 
-    @Override
-    protected String getPureColumnName(String columnName) {
-        if (!columnName.startsWith("\"")) {
-            columnName = columnName.toUpperCase();
-        }
-        return StrUtil.unWrap(columnName, '\"');
-    }
+
+
 
     @Override
     protected String calculateDBType(Map<String, Object> columnInfo) {
