@@ -7,13 +7,13 @@
     <parent>
         <groupId>io.teaql</groupId>
         <artifactId>teaql-spring-boot-starter-parent</artifactId>
-        <version>1.196-SNAPSHOT</version>
+        <version>1.195-RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>teaql-hana</artifactId>
-    <name>teaql-hana</name>
-    <description>SAP HANA database dialect for TeaQL</description>
+    <artifactId>teaql-oracle</artifactId>
+    <name>teaql-oracle</name>
+    <description>Oracle database dialect for TeaQL</description>
 
     <dependencies>
         <dependency>

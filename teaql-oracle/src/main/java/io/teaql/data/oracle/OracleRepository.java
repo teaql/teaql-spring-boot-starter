@@ -87,6 +87,24 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
     }
 
     @Override
+    protected String generateAddColumnSQL(UserContext ctx, String preColumnName, SQLColumn column) {
+        return StrUtil.format(
+                "ALTER TABLE {} ADD ({} {})",
+                column.getTableName(),
+                column.getColumnName(),
+                column.getType());
+    }
+
+    @Override
+    protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
+        return StrUtil.format(
+                "ALTER TABLE {} MODIFY ({} {})",
+                column.getTableName(),
+                column.getColumnName(),
+                column.getType());
+    }
+
+    @Override
     protected String calculateDBType(Map<String, Object> columnInfo) {
         String dataType = (String) columnInfo.get("data_type");
         switch (dataType) {

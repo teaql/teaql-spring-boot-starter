@@ -60,6 +60,14 @@ public class DB2Repository<T extends BaseEntity> extends SQLRepository<T> {
         return "name";
     }
 
+    @Override
+    protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
+        return StrUtil.format(
+                "ALTER TABLE {} ALTER COLUMN {} SET DATA TYPE {}",
+                column.getTableName(),
+                column.getColumnName(),
+                column.getType());
+    }
 
     protected String calculateDBType(Map<String, Object> columnInfo) {
         String dataType = ((String) columnInfo.get("coltype")).toLowerCase().trim();

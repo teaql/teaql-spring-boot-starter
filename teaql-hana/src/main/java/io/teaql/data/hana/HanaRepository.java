@@ -12,6 +12,7 @@ import io.teaql.data.BaseEntity;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.meta.EntityDescriptor;
+import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
 
 public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
@@ -38,8 +39,14 @@ public class HanaRepository<T extends BaseEntity> extends SQLRepository<T> {
         }
     }
 
-
-
+    @Override
+    protected String generateAlterColumnSQL(UserContext ctx, SQLColumn column) {
+        return StrUtil.format(
+                "ALTER TABLE {} ALTER ({} {})",
+                column.getTableName(),
+                column.getColumnName(),
+                column.getType());
+    }
 
     @Override
     protected String calculateDBType(Map<String, Object> columnInfo) {
