@@ -67,7 +67,7 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
             case "integer":
                 return "integer";
             case "number":
-                if (!columnInfo.get("numeric_scale").equals("0")) {
+                if (!"0".equals(columnInfo.get("numeric_scale"))) {
                     return StrUtil.format(
                             "numeric({},{})",
                             columnInfo.get("numeric_precision"),
@@ -79,8 +79,12 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
                 return StrUtil.format(
                         "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
             case "text":
-                if ("100".equals(columnInfo.get("character_maximum_length"))) {
-                    return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
+                Object maxLenObj = columnInfo.get("character_maximum_length");
+                if (maxLenObj != null) {
+                    String maxLen = maxLenObj.toString();
+                    if (!"16777216".equals(maxLen)) {
+                        return StrUtil.format("varchar({})", maxLen);
+                    }
                 }
                 return "text";
             case "time without time zone":
@@ -103,6 +107,8 @@ public class SnowflakeRepository<T extends Entity> extends SQLRepository<T> {
             for (Map.Entry<String, Object> field : column.entrySet()) {
                 if (field.getValue() != null) {
                     normalized.put(field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
+                } else {
+                    normalized.put(field.getKey().toLowerCase(), null);
                 }
             }
             normalizedTableInfo.add(normalized);

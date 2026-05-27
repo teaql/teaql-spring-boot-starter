@@ -79,6 +79,8 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
                 if (field.getValue() != null) {
                     lowercaseColumn.put(
                             field.getKey().toLowerCase(), field.getValue().toString().toLowerCase());
+                } else {
+                    lowercaseColumn.put(field.getKey().toLowerCase(), null);
                 }
             }
             lowercaseTableInfo.add(lowercaseColumn);
@@ -115,30 +117,12 @@ public class OracleRepository<T extends Entity> extends SQLRepository<T> {
                 return StrUtil.format(
                         "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
             case "varchar2":
-                return StrUtil.format("varchar({})", columnInfo.get("data_length"));
-            case "bigint":
-                return "bigint";
-            case "tinyint":
-            case "boolean":
-                return "boolean";
             case "varchar":
-            case "character varying":
-                return StrUtil.format("varchar({})", columnInfo.get("character_maximum_length"));
+                return StrUtil.format("varchar({})", columnInfo.get("data_length"));
             case "date":
                 return "date";
-            case "int":
-            case "integer":
-                return "integer";
-            case "decimal":
-            case "numeric":
-                return StrUtil.format(
-                        "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
-            case "text":
-                return "text";
             case "clob":
                 return "clob";
-            case "time without time zone":
-                return "time";
             case "timestamp":
             case "timestamp(6)":
             case "timestamp without time zone":

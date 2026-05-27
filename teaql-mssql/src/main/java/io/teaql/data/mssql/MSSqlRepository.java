@@ -1,5 +1,7 @@
 package io.teaql.data.mssql;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -30,6 +32,22 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     }
 
     @Override
+    protected String findTableColumnsSql(DataSource dataSource, String table) {
+        try (Connection connection = dataSource.getConnection()) {
+            String schemaName = connection.getSchema();
+            if (schemaName == null) {
+                schemaName = "dbo";
+            }
+            return String.format(
+                    "select * from information_schema.columns where table_name = '%s' and table_schema = '%s'",
+                    table, schemaName);
+        }
+        catch (SQLException pE) {
+            throw new RuntimeException(pE);
+        }
+    }
+
+    @Override
     protected void ensureIndexAndForeignKey(UserContext ctx) {
     }
 
@@ -48,14 +66,6 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
     protected String calculateDBType(Map<String, Object> columnInfo) {
         String dataType = (String) columnInfo.get("data_type");
         switch (dataType) {
-            case "number":
-                if ("0".equals(columnInfo.get("data_scale"))) {
-                    return StrUtil.format("number({})", columnInfo.get("data_precision"));
-                }
-                return StrUtil.format(
-                        "number({},{})", columnInfo.get("data_precision"), columnInfo.get("data_scale"));
-            case "varchar2":
-                return StrUtil.format("varchar({})", columnInfo.get("data_length"));
             case "bigint":
                 return "bigint";
             case "tinyint":
@@ -79,8 +89,6 @@ public class MSSqlRepository<T extends Entity> extends SQLRepository<T> {
                         "numeric({},{})", columnInfo.get("numeric_precision"), columnInfo.get("numeric_scale"));
             case "text":
                 return "text";
-            case "clob":
-                return "clob";
             case "time without time zone":
                 return "time";
             case "timestamp":

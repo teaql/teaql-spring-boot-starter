@@ -182,18 +182,30 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     }
     protected void alterColumn(UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns, SQLColumn column) {
 
-        String backupTableName=String.format("%s_000000",table);
-        //backup table
-        super.executeUpdate(ctx, String.format("ALTER TABLE %s RENAME TO %s",table,backupTableName));
-        //recreate
-        super.createTable(ctx,table,columns);
-        //import
-        super.executeUpdate(ctx,String.format("INSERT INTO %s SELECT * FROM %s",table,backupTableName));
-        //drop backup
-        super.executeUpdate(ctx,String.format("DROP TABLE %s",backupTableName));
+        String backupTableName = String.format("%s_backup_%d", table, System.currentTimeMillis());
+        // build explicit column list from the new schema
+        StringBuilder colList = new StringBuilder();
+        for (int i = 0; i < columns.size(); i++) {
+            if (i > 0) colList.append(", ");
+            colList.append(columns.get(i).getColumnName());
+        }
+        String columnNames = colList.toString();
 
+        String renameSql = String.format("ALTER TABLE %s RENAME TO %s", table, backupTableName);
+        String insertSql = String.format("INSERT INTO %s (%s) SELECT %s FROM %s", table, columnNames, columnNames, backupTableName);
+        String dropSql = String.format("DROP TABLE %s", backupTableName);
 
-        //ctx.info("trying to alter {}" , column);
+        if (ctx.config() != null && ctx.config().isEnsureTable()) {
+            super.executeUpdate(ctx, renameSql);
+            super.createTable(ctx, table, columns);
+            super.executeUpdate(ctx, insertSql);
+            super.executeUpdate(ctx, dropSql);
+        } else {
+            ctx.info(renameSql + ";");
+            super.createTable(ctx, table, columns);
+            ctx.info(insertSql + ";");
+            ctx.info(dropSql + ";");
+        }
     }
 
     protected String calculateDBType(Map<String, Object> columnInfo) {
@@ -216,6 +228,7 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
                 return "integer";
             case "decimal":
             case "numeric":
+            case "real":
                 return "real";
             case "text":
                 return "text";
