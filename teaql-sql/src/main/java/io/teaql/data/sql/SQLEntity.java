@@ -11,6 +11,15 @@ public class SQLEntity {
     Long id;
     Long version;
     List<SQLData> data = new ArrayList<>();
+    String traceChain;
+
+    public String getTraceChain() {
+        return traceChain;
+    }
+
+    public void setTraceChain(String traceChain) {
+        this.traceChain = traceChain;
+    }
 
     public Long getId() {
         return id;

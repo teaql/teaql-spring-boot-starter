@@ -24,23 +24,29 @@ public class RepositoryAdaptor {
         if (ObjectUtil.isEmpty(items)) {
             return;
         }
-        Map<String, List<Entity>> entities = new HashMap<>();
-
-        // collect the items to persist
-        collect(userContext, entities, items, new ArrayList<>());
-        for (Map.Entry<String, List<Entity>> entry : entities.entrySet()) {
-            String type = entry.getKey();
-            List<Entity> list = entry.getValue();
-            Repository<Entity> repository = userContext.resolveRepository(type);
-            for (Entity entity : list) {
-                Long id = repository.prepareId(userContext, entity);
-                entity.setId(id);
-            }
+        
+        List<Entity> topLevelEntities = new ArrayList<>();
+        extractTopLevelEntities(items, topLevelEntities);
+        
+        for (Entity entity : topLevelEntities) {
+            io.teaql.data.graph.GraphMutationPlan plan = io.teaql.data.graph.GraphMutationEngine.planGraph(userContext, entity);
+            io.teaql.data.graph.GraphMutationEngine.executeGraphPlan(userContext, plan);
         }
+    }
 
-        Set<String> types = new HashSet<>(entities.keySet());
-        for (String type : types) {
-            saveType(userContext, type, entities);
+    private static void extractTopLevelEntities(Object item, List<Entity> topLevelEntities) {
+        if (item == null) return;
+        if (item instanceof Entity) {
+            topLevelEntities.add((Entity) item);
+        } else if (item instanceof Iterable) {
+            for (Object obj : (Iterable<?>) item) {
+                extractTopLevelEntities(obj, topLevelEntities);
+            }
+        } else if (ArrayUtil.isArray(item)) {
+            int length = ArrayUtil.length(item);
+            for (int i = 0; i < length; i++) {
+                extractTopLevelEntities(ArrayUtil.get(item, i), topLevelEntities);
+            }
         }
     }
 
@@ -123,6 +129,7 @@ public class RepositoryAdaptor {
 
     private static void appendEntity(
             UserContext userContext, Map<String, List<Entity>> entities, Entity entity, List pHandled) {
+        userContext.info("RepositoryAdaptor.appendEntity: entity hash=" + System.identityHashCode(entity));
         if (entity == null) {
             return;
         }

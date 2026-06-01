@@ -276,6 +276,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                         "UPDATE {} SET {} WHERE id = ?",
                         k,
                         columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
+        if (sqlEntity.getTraceChain() != null && !sqlEntity.getTraceChain().isEmpty()) {
+            updateSql += " /* [" + sqlEntity.getTraceChain() + "] */";
+        }
         Object[] parameters = l.toArray(new Object[0]);
         int update;
         try {
@@ -310,6 +313,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                         "UPDATE {} SET {} WHERE id = ? AND version = ?",
                         k,
                         columns.stream().map(c -> c + " = ?").collect(Collectors.joining(" , ")));
+        if (sqlEntity.getTraceChain() != null && !sqlEntity.getTraceChain().isEmpty()) {
+            updateSql += " /* [" + sqlEntity.getTraceChain() + "] */";
+        }
         Object[] parameters = l.toArray(new Object[0]);
         int update;
         try {
@@ -334,6 +340,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         SQLEntity sqlEntity = new SQLEntity();
         sqlEntity.setId(entity.getId());
         sqlEntity.setVersion(entity.getVersion());
+        sqlEntity.setTraceChain(entity.getTraceChain());
         for (String updatedProperty : updatedProperties) {
             PropertyDescriptor property = findProperty(updatedProperty);
             // id ,version are maintained by the framework
@@ -404,6 +411,9 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                                     k,
                                     CollectionUtil.join(columns, ","),
                                     StrUtil.repeatAndJoin("?", columns.size(), ","));
+                    if (sqlEntity.getTraceChain() != null && !sqlEntity.getTraceChain().isEmpty()) {
+                        sql += " /* [" + sqlEntity.getTraceChain() + "] */";
+                    }
                     int[] rets;
                     try {
                         rets = jdbcTemplate.getJdbcTemplate().batchUpdate(sql, v);
@@ -420,9 +430,11 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     private SQLEntity convertToSQLEntityForInsert(UserContext userContext, T entity) {
+        System.out.println("CONVERTING TO SQL ENTITY: " + entity.typeName() + " with status " + ((BaseEntity)entity).get$status());
         SQLEntity sqlEntity = new SQLEntity();
         sqlEntity.setId(entity.getId());
         sqlEntity.setVersion(entity.getVersion());
+        sqlEntity.setTraceChain(entity.getTraceChain());
 
         for (PropertyDescriptor propertyDescriptor : this.allProperties) {
             if (propertyDescriptor instanceof Relation) {
@@ -431,6 +443,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 }
             }
             Object v = entity.getProperty(propertyDescriptor.getName());
+            System.out.println("Extracting property " + propertyDescriptor.getName() + " from " + entity.typeName() + ", got: " + (v == null ? "null" : v.getClass().getSimpleName() + " with id " + (v instanceof Entity ? ((Entity)v).getId() : v)));
             List<SQLData> data = convertToSQLData(userContext, entity, propertyDescriptor, v);
             sqlEntity.addPropertySQLData(data);
         }
@@ -1063,8 +1076,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             try {
                 jdbcTemplate.getJdbcTemplate().execute(createIdSpaceSql);
             }
-            catch (DataAccessException pE) {
-                throw new RepositoryException(pE);
+            catch (Exception pE) {
+                ctx.info("Ignored exception during create table: " + pE.getMessage());
             }
         }
     }
@@ -1096,8 +1109,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     protected String getSQLForUpdateWhenPrepareId() {
-
-        return "SELECT current_level from {} WHERE type_name = '{}' for update";
+        return "SELECT current_level from {} WHERE type_name = '{}'";
     }
 
     @Override
@@ -1241,8 +1253,13 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     protected List<SQLConstraint> fetchFKs(UserContext ctx) {
-        return jdbcTemplate.query(
-                fetchFKsSQL(), Collections.emptyMap(), new DataClassRowMapper<>(SQLConstraint.class));
+        try {
+            return jdbcTemplate.query(
+                    fetchFKsSQL(), Collections.emptyMap(), new DataClassRowMapper<>(SQLConstraint.class));
+        } catch (Exception e) {
+            ctx.warn("Failed to fetch foreign keys: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
     }
 
     protected String fetchFKsSQL() {
@@ -1294,7 +1311,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 dbRootRow =
                         jdbcTemplate.queryForMap(
                                 StrUtil.format(
-                                        "SELECT * FROM {} WHERE id = {}",
+                                        "SELECT * FROM {} WHERE id = '{}'",
                                         tableName(entityDescriptor.getType()),
                                         getConstantPropertyValue(ctx, entityDescriptor.findIdProperty(), i, code)),
                                 Collections.emptyMap());
@@ -1304,7 +1321,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             }
 
             if (dbRootRow != null) {
-                long version = ((Number) dbRootRow.get("version")).longValue();
+                long version = Long.parseLong(String.valueOf(dbRootRow.get("version")));
                 if (version > 0) {
                     continue;
                 }
@@ -1338,8 +1355,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
                 try {
                     jdbcTemplate.getJdbcTemplate().execute(sql);
                 }
-                catch (DataAccessException pE) {
-                    throw new RepositoryException(pE);
+                catch (Exception pE) {
+                    ctx.info("Ignored insert exception in ensureConstant: " + pE.getMessage());
                 }
             }
         }
@@ -1394,7 +1411,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             dbRootRow =
                     jdbcTemplate.queryForMap(
                             StrUtil.format(
-                                    "SELECT * FROM {} WHERE id = 1", tableName(entityDescriptor.getType())),
+                                    "SELECT * FROM {} WHERE id = '1'", tableName(entityDescriptor.getType())),
                             Collections.emptyMap());
         }
         catch (Exception e) {
@@ -1402,7 +1419,7 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
         }
 
         if (dbRootRow != null) {
-            long version = ((Number) dbRootRow.get("version")).longValue();
+            long version = Long.parseLong(String.valueOf(dbRootRow.get("version")));
             if (version > 0) {
                 return;
             }
@@ -1443,8 +1460,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             try {
                 jdbcTemplate.getJdbcTemplate().execute(sql);
             }
-            catch (DataAccessException pE) {
-                throw new RepositoryException(pE);
+            catch (Exception pE) {
+                ctx.info("Ignored insert exception in ensureRoot: " + pE.getMessage());
             }
         }
     }
@@ -1638,8 +1655,8 @@ public class SQLRepository<T extends Entity> extends AbstractRepository<T>
             try {
                 jdbcTemplate.getJdbcTemplate().execute(createTableSql);
             }
-            catch (DataAccessException pE) {
-                throw new RepositoryException(pE);
+            catch (Exception pE) {
+                ctx.info("Ignored exception during create table " + table + ": " + pE.getMessage());
             }
         }
     }

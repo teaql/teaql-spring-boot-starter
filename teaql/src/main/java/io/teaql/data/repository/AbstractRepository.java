@@ -98,6 +98,19 @@ public abstract class AbstractRepository<T extends Entity> implements Repository
         Collection<T> newItems = CollUtil.filterNew(entities, Entity::newItem);
         if (ObjectUtil.isNotEmpty(newItems)) {
             for (T newItem : newItems) {
+                userContext.info("AbstractRepository.save: BEFORE createInternal " + newItem.typeName() + " id=" + newItem.getId() + " hash=" + System.identityHashCode(newItem));
+                if (newItem.typeName().equals("Task")) {
+                    try {
+                        Object status = io.teaql.data.utils.ReflectUtil.invoke(newItem, "getStatus");
+                        userContext.info("AbstractRepository.save: Task.getStatus()=" + status);
+                    } catch (Exception e) {}
+                }
+                if (newItem instanceof io.teaql.data.Entity) {
+                    userContext.info("AbstractRepository.save: Property status=" + ((io.teaql.data.Entity)newItem).getProperty("status"));
+                }
+            }
+            for (T newItem : newItems) {
+                userContext.info("AbstractRepository.save: Creating newItem " + newItem.typeName() + " id=" + newItem.getId() + " status=" + ((BaseEntity)newItem).get$status());
                 setIdAndVersionForInsert(userContext, newItem);
             }
             beforeCreate(userContext, newItems);

@@ -46,6 +46,32 @@ public class BaseEntity implements Entity {
     private List<WebAction> actionList;
 
     @JsonIgnore
+    private String _comment;
+
+    @Override
+    public String getComment() {
+        return _comment;
+    }
+
+    @Override
+    public void setComment(String comment) {
+        this._comment = comment;
+    }
+
+    @JsonIgnore
+    private String _traceChain;
+
+    @Override
+    public String getTraceChain() {
+        return _traceChain;
+    }
+
+    @Override
+    public void setTraceChain(String traceChain) {
+        this._traceChain = traceChain;
+    }
+
+    @JsonIgnore
     public EntityStatus get$status() {
         return $status;
     }

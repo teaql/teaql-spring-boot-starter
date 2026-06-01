@@ -83,4 +83,18 @@ public interface Entity {
     void markAsDeleted();
 
     void markAsRecover();
+
+    default String getComment() {
+        return null;
+    }
+
+    default void setComment(String comment) {
+    }
+
+    default String getTraceChain() {
+        return null;
+    }
+
+    default void setTraceChain(String traceChain) {
+    }
 }

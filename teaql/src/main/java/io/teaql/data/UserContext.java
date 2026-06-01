@@ -101,6 +101,9 @@ public class UserContext
     }
 
     public void saveGraph(Object items) {
+        if (items != null) {
+            this.info("UserContext.saveGraph: items hash=" + System.identityHashCode(items));
+        }
         RepositoryAdaptor.saveGraph(this, items);
     }
 
@@ -341,6 +344,14 @@ public class UserContext
 
     public LocalDateTime now() {
         return LocalDateTime.now();
+    }
+
+    public void saveGraph(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+        this.info("UserContext.saveGraph: entity hash=" + System.identityHashCode(entity));
+        RepositoryAdaptor.saveGraph(this, entity);
     }
 
     public void checkAndFix(Entity entity) {

@@ -19,6 +19,14 @@ public class GenericSQLRelation extends Relation implements SQLProperty {
     private String columnType;
 
     @Override
+    public void setName(String name) {
+        super.setName(name);
+        if (this.columnName == null) {
+            this.columnName = io.teaql.data.utils.NamingCase.toUnderlineCase(name);
+        }
+    }
+
+    @Override
     public List<SQLColumn> columns() {
         SQLColumn sqlColumn = new SQLColumn(tableName, columnName);
         sqlColumn.setType(columnType);

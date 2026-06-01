@@ -6,7 +6,7 @@
 
     <groupId>io.teaql</groupId>
     <artifactId>teaql-spring-boot-starter-parent</artifactId>
-    <version>1.195-RELEASE</version>
+    <version>1.196-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>teaql-spring-boot-starter-parent</name>
@@ -159,7 +159,12 @@
         <repository>
             <id>TEAQL</id>
             <name>TEAQL Maven releases repository</name>
-            <url>https://maven.teaql.io/repository/maven-releases/</url>
+            <url>https://nexus.teaql.io/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>TEAQL</id>
+            <name>TEAQL Maven snapshots repository</name>
+            <url>https://maven.teaql.io/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
