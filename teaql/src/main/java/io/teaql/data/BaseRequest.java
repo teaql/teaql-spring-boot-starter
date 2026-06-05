@@ -32,6 +32,7 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     public static final String REFINEMENTS = "refinements";
 
     String comment;
+    String purpose;
 
     // select properties
     List<SimpleNamedExpression> projections = new ArrayList<>();
@@ -759,6 +760,16 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     protected BaseRequest internalComment(String comment) {
         this.comment = comment;
+        return this;
+    }
+
+    @Override
+    public String purpose() {
+        return purpose;
+    }
+
+    protected BaseRequest internalPurpose(String purpose) {
+        this.purpose = purpose;
         return this;
     }
 

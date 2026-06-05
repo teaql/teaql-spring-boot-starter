@@ -28,6 +28,15 @@ public interface SearchRequest<T extends Entity> {
 
     String comment();
 
+    /**
+     * Returns the declared purpose of this query.
+     * Purpose describes WHY this query is being executed (business intent).
+     * When Triple-Intent enforcement is enabled, queries without a purpose will be rejected.
+     */
+    default String purpose() {
+        return null;
+    }
+
     String getPartitionProperty();
 
     void setPartitionProperty(String propertyName);

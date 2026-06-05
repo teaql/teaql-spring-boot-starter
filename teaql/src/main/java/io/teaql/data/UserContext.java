@@ -55,6 +55,29 @@ public class UserContext
         OptNullBasicTypeFromObjectGetter<String>,
         Translator {
 
+    /**
+     * Triple-Intent enforcement mode.
+     * Controlled by TEAQL_ENFORCE_INTENT environment variable:
+     *   - "off"    : no enforcement (default for backward compatibility)
+     *   - "warn"   : log warnings when comment/purpose/auditAs is missing
+     *   - "strict" : throw RepositoryException when comment/purpose/auditAs is missing
+     */
+    public enum IntentEnforcementMode { OFF, WARN, STRICT }
+
+    private static final IntentEnforcementMode INTENT_MODE = resolveIntentMode();
+
+    private static IntentEnforcementMode resolveIntentMode() {
+        String env = System.getenv("TEAQL_ENFORCE_INTENT");
+        if (env == null) {
+            env = System.getProperty("teaql.enforce.intent", "off");
+        }
+        try {
+            return IntentEnforcementMode.valueOf(env.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return IntentEnforcementMode.OFF;
+        }
+    }
+
     public static final String FQCN = UserContext.class.getName();
     public static final String X_CLASS = "X-Class";
     public static final String TOAST = "toast";
@@ -121,6 +144,30 @@ public class UserContext
     }
 
     protected <T extends Entity> SearchRequest<T> enforceRequestPolicy(SearchRequest<T> request) {
+        if (INTENT_MODE == IntentEnforcementMode.OFF) {
+            return request;
+        }
+        String typeName = request.getTypeName();
+        String comment = request.comment();
+        String purpose = request.purpose();
+        boolean missingComment = ObjectUtil.isEmpty(comment);
+        boolean missingPurpose = ObjectUtil.isEmpty(purpose);
+
+        if (!missingComment && !missingPurpose) {
+            return request;
+        }
+
+        StringBuilder msg = new StringBuilder();
+        msg.append("[TRIPLE-INTENT] Query on ").append(typeName).append(" is missing: ");
+        if (missingComment) msg.append(".comment(\"...\") ");
+        if (missingPurpose) msg.append(".purpose(\"...\") ");
+        msg.append("— call them before .executeForList()/.executeForOne()");
+
+        if (INTENT_MODE == IntentEnforcementMode.STRICT) {
+            throw new RepositoryException(msg.toString());
+        }
+        // WARN mode
+        this.warn(msg.toString());
         return request;
     }
 
@@ -350,8 +397,32 @@ public class UserContext
         if (entity == null) {
             return;
         }
+        enforceAuditPolicy(entity);
         this.info("UserContext.saveGraph: entity hash=" + System.identityHashCode(entity));
         RepositoryAdaptor.saveGraph(this, entity);
+    }
+
+    /**
+     * Enforces that entities have an audit comment set via auditAs() before saving.
+     */
+    protected void enforceAuditPolicy(Entity entity) {
+        if (INTENT_MODE == IntentEnforcementMode.OFF) {
+            return;
+        }
+        String comment = entity.getComment();
+        if (ObjectUtil.isNotEmpty(comment)) {
+            return;
+        }
+
+        String msg = "[TRIPLE-INTENT] Save on " + entity.typeName()
+                + "(id=" + entity.getId() + ") is missing .auditAs(\"...\") "
+                + "— call entity.auditAs(\"action description\").save(ctx)";
+
+        if (INTENT_MODE == IntentEnforcementMode.STRICT) {
+            throw new RepositoryException(msg);
+        }
+        // WARN mode
+        this.warn(msg);
     }
 
     public void checkAndFix(Entity entity) {
