@@ -91,6 +91,20 @@ public interface Entity {
     default void setComment(String comment) {
     }
 
+    /**
+     * Declares the business action being performed on this entity.
+     * This comment flows into the audit log and trace chain.
+     * When Triple-Intent enforcement is enabled, saving without auditAs() will be rejected.
+     *
+     * @param action a human-readable description of the mutation intent
+     * @return this entity for fluent chaining: entity.auditAs("...").save(ctx)
+     */
+    default Entity auditAs(String action) {
+        setComment(action);
+        return this;
+    }
+
+
     default String getTraceChain() {
         return null;
     }
