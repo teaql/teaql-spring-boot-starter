@@ -20,15 +20,19 @@ public interface Expression<E, T> {
         return eval($getRoot());
     }
 
+    default T resolve() {
+        return eval();
+    }
+
     default T orElse(T defaultValue) {
-        T value = eval();
+        T value = resolve();
         if(io.teaql.data.utils.ObjectUtil.isEmpty(value)){
             return defaultValue;
         }
         return value;
     }
     default T orElseThrow() {
-        T value = eval();
+        T value = resolve();
         if (value == null) {
             throw new NoSuchElementException("No value present");
         }
@@ -38,7 +42,7 @@ public interface Expression<E, T> {
     default <X> T orElseThrow(Supplier<? extends Throwable> exceptionSupplier)
             throws Throwable{
 
-        T value = eval();
+        T value = resolve();
         if(io.teaql.data.utils.ObjectUtil.isEmpty(value)){
             throw exceptionSupplier.get();
         }
@@ -47,19 +51,19 @@ public interface Expression<E, T> {
     }
 
     default boolean isNull() {
-        return null == eval();
+        return null == resolve();
     }
 
     default boolean isNotNull() {
-        return null != eval();
+        return null != resolve();
     }
 
     default boolean isEmpty() {
-        return io.teaql.data.utils.ObjectUtil.isEmpty(eval());
+        return io.teaql.data.utils.ObjectUtil.isEmpty(resolve());
     }
 
     default boolean isNotEmpty() {
-        return io.teaql.data.utils.ObjectUtil.isNotEmpty(eval());
+        return io.teaql.data.utils.ObjectUtil.isNotEmpty(resolve());
     }
 
     default void whenIsNull(Runnable function) {
@@ -76,7 +80,7 @@ public interface Expression<E, T> {
 
     default void whenIsNotNull(Consumer<T> consumer) {
         if (isNotNull() && consumer != null) {
-            consumer.accept(eval());
+            consumer.accept(resolve());
         }
     }
 
@@ -88,7 +92,7 @@ public interface Expression<E, T> {
 
     default void whenNotEmpty(Consumer<T> consumer) {
         if (isNotEmpty() && consumer != null) {
-            consumer.accept(eval());
+            consumer.accept(resolve());
         }
     }
 
