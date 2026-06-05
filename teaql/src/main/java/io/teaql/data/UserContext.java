@@ -158,10 +158,20 @@ public class UserContext
         }
 
         StringBuilder msg = new StringBuilder();
-        msg.append("[TRIPLE-INTENT] Query on ").append(typeName).append(" is missing: ");
-        if (missingComment) msg.append(".comment(\"...\") ");
-        if (missingPurpose) msg.append(".purpose(\"...\") ");
-        msg.append("— call them before .executeForList()/.executeForOne()");
+        msg.append("[TRIPLE-INTENT VIOLATION] Query on ").append(typeName).append(" rejected.\n");
+        msg.append("Missing: ");
+        if (missingComment) msg.append(".comment() ");
+        if (missingPurpose) msg.append(".purpose() ");
+        msg.append("\n\n");
+        msg.append("FIX: Every query must declare both .comment() and .purpose() before execution.\n");
+        msg.append("Correct pattern:\n");
+        msg.append("  Q.").append(uncapFirst(typeName)).append("s()\n");
+        msg.append("      .filterByXxx(...)\n");
+        msg.append("      .comment(\"Describe what this query loads\")\n");
+        msg.append("      .purpose(\"Describe why this data is needed\")\n");
+        msg.append("      .executeForList(ctx);\n");
+        msg.append("\n");
+        msg.append("Refer to AGENTS.md section 'MANDATORY TRIPLE-INTENT' for full documentation.");
 
         if (INTENT_MODE == IntentEnforcementMode.STRICT) {
             throw new RepositoryException(msg.toString());
@@ -169,6 +179,11 @@ public class UserContext
         // WARN mode
         this.warn(msg.toString());
         return request;
+    }
+
+    private static String uncapFirst(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
     }
 
     private <T extends Entity> void normalizeFacetRequest(SearchRequest<T> request) {
@@ -414,15 +429,25 @@ public class UserContext
             return;
         }
 
-        String msg = "[TRIPLE-INTENT] Save on " + entity.typeName()
-                + "(id=" + entity.getId() + ") is missing .auditAs(\"...\") "
-                + "— call entity.auditAs(\"action description\").save(ctx)";
+        String typeName = entity.typeName();
+        StringBuilder msg = new StringBuilder();
+        msg.append("[TRIPLE-INTENT VIOLATION] Save on ").append(typeName);
+        msg.append("(id=").append(entity.getId()).append(") rejected.\n");
+        msg.append("Missing: .auditAs()\n\n");
+        msg.append("FIX: Every entity mutation must call .auditAs() before .save().\n");
+        msg.append("Correct pattern:\n");
+        msg.append("  ").append(uncapFirst(typeName)).append(".updateXxx(newValue)\n");
+        msg.append("      .auditAs(\"Describe the business action being performed\")\n");
+        msg.append("      .save(ctx);\n");
+        msg.append("\n");
+        msg.append("Do NOT use .save(ctx) alone. Do NOT use .setComment() directly.\n");
+        msg.append("Refer to AGENTS.md section 'MANDATORY TRIPLE-INTENT' for full documentation.");
 
         if (INTENT_MODE == IntentEnforcementMode.STRICT) {
-            throw new RepositoryException(msg);
+            throw new RepositoryException(msg.toString());
         }
         // WARN mode
-        this.warn(msg);
+        this.warn(msg.toString());
     }
 
     public void checkAndFix(Entity entity) {

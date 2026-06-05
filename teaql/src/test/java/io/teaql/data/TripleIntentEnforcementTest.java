@@ -9,13 +9,13 @@ import static org.junit.Assert.*;
  *   - Queries must have .comment() + .purpose()
  *   - Saves must have .auditAs()
  *
- * Enforcement is controlled by TEAQL_ENFORCE_INTENT env var / system property.
+ * Also verifies that error messages are AI-actionable:
+ * they contain concrete fix code the AI can copy-paste.
  */
 public class TripleIntentEnforcementTest {
 
     // ── Minimal concrete stubs for testing ──────────────────────────
 
-    /** A concrete entity for testing save-side enforcement. */
     static class StubEntity extends BaseEntity {
         @Override
         public String typeName() {
@@ -23,7 +23,6 @@ public class TripleIntentEnforcementTest {
         }
     }
 
-    /** A concrete request for testing query-side enforcement. */
     static class StubRequest extends BaseRequest<StubEntity> {
         public StubRequest() {
             super(StubEntity.class);
@@ -50,10 +49,10 @@ public class TripleIntentEnforcementTest {
 
         @Override
         protected <T extends Entity> SearchRequest<T> enforceRequestPolicy(SearchRequest<T> request) {
-            // Replicate the logic from UserContext but using our controlled mode
             if (mode == IntentEnforcementMode.OFF) {
                 return request;
             }
+            String typeName = request.getTypeName();
             String comment = request.comment();
             String purpose = request.purpose();
             boolean missingComment = comment == null || comment.isEmpty();
@@ -64,9 +63,19 @@ public class TripleIntentEnforcementTest {
             }
 
             StringBuilder msg = new StringBuilder();
-            msg.append("[TRIPLE-INTENT] Query on ").append(request.getTypeName()).append(" is missing: ");
-            if (missingComment) msg.append(".comment(\"...\") ");
-            if (missingPurpose) msg.append(".purpose(\"...\") ");
+            msg.append("[TRIPLE-INTENT VIOLATION] Query on ").append(typeName).append(" rejected.\n");
+            msg.append("Missing: ");
+            if (missingComment) msg.append(".comment() ");
+            if (missingPurpose) msg.append(".purpose() ");
+            msg.append("\n\n");
+            msg.append("FIX: Every query must declare both .comment() and .purpose() before execution.\n");
+            msg.append("Correct pattern:\n");
+            msg.append("  Q.").append(typeName.toLowerCase()).append("s()\n");
+            msg.append("      .comment(\"Describe what this query loads\")\n");
+            msg.append("      .purpose(\"Describe why this data is needed\")\n");
+            msg.append("      .executeForList(ctx);\n");
+            msg.append("\n");
+            msg.append("Refer to AGENTS.md section 'MANDATORY TRIPLE-INTENT' for full documentation.");
 
             if (mode == IntentEnforcementMode.STRICT) {
                 throw new RepositoryException(msg.toString());
@@ -74,7 +83,6 @@ public class TripleIntentEnforcementTest {
             return request;
         }
 
-        /** Expose audit enforcement for direct testing. */
         public void testEnforceAudit(Entity entity) {
             if (mode == IntentEnforcementMode.OFF) {
                 return;
@@ -84,16 +92,27 @@ public class TripleIntentEnforcementTest {
                 return;
             }
 
-            String msg = "[TRIPLE-INTENT] Save on " + entity.typeName()
-                    + "(id=" + entity.getId() + ") is missing .auditAs(\"...\")";
+            String typeName = entity.typeName();
+            StringBuilder msg = new StringBuilder();
+            msg.append("[TRIPLE-INTENT VIOLATION] Save on ").append(typeName);
+            msg.append("(id=").append(entity.getId()).append(") rejected.\n");
+            msg.append("Missing: .auditAs()\n\n");
+            msg.append("FIX: Every entity mutation must call .auditAs() before .save().\n");
+            msg.append("Correct pattern:\n");
+            msg.append("  ").append(typeName.toLowerCase()).append(".updateXxx(newValue)\n");
+            msg.append("      .auditAs(\"Describe the business action being performed\")\n");
+            msg.append("      .save(ctx);\n");
+            msg.append("\n");
+            msg.append("Do NOT use .save(ctx) alone. Do NOT use .setComment() directly.\n");
+            msg.append("Refer to AGENTS.md section 'MANDATORY TRIPLE-INTENT' for full documentation.");
 
             if (mode == IntentEnforcementMode.STRICT) {
-                throw new RepositoryException(msg);
+                throw new RepositoryException(msg.toString());
             }
         }
     }
 
-    // ── Query-side tests ────────────────────────────────────────────
+    // ── Query-side: happy path ──────────────────────────────────────
 
     @Test
     public void query_withBothCommentAndPurpose_passes() {
@@ -102,63 +121,74 @@ public class TripleIntentEnforcementTest {
                 .comment("Load tasks for dashboard")
                 .purpose("Display task count widget");
 
-        // Should NOT throw
         SearchRequest<StubEntity> result = ctx.enforceRequestPolicy(request);
         assertNotNull(result);
         assertEquals("Load tasks for dashboard", result.comment());
         assertEquals("Display task count widget", result.purpose());
     }
 
-    @Test(expected = RepositoryException.class)
-    public void query_withoutPurpose_throwsInStrict() {
-        TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
-        StubRequest request = new StubRequest()
-                .comment("Load tasks");
-        // Missing .purpose() → should throw
+    // ── Query-side: error messages guide the AI ─────────────────────
 
-        ctx.enforceRequestPolicy(request);
+    @Test
+    public void query_withoutPurpose_errorContainsFixableCodeExample() {
+        TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
+        StubRequest request = new StubRequest().comment("Load tasks");
+
+        try {
+            ctx.enforceRequestPolicy(request);
+            fail("Should have thrown");
+        } catch (RepositoryException e) {
+            String msg = e.getMessage();
+            // The AI reads this error output — every line is designed to teach it the fix
+            assertTrue("Tags the violation type",        msg.contains("[TRIPLE-INTENT VIOLATION]"));
+            assertTrue("Names the entity type",          msg.contains("Stub"));
+            assertTrue("Identifies what's missing",      msg.contains(".purpose()"));
+            assertTrue("Shows Q facade entry point",     msg.contains("Q."));
+            assertTrue("Shows .comment() in chain",      msg.contains(".comment("));
+            assertTrue("Shows .purpose() in chain",      msg.contains(".purpose("));
+            assertTrue("Shows terminal .executeForList", msg.contains(".executeForList(ctx)"));
+            assertTrue("Points to AGENTS.md docs",       msg.contains("AGENTS.md"));
+            assertTrue("Says 'MANDATORY TRIPLE-INTENT'", msg.contains("MANDATORY TRIPLE-INTENT"));
+        }
     }
 
-    @Test(expected = RepositoryException.class)
-    public void query_withoutComment_throwsInStrict() {
+    @Test
+    public void query_withoutComment_errorContainsFixableCodeExample() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
-        StubRequest request = new StubRequest()
-                .purpose("Dashboard display");
-        // Missing .comment() → should throw
+        StubRequest request = new StubRequest().purpose("Dashboard display");
 
-        ctx.enforceRequestPolicy(request);
+        try {
+            ctx.enforceRequestPolicy(request);
+            fail("Should have thrown");
+        } catch (RepositoryException e) {
+            String msg = e.getMessage();
+            assertTrue(msg.contains(".comment()"));
+            assertTrue(msg.contains("FIX:"));
+            assertTrue(msg.contains("AGENTS.md"));
+        }
     }
 
     @Test(expected = RepositoryException.class)
     public void query_withNothing_throwsInStrict() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
-        StubRequest request = new StubRequest();
-        // Missing both → should throw
-
-        ctx.enforceRequestPolicy(request);
+        ctx.enforceRequestPolicy(new StubRequest());
     }
+
+    // ── Query-side: backward compatibility ──────────────────────────
 
     @Test
     public void query_withNothing_passesInOffMode() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.OFF);
-        StubRequest request = new StubRequest();
-
-        // OFF mode → should NOT throw
-        SearchRequest<StubEntity> result = ctx.enforceRequestPolicy(request);
-        assertNotNull(result);
+        assertNotNull(ctx.enforceRequestPolicy(new StubRequest()));
     }
 
     @Test
     public void query_withNothing_passesInWarnMode() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.WARN);
-        StubRequest request = new StubRequest();
-
-        // WARN mode → should NOT throw, just log
-        SearchRequest<StubEntity> result = ctx.enforceRequestPolicy(request);
-        assertNotNull(result);
+        assertNotNull(ctx.enforceRequestPolicy(new StubRequest()));
     }
 
-    // ── Save-side tests ─────────────────────────────────────────────
+    // ── Save-side: happy path ───────────────────────────────────────
 
     @Test
     public void save_withAuditAs_passes() {
@@ -167,19 +197,33 @@ public class TripleIntentEnforcementTest {
         entity.setId(42L);
         entity.auditAs("Create new task for robot assembly");
 
-        // Should NOT throw
         ctx.testEnforceAudit(entity);
         assertEquals("Create new task for robot assembly", entity.getComment());
     }
 
-    @Test(expected = RepositoryException.class)
-    public void save_withoutAuditAs_throwsInStrict() {
+    // ── Save-side: error messages guide the AI ──────────────────────
+
+    @Test
+    public void save_withoutAuditAs_errorContainsFixableCodeExample() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
         StubEntity entity = new StubEntity();
         entity.setId(42L);
-        // Missing .auditAs() → should throw
 
-        ctx.testEnforceAudit(entity);
+        try {
+            ctx.testEnforceAudit(entity);
+            fail("Should have thrown");
+        } catch (RepositoryException e) {
+            String msg = e.getMessage();
+            // The AI reads this error output — every line is designed to teach it the fix
+            assertTrue("Tags the violation type",        msg.contains("[TRIPLE-INTENT VIOLATION]"));
+            assertTrue("Names the entity type",          msg.contains("StubEntity"));
+            assertTrue("Identifies what's missing",      msg.contains(".auditAs()"));
+            assertTrue("Shows .auditAs() with example",  msg.contains(".auditAs(\"Describe the business action"));
+            assertTrue("Shows terminal .save(ctx)",      msg.contains(".save(ctx)"));
+            assertTrue("Explicitly bans bare .save()",   msg.contains("Do NOT use .save(ctx) alone"));
+            assertTrue("Bans .setComment() bypass",      msg.contains("Do NOT use .setComment() directly"));
+            assertTrue("Points to AGENTS.md docs",       msg.contains("AGENTS.md"));
+        }
     }
 
     @Test
@@ -187,30 +231,24 @@ public class TripleIntentEnforcementTest {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.OFF);
         StubEntity entity = new StubEntity();
         entity.setId(42L);
-
-        // OFF mode → should NOT throw
         ctx.testEnforceAudit(entity);
     }
 
-    // ── auditAs fluent chaining test ────────────────────────────────
+    // ── Fluent API correctness ──────────────────────────────────────
 
     @Test
     public void auditAs_setsCommentAndReturnsSelf() {
         StubEntity entity = new StubEntity();
         Entity returned = entity.auditAs("Transition task to DONE");
-
         assertSame(entity, returned);
         assertEquals("Transition task to DONE", entity.getComment());
     }
-
-    // ── purpose + comment field test ────────────────────────────────
 
     @Test
     public void request_purposeAndComment_areIndependent() {
         StubRequest request = new StubRequest()
                 .comment("Fetch orders by region")
                 .purpose("Generate regional sales report");
-
         assertEquals("Fetch orders by region", request.comment());
         assertEquals("Generate regional sales report", request.purpose());
     }
