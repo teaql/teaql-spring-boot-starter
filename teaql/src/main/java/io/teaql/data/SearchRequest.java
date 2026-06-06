@@ -24,7 +24,12 @@ public interface SearchRequest<T extends Entity> {
         return null;
     }
 
+    default String getSearchForText() {
+        return null;
+    }
+
     Class<? extends T> returnType();
+
 
     String comment();
 

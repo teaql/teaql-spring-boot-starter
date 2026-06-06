@@ -78,10 +78,20 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     String rawSql;
 
+    String searchForText;
+
     List<FacetRequest> facetRequests = new ArrayList<>();
 
     public BaseRequest(Class<T> pReturnType) {
         returnType = pReturnType;
+    }
+
+    public String getSearchForText() {
+        return searchForText;
+    }
+
+    public void setSearchForText(String searchForText) {
+        this.searchForText = searchForText;
     }
 
     protected void setReturnType(Class<? extends T> pReturnType) {
