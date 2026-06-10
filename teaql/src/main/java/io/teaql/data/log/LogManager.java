@@ -11,32 +11,32 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.teaql.data.UserContext;
 
 /**
- * 双层日志管理器。
+ * Dual-layer log manager.
  *
  * ═══════════════════════════════════════════════════════
- * Layer 1: Runtime 层 (强制，环境变量控制，不可定制)
+ * Layer 1: Runtime layer (mandatory, env-var controlled, not customizable)
  * ═══════════════════════════════════════════════════════
- *   包含原始未脱敏的 SQL 日志和审计信息。
- *   通过环境变量控制，无代码：
- *     TEAQL_LOG_ENDPOINT  - 文件路径 (空则不写)
- *     TEAQL_LOG_FORMAT    - human (默认) | json
- *     TEAQL_LOG_SELECT    - true 记录 SELECT (默认 false)
- *     TEAQL_LOG_MUTATION  - false 不记录变更 (默认 true)
- *   写入的审计信息包含原始字段值，不脱敏。
+ *   Contains raw, unmasked SQL logs and audit information.
+ *   Controlled by environment variables, no code:
+ *     TEAQL_LOG_ENDPOINT  - file path (empty = no write)
+ *     TEAQL_LOG_FORMAT    - human (default) | json
+ *     TEAQL_LOG_SELECT    - true to log SELECT (default false)
+ *     TEAQL_LOG_MUTATION  - false to skip mutations (default true)
+ *   Written audit info contains raw field values, unmasked.
  *
  * ═══════════════════════════════════════════════════════
- * Layer 2: App 层 (可定制)
+ * Layer 2: App layer (customizable)
  * ═══════════════════════════════════════════════════════
- *   应用层收到的是脱敏后的日志和审计事件。
- *   可以注册 LogSink 和 AuditSink 来定制行为：
- *     - 显示到界面
- *     - 发送到消息队列
- *     - 写入数据库
+ *   Application receives masked logs and audit events.
+ *   Register LogSink and AuditSink to customize behavior:
+ *     - Display on UI
+ *     - Send to message queue
+ *     - Write to database
  */
 public class LogManager {
 
     // ==========================================
-    // Layer 1: Runtime 层 (环境变量，只读，不可定制)
+    // Layer 1: Runtime layer (env vars, read-only, not customizable)
     // ==========================================
 
     private static final String LOG_ENDPOINT = System.getenv("TEAQL_LOG_ENDPOINT");
@@ -45,8 +45,8 @@ public class LogManager {
     private static final boolean SELECT_LOG_ENABLED = "true".equals(System.getenv("TEAQL_LOG_SELECT"));
 
     /**
-     * Runtime 层: 记录 SQL 日志 (原始未脱敏)。
-     * 由 Repository 层调用，写入 TEAQL_LOG_ENDPOINT 文件。
+     * Runtime layer: record SQL log (raw, unmasked).
+     * Called by Repository layer, writes to TEAQL_LOG_ENDPOINT file.
      */
     public void recordSqlLog(SqlLogEntry entry) {
         if (LOG_ENDPOINT == null || LOG_ENDPOINT.isEmpty()) return;
@@ -57,7 +57,7 @@ public class LogManager {
         String content = FORMATTER.formatSqlLog(traceChain, entry);
         writeToEndpoint(content);
 
-        // 同时分发到 App 层 (脱敏后)
+        // Also dispatch to App layer (masked)
         SqlLogEntry safeEntry = sanitizeSqlLog(entry);
         for (LogSink sink : logSinks) {
             sink.onSqlLog(safeEntry);
@@ -65,21 +65,21 @@ public class LogManager {
     }
 
     /**
-     * Runtime 层: 记录审计事件 (原始未脱敏)。
-     * 由 Repository 层调用，写入 TEAQL_LOG_ENDPOINT 文件。
+     * Runtime layer: record audit event (raw, unmasked).
+     * Called by Repository layer, writes to TEAQL_LOG_ENDPOINT file.
      *
-     * @param maskFields 需要脱敏的字段 (来自 EntityDescriptor.audit_mask_fields)
-     * @param maxValueLen 值最大长度 (来自 EntityDescriptor.audit_value_max_len)
+     * @param maskFields fields to mask (from EntityDescriptor.audit_mask_fields)
+     * @param maxValueLen max value length (from EntityDescriptor.audit_value_max_len)
      */
     public void emitAuditEvent(UserContext ctx, AuditEvent event,
                                 List<String> maskFields, Integer maxValueLen) {
-        // Layer 1: 写文件 (原始未脱敏)
+        // Layer 1: write to file (raw, unmasked)
         if (LOG_ENDPOINT != null && !LOG_ENDPOINT.isEmpty()) {
             String content = FORMATTER.formatAuditLog(event);
             writeToEndpoint(content);
         }
 
-        // Layer 2: 分发到 App 层 (脱敏后)
+        // Layer 2: dispatch to App layer (masked)
         AuditEvent safeEvent = sanitizeAuditEvent(event, maskFields, maxValueLen);
         for (AuditEventSink sink : auditSinks) {
             sink.onEvent(ctx, safeEvent);
@@ -87,18 +87,18 @@ public class LogManager {
     }
 
     /**
-     * 便捷方法: 无脱敏配置时使用默认脱敏。
+     * Convenience method: use default masking when no masking config is provided.
      */
     public void emitAuditEvent(UserContext ctx, AuditEvent event) {
         emitAuditEvent(ctx, event, List.of(), null);
     }
 
     // ==========================================
-    // 脱敏处理 (对标 Rust 的 build_safe_event)
+    // Masking (aligned with Rust build_safe_event)
     // ==========================================
 
     /**
-     * 脱敏 SQL 日志。
+     * Mask SQL log.
      */
     private SqlLogEntry sanitizeSqlLog(SqlLogEntry entry) {
         Object[] safeParams = entry.getParams();
@@ -119,8 +119,8 @@ public class LogManager {
     }
 
     /**
-     * 脱敏审计事件。使用 EntityDescriptor 上的 audit_mask_fields 和 audit_value_max_len。
-     * 对标 Rust 的 RawAuditEvent::build_safe_event。
+     * Mask audit event. Uses audit_mask_fields and audit_value_max_len from EntityDescriptor.
+     * Aligned with Rust RawAuditEvent::build_safe_event.
      */
     private AuditEvent sanitizeAuditEvent(AuditEvent event, List<String> maskFields, Integer maxValueLen) {
         Map<String, Object> safeValues = maskMap(event.getValues(), maskFields, maxValueLen);
@@ -151,24 +151,24 @@ public class LogManager {
     }
 
     /**
-     * 单字段脱敏。对标 Rust 的 mask_audit_value + limit_audit_value。
+     * Single field masking. Aligned with Rust mask_audit_value + limit_audit_value.
      *
-     * @param field     字段名
-     * @param value     原始值
-     * @param maskFields 需要脱敏的字段列表 (来自 EntityDescriptor.audit_mask_fields)
-     * @param maxLen    值最大长度 (来自 EntityDescriptor.audit_value_max_len)
+     * @param field     field name
+     * @param value     raw value
+     * @param maskFields fields to mask (from EntityDescriptor.audit_mask_fields)
+     * @param maxLen    max value length (from EntityDescriptor.audit_value_max_len)
      */
     private Object maskValue(String field, Object value, List<String> maskFields, Integer maxLen) {
         if (value == null) return null;
 
         String s = String.valueOf(value);
 
-        // 1. 字段级脱敏 (对标 Rust: should_mask = audit_mask_fields.contains(field))
+        // 1. Field-level masking (aligned with Rust: should_mask = audit_mask_fields.contains(field))
         if (maskFields.contains(field)) {
             return maskAuditValue(s);
         }
 
-        // 2. 长度截断 (对标 Rust: limit_audit_value)
+        // 2. Length truncation (aligned with Rust: limit_audit_value)
         if (maxLen != null && s.length() > maxLen) {
             return limitAuditValue(s, maxLen);
         }
@@ -177,10 +177,10 @@ public class LogManager {
     }
 
     /**
-     * 脱敏值。对标 Rust 的 mask_audit_value。
-     * 数字: 全部替换为 *
-     * 短字符串: 全部替换为 *
-     * 长字符串: 保留前2后2，中间替换为 *
+     * Mask value. Aligned with Rust mask_audit_value.
+     * Digits: replace all with *
+     * Short strings: replace all with *
+     * Long strings: keep first 2 and last 2, replace middle with *
      */
     private String maskAuditValue(String value) {
         if (value.isEmpty()) return "";
@@ -200,8 +200,8 @@ public class LogManager {
     }
 
     /**
-     * 截断值。对标 Rust 的 limit_audit_value。
-     * 保留前半和后半，中间用 ... 连接。
+     * Truncate value. Aligned with Rust limit_audit_value.
+     * Keep first half and last half, connect with ...
      */
     private String limitAuditValue(String value, int maxLen) {
         if (value.length() <= maxLen) return value;
@@ -217,21 +217,21 @@ public class LogManager {
     }
 
     // ==========================================
-    // Layer 2: App 层 (可定制)
+    // Layer 2: App layer (customizable)
     // ==========================================
 
     private final List<LogSink> logSinks = new CopyOnWriteArrayList<>();
     private final List<AuditEventSink> auditSinks = new CopyOnWriteArrayList<>();
 
     /**
-     * App 层: 注册日志 Sink (接收脱敏后的日志)。
+     * App layer: register log sink (receives masked logs).
      */
     public void addLogSink(LogSink sink) {
         logSinks.add(sink);
     }
 
     /**
-     * App 层: 注册审计 Sink (接收脱敏后的审计事件)。
+     * App layer: register audit sink (receives masked audit events).
      */
     public void addAuditSink(AuditEventSink sink) {
         auditSinks.add(sink);
@@ -246,7 +246,7 @@ public class LogManager {
     }
 
     // ==========================================
-    // 文件输出 (Layer 1)
+    // File output (Layer 1)
     // ==========================================
 
     private static void writeToEndpoint(String content) {

@@ -4,7 +4,7 @@ module io.teaql.utils {
     requires com.fasterxml.jackson.databind;
     requires java.desktop;
     requires java.net.http;
-    requires spring.context;      // SpringUtil — scope=provided, 不传递
+    requires spring.context;      // SpringUtil — scope=provided, not transitive
     requires spring.beans;        // BeanUtil, ClassUtil
     requires spring.core;         // ClassUtil
     requires org.apache.commons.lang3;

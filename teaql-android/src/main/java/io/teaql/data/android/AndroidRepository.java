@@ -63,9 +63,9 @@ import io.teaql.data.utils.ReflectUtil;
 import io.teaql.data.utils.StrUtil;
 
 /**
- * Android 专用 Repository 实现。
- * 不依赖 spring-jdbc，通过 TeaQLDatabase 抽象层访问 SQLite。
- * 复用 SQLRepository 的 SQL 构建逻辑（buildDataSQL 等）。
+ * Android-specific Repository implementation.
+ * No spring-jdbc dependency, accesses SQLite via TeaQLDatabase abstraction.
+ * Reuses SQLRepository's SQL building logic (buildDataSQL, etc.).
  */
 public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
         implements SQLColumnResolver {
@@ -97,7 +97,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // SQL 构建逻辑 (复用 SQLRepository)
+    // SQL building logic (reused from SQLRepository)
     // ==========================================
 
     public String buildDataSQL(UserContext userContext, SearchRequest request, Map<String, Object> parameters) {
@@ -162,7 +162,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // 命名参数 → 位置参数转换
+    // Named parameter → positional parameter conversion
     // ==========================================
 
     private static class PositionalSQL {
@@ -190,7 +190,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // 数据操作 (TeaQLDatabase 替代 spring-jdbc)
+    // Data operations (TeaQLDatabase replaces spring-jdbc)
     // ==========================================
 
     @Override
@@ -226,19 +226,19 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
                 }
             }
         }
-        // 子类型
+        // Subtype
         Object typeAlias = row.get(TYPE_ALIAS);
         if (typeAlias != null) {
             entity.setRuntimeType(String.valueOf(typeAlias));
         }
-        // 状态
+        // Status
         Long version = entity.getVersion();
         if (version != null && version < 0) {
             if (entity instanceof BaseEntity) ((BaseEntity) entity).set$status(io.teaql.data.EntityStatus.PERSISTED_DELETED);
         } else {
             if (entity instanceof BaseEntity) ((BaseEntity) entity).set$status(io.teaql.data.EntityStatus.PERSISTED);
         }
-        // 动态属性
+        // Dynamic properties
         List<SimpleNamedExpression> simpleDynamicProperties = request.getSimpleDynamicProperties();
         for (SimpleNamedExpression dp : simpleDynamicProperties) {
             Object value = row.get(dp.name());
@@ -379,7 +379,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // ID 生成
+    // ID generation
     // ==========================================
 
     @Override
@@ -423,7 +423,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // Schema 管理
+    // Schema management
     // ==========================================
 
     public void ensureSchema(UserContext ctx) {
@@ -601,7 +601,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // 辅助方法
+    // Helper methods
     // ==========================================
 
     private SQLEntity convertToSQLEntityForInsert(UserContext userContext, T entity) {
@@ -739,7 +739,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // SQL 构建辅助方法
+    // SQL building helpers
     // ==========================================
 
     private String prepareCondition(UserContext userContext, String idTable, SearchCriteria searchCriteria, Map<String, Object> parameters) {
@@ -848,7 +848,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // 聚合查询
+    // Aggregation queries
     // ==========================================
 
     @Override
@@ -916,7 +916,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     }
 
     // ==========================================
-    // Stream 支持
+    // Stream support
     // ==========================================
 
     @Override

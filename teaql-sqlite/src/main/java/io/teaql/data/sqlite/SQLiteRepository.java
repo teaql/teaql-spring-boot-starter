@@ -98,7 +98,7 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
 
     public static class ParsedType {
         public String dataType;
-        public Integer length; // 可以为 null
+        public Integer length; // nullable
 
         @Override
         public String toString() {
@@ -109,7 +109,7 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     public static ParsedType parseType(String type) {
         ParsedType result = new ParsedType();
 
-        // 正则匹配：例如 VARCHAR(100)
+        // Regex match: e.g. VARCHAR(100)
         Pattern pattern = Pattern.compile("([a-zA-Z]+)\\s*\\(?\\s*(\\d*)\\s*\\)?");
         Matcher matcher = pattern.matcher(type.trim());
 
@@ -165,11 +165,11 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
             return null;
         }
 
-        // 使用系统默认时区
+        // Use system default timezone
         Instant instant = value.toInstant();
         ZonedDateTime localDateTime = instant.atZone(ZoneId.systemDefault());
 
-        // 格式化为ISO8601字符串
+        // Format as ISO8601 string
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         return localDateTime.format(formatter);
     }
@@ -364,11 +364,11 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     /*SELECT
     cid,
     name,
-    type AS data_type,  -- 这里添加别名
+    type AS data_type,  -- alias added here
     notnull,
     dflt_value,
     pk
-FROM PRAGMA_table_info('表名')*/
+FROM PRAGMA_table_info('table_name')*/
     @Override
     protected String findTableColumnsSql(DataSource dataSource, String table) {
         try (Connection connection = dataSource.getConnection()) {

@@ -786,12 +786,12 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     }
 
     /**
-     * 声明查询目的并构建可执行查询。
-     * 这是查询链的终结方法，返回 ExecutableRequest。
-     * 要求 comment 已声明。
+     * Declare query purpose and build an executable query.
+     * This is the terminal method of the query chain, returns ExecutableRequest.
+     * Requires comment to be declared.
      *
-     * 用法:
-     *   Q.tasks().filterByName("xxx").comment("查询任务").purpose("展示看板").executeForList(ctx);
+     * Usage:
+     *   Q.tasks().filterByName("xxx").comment("Load tasks").purpose("Display board").executeForList(ctx);
      */
     public ExecutableRequest<T> purpose(String purpose) {
         if (comment == null || comment.isEmpty()) {

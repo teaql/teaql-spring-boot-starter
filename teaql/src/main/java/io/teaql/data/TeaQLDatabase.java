@@ -4,39 +4,39 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TeaQL 数据库抽象层。
- * Android 端用 SQLiteDatabase 实现，JVM 端用 JDBC 实现。
- * 不依赖 spring-jdbc、javax.sql.DataSource。
+ * TeaQL database abstraction layer.
+ * Android uses SQLiteDatabase, JVM uses JDBC.
+ * No dependency on spring-jdbc or javax.sql.DataSource.
  */
 public interface TeaQLDatabase {
 
     /**
-     * 执行查询，返回结果列表。每行是一个 Map（列名 → 值）。
+     * Execute a query and return a list of rows. Each row is a Map (column name -> value).
      */
     List<Map<String, Object>> query(String sql, Object[] args);
 
     /**
-     * 执行更新（INSERT/UPDATE/DELETE），返回影响行数。
+     * Execute an update (INSERT/UPDATE/DELETE) and return the number of affected rows.
      */
     int executeUpdate(String sql, Object[] args);
 
     /**
-     * 批量执行更新。
+     * Execute a batch update.
      */
     int[] batchUpdate(String sql, List<Object[]> batchArgs);
 
     /**
-     * 执行任意 SQL（DDL 等）。
+     * Execute arbitrary SQL (DDL, etc.).
      */
     void execute(String sql);
 
     /**
-     * 在事务中执行操作。
+     * Execute an operation within a transaction.
      */
     void executeInTransaction(Runnable action);
 
     /**
-     * 获取数据库表的列信息。
+     * Get column information for a database table.
      */
     List<Map<String, Object>> getTableColumns(String tableName);
 }

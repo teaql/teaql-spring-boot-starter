@@ -3,21 +3,21 @@ package io.teaql.data;
 import java.util.stream.Stream;
 
 /**
- * 已声明 comment 和 purpose 的查询，可以执行。
- * 只能通过 BaseRequest.build() 创建，强制要求 comment + purpose。
+ * A query that has declared comment and purpose, ready to execute.
+ * Can only be created via BaseRequest.build(), enforcing comment + purpose.
  *
- * 设计目的：编译期阻止未声明意图的查询执行。
+ * Design goal: prevent queries without declared intent from executing.
  *
- * 用法:
- *   // ✅ 编译通过
+ * Usage:
+ *   // Compiles
  *   Q.tasks()
  *       .filterByName("xxx")
- *       .comment("查询任务")
- *       .purpose("展示看板")
- *       .build()              // 返回 ExecutableRequest
- *       .executeForList(ctx); // 只有 ExecutableRequest 才能执行
+ *       .comment("Load tasks")
+ *       .purpose("Display kanban board")
+ *       .build()              // returns ExecutableRequest
+ *       .executeForList(ctx); // only ExecutableRequest can execute
  *
- *   // ❌ 编译失败：没有 build()，拿不到 ExecutableRequest
+ *   // Compile error: no build(), cannot get ExecutableRequest
  *   Q.tasks().executeForList(ctx);
  */
 public class ExecutableRequest<T extends Entity> {

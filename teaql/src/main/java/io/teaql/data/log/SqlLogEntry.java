@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * SQL 执行日志。记录每次 SQL 操作的详细信息。
- * 设计参考 teaql-rs 的 SqlLogEntry。
+ * SQL execution log. Records details of each SQL operation.
+ * Design aligned with teaql-rs SqlLogEntry.
  */
 public class SqlLogEntry {
 

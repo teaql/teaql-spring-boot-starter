@@ -1,40 +1,40 @@
 package io.teaql.data;
 
 /**
- * 请求策略接口，在每个操作前调用。
- * 可以修改查询/命令，或拒绝执行。
+ * Request policy interface, called before each operation.
+ * Can modify queries/commands or reject execution.
  *
- * 设计参考 teaql-rs 的 RequestPolicy trait。
+ * Design aligned with teaql-rs RequestPolicy trait.
  */
 public interface RequestPolicy {
 
     /**
-     * 查询前的策略检查。
-     * 如果 comment 或 purpose 为空，可以拒绝执行。
+     * Policy check before query execution.
+     * Can reject if comment or purpose is missing.
      */
     default void enforceSelect(UserContext ctx, SearchRequest<?> query) {
     }
 
     /**
-     * 插入前的策略检查。
+     * Policy check before insert.
      */
     default void enforceInsert(UserContext ctx, Entity entity) {
     }
 
     /**
-     * 更新前的策略检查。
+     * Policy check before update.
      */
     default void enforceUpdate(UserContext ctx, Entity entity) {
     }
 
     /**
-     * 删除前的策略检查。
+     * Policy check before delete.
      */
     default void enforceDelete(UserContext ctx, Entity entity) {
     }
 
     /**
-     * 恢复前的策略检查。
+     * Policy check before recover.
      */
     default void enforceRecover(UserContext ctx, Entity entity) {
     }

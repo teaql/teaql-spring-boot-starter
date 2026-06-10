@@ -6,7 +6,7 @@ module io.teaql {
     requires java.desktop;
     requires java.sql;
 
-    // === 生成代码需要的公开 API ===
+    // === Public API needed by generated code ===
     exports io.teaql.data;
     exports io.teaql.data.checker;
     exports io.teaql.data.criteria;
@@ -17,7 +17,7 @@ module io.teaql {
     exports io.teaql.data.lock;
     exports io.teaql.data.log;
 
-    // === 内部实现，精确授权 ===
+    // === Internal implementation, precise authorization ===
     exports io.teaql.data.repository to io.teaql.sql, io.teaql.memory, io.teaql.android;
     exports io.teaql.data.internal to io.teaql.autoconfigure, io.teaql.sql;
 }

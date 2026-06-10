@@ -23,8 +23,8 @@ import io.teaql.data.utils.CacheUtil;
 import io.teaql.data.utils.TimedCache;
 
 /**
- * Micronaut Bean Factory。为 TeaQL 运行时提供默认 Bean。
- * 应用层可以 @Override 任何 Bean。
+ * Micronaut Bean Factory. Provides default beans for the TeaQL runtime.
+ * Application can @Override any bean.
  */
 @Factory
 public class TeaQLFactory {

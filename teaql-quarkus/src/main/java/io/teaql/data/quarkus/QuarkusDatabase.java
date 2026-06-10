@@ -15,8 +15,8 @@ import javax.sql.DataSource;
 import io.teaql.data.TeaQLDatabase;
 
 /**
- * Quarkus 数据库实现。使用标准 JDBC DataSource。
- * 不依赖 spring-jdbc，可用于 Quarkus / Jakarta EE / 任何标准 JDBC 环境。
+ * Quarkus database implementation. Uses standard JDBC DataSource.
+ * No spring-jdbc dependency, works with Quarkus / Jakarta EE / any standard JDBC environment.
  */
 public class QuarkusDatabase implements TeaQLDatabase {
 

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 业务审计事件。记录实体变更的业务语义。
- * 设计参考 teaql-rs 的 RawAuditEvent。
+ * Business audit event. Records the business semantics of entity changes.
+ * Design aligned with teaql-rs RawAuditEvent.
  */
 public class AuditEvent {
 
@@ -38,7 +38,7 @@ public class AuditEvent {
         this.comment = comment;
     }
 
-    // --- 工厂方法 ---
+    // --- Factory methods ---
 
     public static AuditEvent created(String entity, Map<String, Object> values, String comment) {
         List<PropertyChange> changes = new ArrayList<>();
@@ -83,7 +83,7 @@ public class AuditEvent {
     public String getComment() { return comment; }
 
     /**
-     * 字段级变更记录。
+     * Field-level change record.
      */
     public static class PropertyChange {
         private final String field;

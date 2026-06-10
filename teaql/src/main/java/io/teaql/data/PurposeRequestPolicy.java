@@ -3,20 +3,20 @@ package io.teaql.data;
 import io.teaql.data.utils.ObjectUtil;
 
 /**
- * 要求所有查询必须声明 comment 和 purpose 的策略。
- * 没有 purpose 的查询会被拒绝执行。
+ * Policy that requires all queries to declare comment and purpose.
+ * Queries without purpose will be rejected.
  *
- * 设计参考 teaql-rs 的 Triple-Intent 模式：
- * - comment: 描述这个查询加载什么数据
- * - purpose: 描述为什么需要这些数据（业务意图）
+ * Design aligned with teaql-rs Triple-Intent pattern:
+ * - comment: describes what data this query loads
+ * - purpose: describes why this data is needed (business intent)
  *
- * 用法:
+ * Usage:
  *   ctx.setRequestPolicy(new PurposeRequestPolicy());
  *
- *   // 正确
- *   Q.tasks().comment("加载任务列表").purpose("展示看板").executeForList(ctx);
+ *   // Correct
+ *   Q.tasks().comment("Load task list").purpose("Display kanban board").executeForList(ctx);
  *
- *   // 被拒绝: 缺少 purpose
+ *   // Rejected: missing purpose
  *   Q.tasks().executeForList(ctx);
  */
 public class PurposeRequestPolicy implements RequestPolicy {

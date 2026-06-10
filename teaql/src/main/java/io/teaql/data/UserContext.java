@@ -435,7 +435,7 @@ public class UserContext
         enforceAuditPolicy(entity);
         this.info("UserContext.saveGraph: entity hash=" + System.identityHashCode(entity));
 
-        // 记录变更前的值 (用于审计)
+        // Record old values before change (for audit)
         java.util.Map<String, Object> oldValues = null;
         if (entity instanceof BaseEntity && entity.getUpdatedProperties() != null) {
             oldValues = new java.util.HashMap<>();
@@ -447,7 +447,7 @@ public class UserContext
 
         RepositoryAdaptor.saveGraph(this, entity);
 
-        // 发射审计事件
+        // Emit audit event
         if (logManager != null) {
             emitAuditEvent(entity, oldValues);
         }
@@ -476,7 +476,7 @@ public class UserContext
                 entity.typeName(), values, entity.getUpdatedProperties(), oldValues, values, comment);
         }
 
-        // 从 EntityDescriptor 获取脱敏配置 (对标 Rust 的 audit_mask_fields, audit_value_max_len)
+        // Get masking config from EntityDescriptor (aligned with Rust audit_mask_fields, audit_value_max_len)
         java.util.List<String> maskFields = java.util.List.of();
         Integer maxValueLen = null;
         try {

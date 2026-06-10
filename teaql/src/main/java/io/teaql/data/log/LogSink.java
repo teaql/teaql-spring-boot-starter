@@ -1,8 +1,8 @@
 package io.teaql.data.log;
 
 /**
- * App 层日志 Sink。接收脱敏后的 SQL 日志。
- * 应用层可注册自定义实现：显示到界面、发送到别处。
+ * App-layer log sink. Receives masked SQL logs.
+ * Application can register custom implementations: display on UI, send elsewhere.
  */
 public interface LogSink {
 

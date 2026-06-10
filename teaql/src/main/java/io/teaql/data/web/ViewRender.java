@@ -1017,7 +1017,7 @@ public abstract class ViewRender {
     }
 
     private void addPageTitle(UserContext ctx, Object page, EntityDescriptor meta, Object data) {
-        setValue(page, "pageTitle", getStr(meta, "name", "默认页面"));
+        setValue(page, "pageTitle", getStr(meta, "name", "Default Page"));
     }
 
     private void addFormId(UserContext ctx, Object page, EntityDescriptor meta, Object data) {

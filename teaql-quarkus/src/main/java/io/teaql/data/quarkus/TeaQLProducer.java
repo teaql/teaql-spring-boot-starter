@@ -24,8 +24,8 @@ import io.teaql.data.utils.CacheUtil;
 import io.teaql.data.utils.TimedCache;
 
 /**
- * Quarkus CDI Producer。为 TeaQL 运行时提供默认 Bean。
- * 应用层可以 @Override 任何 Bean。
+ * Quarkus CDI Producer. Provides default beans for the TeaQL runtime.
+ * Application can @Override any bean.
  */
 @ApplicationScoped
 public class TeaQLProducer {

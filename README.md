@@ -33,8 +33,8 @@ ctx.setRequestPolicy(new PurposeRequestPolicy());
 ctx.setLogManager(new LogManager());
 
 Q.tasks()
-    .comment("查询任务")
-    .purpose("展示看板")
+    .comment("Load tasks")
+    .purpose("Display kanban board")
     .executeForList(ctx);
 ```
 

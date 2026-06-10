@@ -6,25 +6,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 /**
- * 日志格式化器。支持两种格式：
- * - HumanReaderFormatter: 人类可读格式
- * - DebugReaderFormatter: 机器可读格式
+ * Log formatter. Supports two formats:
+ * - HumanReaderFormatter: human-readable format
+ * - DebugReaderFormatter: machine-readable format
  *
- * 设计参考 teaql-rs 的 LogFormatter trait。
+ * Design aligned with teaql-rs LogFormatter trait.
  */
 public interface LogFormatter {
 
     String formatSqlLog(String traceChain, SqlLogEntry entry);
     String formatAuditLog(AuditEvent event);
 
-    // --- 人类可读格式 ---
+    // --- Human-readable format ---
     LogFormatter HUMAN = new HumanReaderFormatter();
 
-    // --- 机器可读格式 ---
+    // --- Machine-readable format ---
     LogFormatter DEBUG = new DebugReaderFormatter();
 
     /**
-     * 根据环境变量选择格式化器。
+     * Select formatter based on environment variable.
      */
     static LogFormatter getFormatter() {
         String format = System.getenv("TEAQL_LOG_FORMAT");
@@ -35,7 +35,7 @@ public interface LogFormatter {
     }
 
     /**
-     * 人类可读格式化器。
+     * Human-readable formatter.
      */
     class HumanReaderFormatter implements LogFormatter {
         private static final DateTimeFormatter TS =
@@ -69,7 +69,7 @@ public interface LogFormatter {
     }
 
     /**
-     * 机器可读格式化器。
+     * Machine-readable formatter.
      */
     class DebugReaderFormatter implements LogFormatter {
         @Override
