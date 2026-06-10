@@ -1,4 +1,4 @@
-package io.teaql.data.android;
+package io.teaql.data;
 
 import java.util.List;
 import java.util.Map;

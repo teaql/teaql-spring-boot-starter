@@ -1,5 +1,6 @@
 package io.teaql.data.android;
 
+import io.teaql.data.TeaQLDatabase;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
