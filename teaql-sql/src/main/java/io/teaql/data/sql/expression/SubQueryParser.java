@@ -14,14 +14,14 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.SearchRequest;
 import io.teaql.data.SmartList;
 import io.teaql.data.SubQuerySearchCriteria;
-import io.teaql.data.TempRequest;
+import io.teaql.data.internal.TempRequest;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.IN;
 import io.teaql.data.criteria.InLarge;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.criteria.RawSql;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteria> {
 
     public static final String IGNORE_SUBTYPES = "IGNORE_SUBTYPES";
@@ -37,7 +37,7 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
             SubQuerySearchCriteria expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         SearchRequest dependsOn = expression.getDependsOn();
         String propertyName = expression.getPropertyName();
         String dependsOnPropertyName = expression.getDependsOnPropertyName();
@@ -82,7 +82,7 @@ public class SubQueryParser implements SQLExpressionParser<SubQuerySearchCriteri
     }
 
     private boolean hasSameDatasource(
-            UserContext pUserContext, SQLRepository pSqlColumnResolver, Repository pRepository) {
+            UserContext pUserContext, SQLColumnResolver pSqlColumnResolver, Repository pRepository) {
         if (!(pSqlColumnResolver instanceof SQLRepository)) {
             return false;
         }

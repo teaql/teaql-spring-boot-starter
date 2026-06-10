@@ -31,6 +31,10 @@ import io.teaql.data.utils.ReflectUtil;
 import io.teaql.data.utils.StrUtil;
 import io.teaql.data.utils.JSONUtil;
 
+import io.teaql.data.internal.GLobalResolver;
+import io.teaql.data.internal.RepositoryAdaptor;
+import io.teaql.data.internal.SimpleChineseViewTranslator;
+import io.teaql.data.internal.TempRequest;
 import io.teaql.data.checker.CheckException;
 import io.teaql.data.checker.CheckResult;
 import io.teaql.data.checker.Checker;
@@ -85,6 +89,8 @@ public class UserContext
     public static final String RESPONSE_HOLDER = "$response:responseHolder";
     InternalIdGenerator internalIdGenerator;
     private TQLResolver resolver = GLobalResolver.getGlobalResolver();
+    private RequestPolicy requestPolicy;
+    private io.teaql.data.log.LogManager logManager;
     private final Cache<String, Object> localStorage = CacheUtil.newTimedCache(0);
 
     /**
@@ -136,6 +142,9 @@ public class UserContext
 
     private <T extends Entity> SearchRequest<T> submitRequest(SearchRequest<T> request) {
         normalizeRequest(request);
+        if (requestPolicy != null) {
+            requestPolicy.enforceSelect(this, request);
+        }
         return enforceRequestPolicy(request);
     }
 
@@ -412,9 +421,78 @@ public class UserContext
         if (entity == null) {
             return;
         }
+        if (requestPolicy != null) {
+            if (entity.newItem()) {
+                requestPolicy.enforceInsert(this, entity);
+            } else if (entity.deleteItem()) {
+                requestPolicy.enforceDelete(this, entity);
+            } else if (entity.recoverItem()) {
+                requestPolicy.enforceRecover(this, entity);
+            } else if (entity.needPersist()) {
+                requestPolicy.enforceUpdate(this, entity);
+            }
+        }
         enforceAuditPolicy(entity);
         this.info("UserContext.saveGraph: entity hash=" + System.identityHashCode(entity));
+
+        // 记录变更前的值 (用于审计)
+        java.util.Map<String, Object> oldValues = null;
+        if (entity instanceof BaseEntity && entity.getUpdatedProperties() != null) {
+            oldValues = new java.util.HashMap<>();
+            for (String prop : entity.getUpdatedProperties()) {
+                Object oldVal = ((BaseEntity) entity).getOldValue(prop);
+                if (oldVal != null) oldValues.put(prop, oldVal);
+            }
+        }
+
         RepositoryAdaptor.saveGraph(this, entity);
+
+        // 发射审计事件
+        if (logManager != null) {
+            emitAuditEvent(entity, oldValues);
+        }
+    }
+
+    private void emitAuditEvent(Entity entity, java.util.Map<String, Object> oldValues) {
+        java.util.Map<String, Object> values = new java.util.HashMap<>();
+        if (entity instanceof BaseEntity) {
+            values.put("id", entity.getId());
+            values.put("version", entity.getVersion());
+        }
+        for (String prop : entity.getUpdatedProperties()) {
+            values.put(prop, entity.getProperty(prop));
+        }
+
+        String comment = entity.getComment();
+        io.teaql.data.log.AuditEvent event;
+        if (entity.newItem()) {
+            event = io.teaql.data.log.AuditEvent.created(entity.typeName(), values, comment);
+        } else if (entity.deleteItem()) {
+            event = io.teaql.data.log.AuditEvent.deleted(entity.typeName(), entity.getId(), entity.getVersion(), comment);
+        } else if (entity.recoverItem()) {
+            event = io.teaql.data.log.AuditEvent.recovered(entity.typeName(), entity.getId(), entity.getVersion(), comment);
+        } else {
+            event = io.teaql.data.log.AuditEvent.updated(
+                entity.typeName(), values, entity.getUpdatedProperties(), oldValues, values, comment);
+        }
+
+        // 从 EntityDescriptor 获取脱敏配置 (对标 Rust 的 audit_mask_fields, audit_value_max_len)
+        java.util.List<String> maskFields = java.util.List.of();
+        Integer maxValueLen = null;
+        try {
+            io.teaql.data.meta.EntityDescriptor desc = resolveEntityDescriptor(entity.typeName());
+            String maskFieldsStr = desc.getStr("audit_mask_fields", "");
+            if (!maskFieldsStr.isEmpty()) {
+                maskFields = java.util.Arrays.asList(maskFieldsStr.split(","));
+            }
+            String maxLenStr = desc.getStr("audit_value_max_len", "");
+            if (!maxLenStr.isEmpty()) {
+                maxValueLen = Integer.parseInt(maxLenStr);
+            }
+        } catch (Exception ignored) {
+        }
+
+        logManager.emitAuditEvent(this, event, maskFields, maxValueLen);
     }
 
     /**
@@ -557,6 +635,22 @@ public class UserContext
 
     public void afterPersist(BaseEntity item) {
         item.clearUpdatedProperties();
+    }
+
+    public RequestPolicy getRequestPolicy() {
+        return requestPolicy;
+    }
+
+    public void setRequestPolicy(RequestPolicy requestPolicy) {
+        this.requestPolicy = requestPolicy;
+    }
+
+    public io.teaql.data.log.LogManager getLogManager() {
+        return logManager;
+    }
+
+    public void setLogManager(io.teaql.data.log.LogManager logManager) {
+        this.logManager = logManager;
     }
 
     /**

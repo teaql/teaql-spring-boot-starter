@@ -13,7 +13,7 @@ import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.criteria.TwoOperatorCriteria;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOperatorCriteria> {
     @Override
     public Class<TwoOperatorCriteria> type() {
@@ -26,7 +26,7 @@ public class TwoOperatorExpressionParser implements SQLExpressionParser<TwoOpera
             TwoOperatorCriteria twoOperatorCriteria,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         List<Expression> expressions = twoOperatorCriteria.getExpressions();
         PropertyFunction operator = twoOperatorCriteria.getOperator();
         if (!(operator instanceof Operator)) {

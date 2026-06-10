@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <name>teaql-spring-boot-starter-parent</name>
-    <description>Parent POM for TeaQL Spring Boot Starter modules</description>
+    <description>Parent POM for TeaQL modules</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -23,6 +23,7 @@
         <module>teaql-utils</module>
         <module>teaql</module>
         <module>teaql-sql</module>
+        <module>teaql-android</module>
         <module>teaql-sqlite</module>
         <module>teaql-mysql</module>
         <module>teaql-oracle</module>
@@ -39,7 +40,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -47,8 +47,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
-            <!-- TeaQL Modules -->
             <dependency>
                 <groupId>io.teaql</groupId>
                 <artifactId>teaql-utils</artifactId>
@@ -62,6 +60,11 @@
             <dependency>
                 <groupId>io.teaql</groupId>
                 <artifactId>teaql-sql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.teaql</groupId>
+                <artifactId>teaql-android</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

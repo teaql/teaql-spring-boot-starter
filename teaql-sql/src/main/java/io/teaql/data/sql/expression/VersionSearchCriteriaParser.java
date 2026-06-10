@@ -6,7 +6,7 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.VersionSearchCriteria;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class VersionSearchCriteriaParser implements SQLExpressionParser<VersionSearchCriteria> {
     public Class<VersionSearchCriteria> type() {
         return VersionSearchCriteria.class;
@@ -18,7 +18,7 @@ public class VersionSearchCriteriaParser implements SQLExpressionParser<VersionS
             VersionSearchCriteria expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         SearchCriteria searchCriteria = expression.getSearchCriteria();
         return ExpressionHelper.toSql(
                 userContext, searchCriteria, idTable, parameters, sqlColumnResolver);

@@ -1,12 +1,17 @@
 package io.teaql.data.utils;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Type;
 
 public class Convert {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    public static void registerModule(Module module) {
+        OBJECT_MAPPER.registerModule(module);
+    }
 
     public static <T> T convert(io.teaql.data.utils.TypeReference<T> p0, java.lang.Object p1) {
         if (p1 == null) {

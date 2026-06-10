@@ -1,2 +1,2 @@
-io.teaql.data.TQLAutoConfiguration
-io.teaql.data.TQLLogConfiguration
+io.teaql.autoconfigure.TQLAutoConfiguration
+io.teaql.autoconfigure.TQLLogConfiguration

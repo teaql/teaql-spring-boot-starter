@@ -13,7 +13,7 @@ import io.teaql.data.PropertyFunction;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class AggrExpressionParser implements SQLExpressionParser<AggrExpression> {
 
     @Override
@@ -27,7 +27,7 @@ public class AggrExpressionParser implements SQLExpressionParser<AggrExpression>
             AggrExpression agg,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         PropertyFunction operator = agg.getOperator();
         if (!(operator instanceof AggrFunction)) {
             throw new RepositoryException("AggrExpression operator should be " + AggrFunction.class);

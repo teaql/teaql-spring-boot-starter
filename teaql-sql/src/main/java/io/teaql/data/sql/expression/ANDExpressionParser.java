@@ -10,7 +10,7 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.AND;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class ANDExpressionParser implements SQLExpressionParser<AND> {
 
     @Override
@@ -24,7 +24,7 @@ public class ANDExpressionParser implements SQLExpressionParser<AND> {
             AND expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         List<Expression> expressions = expression.getExpressions();
         List<String> subs = new ArrayList<>();
         for (Expression sub : expressions) {

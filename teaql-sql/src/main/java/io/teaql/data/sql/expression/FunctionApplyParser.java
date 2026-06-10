@@ -10,7 +10,7 @@ import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class FunctionApplyParser implements SQLExpressionParser<FunctionApply> {
     @Override
     public Class<FunctionApply> type() {
@@ -23,13 +23,13 @@ public class FunctionApplyParser implements SQLExpressionParser<FunctionApply> {
             FunctionApply expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlRepository) {
+            SQLColumnResolver sqlColumnResolver) {
         PropertyFunction operator = expression.getOperator();
         if (operator == Operator.SOUNDS_LIKE) {
             return StrUtil.format(
                     "SOUNDEX({})",
                     ExpressionHelper.toSql(
-                            userContext, expression.first(), idTable, parameters, sqlRepository));
+                            userContext, expression.first(), idTable, parameters, sqlColumnResolver));
         }
         throw new RepositoryException("unexpected operator:" + operator);
     }

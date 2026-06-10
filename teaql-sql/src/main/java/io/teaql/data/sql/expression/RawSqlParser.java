@@ -5,7 +5,7 @@ import java.util.Map;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.RawSql;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class RawSqlParser implements SQLExpressionParser<RawSql> {
 
     @Override
@@ -18,7 +18,7 @@ public class RawSqlParser implements SQLExpressionParser<RawSql> {
             UserContext userContext,
             RawSql expression,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         return expression.getSql();
     }
 }

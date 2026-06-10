@@ -337,6 +337,20 @@ public class SQLiteRepository<T extends Entity> extends SQLRepository<T> {
     protected String columnName(String propertyName){
         return NamingCase.toUnderlineCase(propertyName);
     }
+
+    @Override
+    protected String getSqlValue(Object value) {
+        if (value == null) {
+            return "NULL";
+        }
+        if (value instanceof Number) {
+            return String.valueOf(value);
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean) value) ? "1" : "0";
+        }
+        return StrUtil.wrapIfMissing(String.valueOf(value), "'", "'");
+    }
     @Override
     protected void ensure(
             UserContext ctx, List<Map<String, Object>> tableInfo, String table, List<SQLColumn> columns) {

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import io.teaql.data.internal.GLobalResolver;
 import io.teaql.data.utils.ObjectUtil;
 import io.teaql.data.utils.ReflectUtil;
 

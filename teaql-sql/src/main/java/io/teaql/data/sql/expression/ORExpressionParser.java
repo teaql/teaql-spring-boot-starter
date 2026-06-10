@@ -10,7 +10,7 @@ import io.teaql.data.SearchCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.OR;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class ORExpressionParser implements SQLExpressionParser<OR> {
 
     @Override
@@ -24,7 +24,7 @@ public class ORExpressionParser implements SQLExpressionParser<OR> {
             OR expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         List<Expression> expressions = expression.getExpressions();
         List<String> subs = new ArrayList<>();
         for (Expression sub : expressions) {

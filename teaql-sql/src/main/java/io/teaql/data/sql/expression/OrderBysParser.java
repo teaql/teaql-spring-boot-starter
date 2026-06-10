@@ -8,7 +8,7 @@ import io.teaql.data.OrderBy;
 import io.teaql.data.OrderBys;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class OrderBysParser implements SQLExpressionParser<OrderBys> {
     @Override
     public Class<OrderBys> type() {
@@ -21,7 +21,7 @@ public class OrderBysParser implements SQLExpressionParser<OrderBys> {
             OrderBys expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         List<OrderBy> orderBys = expression.getOrderBys();
         if (orderBys.isEmpty()) {
             return null;

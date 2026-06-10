@@ -5,6 +5,7 @@ import java.util.Map;
 import io.teaql.data.Expression;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
+import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
 
 public interface SQLExpressionParser<T extends Expression> {
@@ -17,15 +18,15 @@ public interface SQLExpressionParser<T extends Expression> {
             T expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlRepository) {
-        return toSql(userContext, expression, parameters, sqlRepository);
+            SQLColumnResolver columnResolver) {
+        return toSql(userContext, expression, parameters, columnResolver);
     }
 
     default String toSql(
             UserContext userContext,
             T expression,
             Map<String, Object> parameters,
-            SQLRepository sqlRepository) {
+            SQLColumnResolver columnResolver) {
         throw new RepositoryException("not implemented");
     }
 

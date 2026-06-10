@@ -5,6 +5,7 @@ import java.util.Map;
 import io.teaql.data.Expression;
 import io.teaql.data.RepositoryException;
 import io.teaql.data.UserContext;
+import io.teaql.data.sql.SQLColumnResolver;
 import io.teaql.data.sql.SQLRepository;
 
 public class ExpressionHelper {
@@ -14,21 +15,41 @@ public class ExpressionHelper {
             Expression expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlRepository) {
+            SQLColumnResolver sqlColumnResolver) {
+        return toSqlInternal(userContext, expression, idTable, parameters,
+                sqlColumnResolver.getExpressionParsers(), sqlColumnResolver);
+    }
+
+    public static String toSql(
+            UserContext userContext,
+            Expression expression,
+            String idTable,
+            Map<String, Object> parameters,
+            Map<Class, SQLExpressionParser> parsers,
+            SQLColumnResolver columnResolver) {
+        return toSqlInternal(userContext, expression, idTable, parameters, parsers, columnResolver);
+    }
+
+    private static String toSqlInternal(
+            UserContext userContext,
+            Expression expression,
+            String idTable,
+            Map<String, Object> parameters,
+            Map<Class, SQLExpressionParser> parsers,
+            SQLColumnResolver columnResolver) {
         if (expression == null) {
             return null;
         }
         if (expression instanceof SQLExpressionParser) {
             return ((SQLExpressionParser) expression)
-                    .toSql(userContext, expression, idTable, parameters, sqlRepository);
+                    .toSql(userContext, expression, idTable, parameters, columnResolver);
         }
 
         Class expressionClass = expression.getClass();
         SQLExpressionParser parser = null;
 
-        Map<Class, SQLExpressionParser> expressionParsers = sqlRepository.getExpressionParsers();
         while (expressionClass != null) {
-            parser = expressionParsers.get(expressionClass);
+            parser = parsers.get(expressionClass);
             if (parser != null) {
                 break;
             }
@@ -37,6 +58,6 @@ public class ExpressionHelper {
         if (parser == null) {
             throw new RepositoryException("no parse for expression type:" + expression.getClass());
         }
-        return parser.toSql(userContext, expression, idTable, parameters, sqlRepository);
+        return parser.toSql(userContext, expression, idTable, parameters, columnResolver);
     }
 }

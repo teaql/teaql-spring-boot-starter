@@ -11,11 +11,13 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import io.teaql.data.internal.GLobalResolver;
 import io.teaql.data.utils.ArrayUtil;
 import io.teaql.data.utils.ObjectUtil;
 import io.teaql.data.utils.ReflectUtil;
 
 import io.teaql.data.criteria.AND;
+import io.teaql.data.internal.TempRequest;
 import io.teaql.data.criteria.Between;
 import io.teaql.data.criteria.EQ;
 import io.teaql.data.criteria.OneOperatorCriteria;
@@ -31,56 +33,56 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
 
     public static final String REFINEMENTS = "refinements";
 
-    String comment;
-    String purpose;
+    protected String comment;
+    protected String purpose;
 
     // select properties
-    List<SimpleNamedExpression> projections = new ArrayList<>();
+    protected List<SimpleNamedExpression> projections = new ArrayList<>();
 
     // simple dynamic properties
-    List<SimpleNamedExpression> simpleDynamicProperties = new ArrayList<>();
+    protected List<SimpleNamedExpression> simpleDynamicProperties = new ArrayList<>();
 
     // search conditions
-    SearchCriteria searchCriteria;
+    protected SearchCriteria searchCriteria;
 
     // order by
-    OrderBys orderBys = new OrderBys();
+    protected OrderBys orderBys = new OrderBys();
 
     // paging
-    Slice slice = new Slice();
+    protected Slice slice = new Slice();
 
     // enhance relations
-    Map<String, SearchRequest> enhanceRelations = new HashMap<>();
+    protected Map<String, SearchRequest> enhanceRelations = new HashMap<>();
 
     // dynamic attributes(aggregate properties)
-    List<SimpleAggregation> dynamicAggregateAttributes = new ArrayList<>();
+    protected List<SimpleAggregation> dynamicAggregateAttributes = new ArrayList<>();
 
     // enhance lists and partition by parent
-    String partitionProperty;
+    protected String partitionProperty;
 
     // basic return type
-    Class<? extends T> returnType;
+    protected Class<? extends T> returnType;
 
     // aggregations
-    Aggregations aggregations = new Aggregations();
-    Map<String, SearchRequest> propagateAggregations = new HashMap<>();
+    protected Aggregations aggregations = new Aggregations();
+    protected Map<String, SearchRequest> propagateAggregations = new HashMap<>();
 
     // group by, with aggregations
-    Map<String, SearchRequest> propagateDimensions = new HashMap<>();
+    protected Map<String, SearchRequest> propagateDimensions = new HashMap<>();
 
-    Map<String, SearchRequest> enhanceChildren = new HashMap<>();
+    protected Map<String, SearchRequest> enhanceChildren = new HashMap<>();
 
-    boolean cacheAggregation;
+    protected boolean cacheAggregation;
 
-    long aggregateCacheTime;
+    protected long aggregateCacheTime;
 
-    boolean propagateAggregationCache;
+    protected boolean propagateAggregationCache;
 
-    String rawSql;
+    protected String rawSql;
 
-    String searchForText;
+    protected String searchForText;
 
-    List<FacetRequest> facetRequests = new ArrayList<>();
+    protected List<FacetRequest> facetRequests = new ArrayList<>();
 
     public BaseRequest(Class<T> pReturnType) {
         returnType = pReturnType;
@@ -781,6 +783,25 @@ public abstract class BaseRequest<T extends Entity> implements SearchRequest<T> 
     protected BaseRequest internalPurpose(String purpose) {
         this.purpose = purpose;
         return this;
+    }
+
+    /**
+     * 声明查询目的并构建可执行查询。
+     * 这是查询链的终结方法，返回 ExecutableRequest。
+     * 要求 comment 已声明。
+     *
+     * 用法:
+     *   Q.tasks().filterByName("xxx").comment("查询任务").purpose("展示看板").executeForList(ctx);
+     */
+    public ExecutableRequest<T> purpose(String purpose) {
+        if (comment == null || comment.isEmpty()) {
+            throw new RepositoryException(
+                "[PURPOSE FAILED] Missing .comment() on " + getTypeName() + " query.\n" +
+                "Call .comment() before .purpose().\n" +
+                "Pattern: Q.xxx().comment(\"...\").purpose(\"...\").executeForList(ctx)");
+        }
+        this.purpose = purpose;
+        return new ExecutableRequest<>((SearchRequest<T>) this);
     }
 
     @Override

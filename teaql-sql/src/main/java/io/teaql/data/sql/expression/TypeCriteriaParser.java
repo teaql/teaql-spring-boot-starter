@@ -10,7 +10,7 @@ import io.teaql.data.TypeCriteria;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
     @Override
     public Class<TypeCriteria> type() {
@@ -23,7 +23,7 @@ public class TypeCriteriaParser implements SQLExpressionParser<TypeCriteria> {
             TypeCriteria expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         SQLColumn childType = sqlColumnResolver.getPropertyColumn(idTable, "_child_type");
         if (childType == null) {
             return SearchCriteria.TRUE;

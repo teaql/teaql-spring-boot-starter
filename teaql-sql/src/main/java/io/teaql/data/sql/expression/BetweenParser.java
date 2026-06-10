@@ -9,7 +9,7 @@ import io.teaql.data.Expression;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Between;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class BetweenParser implements SQLExpressionParser<Between> {
     @Override
     public Class<Between> type() {
@@ -22,7 +22,7 @@ public class BetweenParser implements SQLExpressionParser<Between> {
             Between expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         List<Expression> expressions = expression.getExpressions();
         Expression property = expressions.get(0);
         Expression lowValue = expressions.get(1);

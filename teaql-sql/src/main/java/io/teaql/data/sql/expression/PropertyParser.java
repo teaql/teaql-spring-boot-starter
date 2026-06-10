@@ -8,7 +8,7 @@ import io.teaql.data.PropertyReference;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLColumn;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class PropertyParser implements SQLExpressionParser<PropertyReference> {
 
     @Override
@@ -22,10 +22,10 @@ public class PropertyParser implements SQLExpressionParser<PropertyReference> {
             PropertyReference property,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         String propertyName = property.getPropertyName();
         SQLColumn propertyColumn = sqlColumnResolver.getPropertyColumn(idTable, propertyName);
-        if (userContext.getBool(SQLRepository.MULTI_TABLE, false)) {
+        if (userContext.getBool("MULTI_TABLE", false)) {
             return StrUtil.format("{}.{}", propertyColumn.getTableName(), propertyColumn.getColumnName());
         }
         return StrUtil.format("{}", propertyColumn.getColumnName());

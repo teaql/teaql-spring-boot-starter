@@ -10,7 +10,7 @@ import io.teaql.data.Parameter;
 import io.teaql.data.UserContext;
 import io.teaql.data.criteria.Operator;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class ParameterParser implements SQLExpressionParser<Parameter> {
     @Override
     public Class<Parameter> type() {
@@ -23,7 +23,7 @@ public class ParameterParser implements SQLExpressionParser<Parameter> {
             Parameter parameter,
             String pIdTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         String key = nextPropertyKey(parameters, parameter.getName());
         Operator operator = parameter.getOperator();
         Object value = parameter.getValue();

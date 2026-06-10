@@ -8,7 +8,7 @@ import io.teaql.data.Expression;
 import io.teaql.data.SimpleNamedExpression;
 import io.teaql.data.UserContext;
 import io.teaql.data.sql.SQLRepository;
-
+import io.teaql.data.sql.SQLColumnResolver;
 public class NamedExpressionParser implements SQLExpressionParser<SimpleNamedExpression> {
     @Override
     public Class<SimpleNamedExpression> type() {
@@ -21,7 +21,7 @@ public class NamedExpressionParser implements SQLExpressionParser<SimpleNamedExp
             SimpleNamedExpression expression,
             String idTable,
             Map<String, Object> parameters,
-            SQLRepository sqlColumnResolver) {
+            SQLColumnResolver sqlColumnResolver) {
         Expression inner = expression.getExpression();
         String sql = ExpressionHelper.toSql(userContext, inner, idTable, parameters, sqlColumnResolver);
         String name = expression.name();
