@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.teaql</groupId>
-    <artifactId>teaql-spring-boot-starter-parent</artifactId>
+    <artifactId>teaql-java-parent</artifactId>
     <version>1.198-RELEASE</version>
     <packaging>pom</packaging>
 
-    <name>teaql-spring-boot-starter-parent</name>
+    <name>teaql-java-parent</name>
     <description>Parent POM for TeaQL modules</description>
 
     <properties>
