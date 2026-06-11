@@ -11,9 +11,9 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>teaql-android</artifactId>
-    <name>teaql-android</name>
-    <description>Android SQLite repository for TeaQL (no JDBC, no Spring)</description>
+    <artifactId>teaql-sql-portable</artifactId>
+    <name>teaql-sql-portable</name>
+    <description>Portable SQL repository for TeaQL, designed for Android-style runtimes without spring-jdbc</description>
 
     <dependencies>
         <dependency>

@@ -21,6 +21,7 @@ import io.teaql.data.TeaQLDatabase;
 public class QuarkusDatabase implements TeaQLDatabase {
 
     private final DataSource dataSource;
+    private final ThreadLocal<Connection> transactionConnection = new ThreadLocal<>();
 
     public QuarkusDatabase(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -28,57 +29,91 @@ public class QuarkusDatabase implements TeaQLDatabase {
 
     @Override
     public List<Map<String, Object>> query(String sql, Object[] args) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            setParameters(ps, args);
-            try (ResultSet rs = ps.executeQuery()) {
-                return resultSetToList(rs);
+        Connection conn = null;
+        boolean closeConnection = false;
+        try {
+            conn = currentConnection();
+            closeConnection = !isInTransaction();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                setParameters(ps, args);
+                try (ResultSet rs = ps.executeQuery()) {
+                    return resultSetToList(rs);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Query failed: " + sql, e);
+        } finally {
+            close(conn, closeConnection);
         }
     }
 
     @Override
     public int executeUpdate(String sql, Object[] args) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            setParameters(ps, args);
-            return ps.executeUpdate();
+        Connection conn = null;
+        boolean closeConnection = false;
+        try {
+            conn = currentConnection();
+            closeConnection = !isInTransaction();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                setParameters(ps, args);
+                return ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Update failed: " + sql, e);
+        } finally {
+            close(conn, closeConnection);
         }
     }
 
     @Override
     public int[] batchUpdate(String sql, List<Object[]> batchArgs) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (Object[] args : batchArgs) {
-                setParameters(ps, args);
-                ps.addBatch();
+        Connection conn = null;
+        boolean closeConnection = false;
+        try {
+            conn = currentConnection();
+            closeConnection = !isInTransaction();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Object[] args : batchArgs) {
+                    setParameters(ps, args);
+                    ps.addBatch();
+                }
+                return ps.executeBatch();
             }
-            return ps.executeBatch();
         } catch (SQLException e) {
             throw new RuntimeException("Batch update failed: " + sql, e);
+        } finally {
+            close(conn, closeConnection);
         }
     }
 
     @Override
     public void execute(String sql) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.execute();
+        Connection conn = null;
+        boolean closeConnection = false;
+        try {
+            conn = currentConnection();
+            closeConnection = !isInTransaction();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.execute();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Execute failed: " + sql, e);
+        } finally {
+            close(conn, closeConnection);
         }
     }
 
     @Override
     public void executeInTransaction(Runnable action) {
+        if (isInTransaction()) {
+            action.run();
+            return;
+        }
+
         try (Connection conn = dataSource.getConnection()) {
             boolean autoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
+            transactionConnection.set(conn);
             try {
                 action.run();
                 conn.commit();
@@ -86,6 +121,7 @@ public class QuarkusDatabase implements TeaQLDatabase {
                 conn.rollback();
                 throw e;
             } finally {
+                transactionConnection.remove();
                 conn.setAutoCommit(autoCommit);
             }
         } catch (SQLException e) {
@@ -95,12 +131,34 @@ public class QuarkusDatabase implements TeaQLDatabase {
 
     @Override
     public List<Map<String, Object>> getTableColumns(String tableName) {
-        String sql = String.format(
-            "SELECT * FROM information_schema.columns WHERE table_name = '%s'", tableName);
+        String sql = "SELECT * FROM information_schema.columns WHERE table_name = ?";
         try {
-            return query(sql, new Object[0]);
+            return query(sql, new Object[]{tableName});
         } catch (Exception e) {
             return List.of();
+        }
+    }
+
+    private Connection currentConnection() throws SQLException {
+        Connection conn = transactionConnection.get();
+        if (conn != null) {
+            return conn;
+        }
+        return dataSource.getConnection();
+    }
+
+    private boolean isInTransaction() {
+        return transactionConnection.get() != null;
+    }
+
+    private void close(Connection conn, boolean closeConnection) {
+        if (!closeConnection || conn == null) {
+            return;
+        }
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to close connection", e);
         }
     }
 

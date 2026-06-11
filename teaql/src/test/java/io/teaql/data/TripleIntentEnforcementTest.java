@@ -33,7 +33,7 @@ public class TripleIntentEnforcementTest {
             return this;
         }
 
-        public StubRequest purpose(String purpose) {
+        public StubRequest withPurpose(String purpose) {
             super.internalPurpose(purpose);
             return this;
         }
@@ -119,7 +119,7 @@ public class TripleIntentEnforcementTest {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
         StubRequest request = new StubRequest()
                 .comment("Load tasks for dashboard")
-                .purpose("Display task count widget");
+                .withPurpose("Display task count widget");
 
         SearchRequest<StubEntity> result = ctx.enforceRequestPolicy(request);
         assertNotNull(result);
@@ -155,7 +155,7 @@ public class TripleIntentEnforcementTest {
     @Test
     public void query_withoutComment_errorContainsFixableCodeExample() {
         TestUserContext ctx = new TestUserContext(UserContext.IntentEnforcementMode.STRICT);
-        StubRequest request = new StubRequest().purpose("Dashboard display");
+        StubRequest request = new StubRequest().withPurpose("Dashboard display");
 
         try {
             ctx.enforceRequestPolicy(request);
@@ -247,8 +247,12 @@ public class TripleIntentEnforcementTest {
     @Test
     public void request_purposeAndComment_areIndependent() {
         StubRequest request = new StubRequest()
-                .comment("Fetch orders by region")
-                .purpose("Generate regional sales report");
+                .comment("Fetch orders by region");
+        ExecutableRequest<StubEntity> executable =
+                request.purpose("Generate regional sales report");
+
+        assertNotNull(executable);
+        assertSame(request, executable.request());
         assertEquals("Fetch orders by region", request.comment());
         assertEquals("Generate regional sales report", request.purpose());
     }

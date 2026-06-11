@@ -12,12 +12,15 @@ module io.teaql {
     exports io.teaql.data.criteria;
     exports io.teaql.data.meta;
     exports io.teaql.data.translation;
+    exports io.teaql.data.language;
     exports io.teaql.data.web;
     exports io.teaql.data.value;
     exports io.teaql.data.lock;
     exports io.teaql.data.log;
 
     // === Internal implementation, precise authorization ===
-    exports io.teaql.data.repository to io.teaql.sql, io.teaql.memory, io.teaql.android;
+    exports io.teaql.data.repository to io.teaql.sql, io.teaql.memory, io.teaql.sql.portable;
     exports io.teaql.data.internal to io.teaql.autoconfigure, io.teaql.sql;
+
+    opens io.teaql.data.language to io.teaql.autoconfigure;
 }

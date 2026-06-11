@@ -23,4 +23,6 @@ module io.teaql.autoconfigure {
     exports io.teaql.autoconfigure.redis;
     exports io.teaql.autoconfigure.web;
     exports io.teaql.data.jackson;
+
+    opens io.teaql.data.jackson to com.fasterxml.jackson.databind;
 }

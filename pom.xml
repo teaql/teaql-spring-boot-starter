@@ -23,7 +23,7 @@
         <module>teaql-utils</module>
         <module>teaql</module>
         <module>teaql-sql</module>
-        <module>teaql-android</module>
+        <module>teaql-sql-portable</module>
         <module>teaql-sqlite</module>
         <module>teaql-mysql</module>
         <module>teaql-oracle</module>
@@ -66,7 +66,7 @@
             </dependency>
             <dependency>
                 <groupId>io.teaql</groupId>
-                <artifactId>teaql-android</artifactId>
+                <artifactId>teaql-sql-portable</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -1,4 +1,4 @@
-package io.teaql.data.android;
+package io.teaql.data.sql.portable;
 
 import io.teaql.data.TeaQLDatabase;
 import java.util.ArrayList;
@@ -63,11 +63,13 @@ import io.teaql.data.utils.ReflectUtil;
 import io.teaql.data.utils.StrUtil;
 
 /**
- * Android-specific Repository implementation.
- * No spring-jdbc dependency, accesses SQLite via TeaQLDatabase abstraction.
+ * Portable SQL Repository implementation.
+ * No spring-jdbc dependency, accesses SQL databases via the TeaQLDatabase abstraction.
+ * The current primary use case is Android, where the application supplies an Android-backed
+ * TeaQLDatabase implementation.
  * Reuses SQLRepository's SQL building logic (buildDataSQL, etc.).
  */
-public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
+public class PortableSQLRepository<T extends Entity> extends AbstractRepository<T>
         implements SQLColumnResolver {
 
     private static final Pattern NAMED_PARAM = Pattern.compile(":(\\w+)");
@@ -90,7 +92,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
     private List<PropertyDescriptor> allProperties = new ArrayList<>();
     private Map<Class, SQLExpressionParser> expressionParsers = new ConcurrentHashMap<>();
 
-    public AndroidRepository(EntityDescriptor entityDescriptor, TeaQLDatabase database) {
+    public PortableSQLRepository(EntityDescriptor entityDescriptor, TeaQLDatabase database) {
         this.entityDescriptor = entityDescriptor;
         this.database = database;
         initSQLMeta(entityDescriptor);
@@ -646,7 +648,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
         if (property instanceof SQLProperty) {
             return ((SQLProperty) property).toDBRaw(ctx, entity, value);
         }
-        throw new RepositoryException("AndroidRepository only supports SQLProperty");
+        throw new RepositoryException("PortableSQLRepository only supports SQLProperty");
     }
 
     private boolean shouldHandle(PropertyDescriptor pProperty) {
@@ -691,7 +693,7 @@ public class AndroidRepository<T extends Entity> extends AbstractRepository<T>
 
     private List<SQLColumn> getSqlColumns(PropertyDescriptor property) {
         if (property instanceof SQLProperty) return ((SQLProperty) property).columns();
-        throw new RepositoryException("AndroidRepository only supports SQLProperty");
+        throw new RepositoryException("PortableSQLRepository only supports SQLProperty");
     }
 
     private SQLColumn getSqlColumn(PropertyDescriptor property) {

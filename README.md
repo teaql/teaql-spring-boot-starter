@@ -1,62 +1,147 @@
 # teaql-java
 
-TeaQL Java runtime: domain-driven data runtime for Java applications.
-Works with or without Spring Boot. Android ready. Rust-aligned.
+TeaQL Java is the Java runtime for TeaQL domain applications. It provides the
+core entity/request/repository model, SQL repository support, database-specific
+dialects, and integration modules for Spring Boot, Quarkus, Micronaut, and
+Android.
+
+The project was renamed from `teaql-spring-boot-starter` to `teaql-java` as the
+runtime moved from a Spring-only package to a modular Java runtime. The Spring
+Boot starter artifact remains `teaql-spring-boot-starter` for compatibility.
 
 ## Modules
 
-- `teaql`: core entities, repositories, requests, criteria, metadata, audit logging.
-- `teaql-sql`: SQL repository implementation (spring-jdbc).
-- `teaql-android`: Android repository (no spring-jdbc, uses TeaQLDatabase abstraction).
-- `teaql-autoconfigure`: Spring Boot auto configuration.
-- `teaql-starter`: Spring Boot starter dependency.
-- `teaql-sqlite`, `teaql-mysql`, `teaql-mssql`, `teaql-oracle`, `teaql-db2`,
-  `teaql-hana`, `teaql-duck`, `teaql-snowflake`: database-specific repositories.
-- `teaql-graphql`: GraphQL integration.
+| Module | Purpose |
+| --- | --- |
+| `teaql` | Core entities, requests, criteria, metadata, audit logging, policies, and runtime contracts. |
+| `teaql-utils` | Shared utility classes used by the runtime. |
+| `teaql-sql` | SQL repository implementation based on `spring-jdbc`. |
+| `teaql-autoconfigure` | Spring Boot auto-configuration for TeaQL runtime beans. |
+| `teaql-starter` | Module directory for the compatibility starter artifact `teaql-spring-boot-starter`. |
+| `teaql-quarkus` | Quarkus/CDI default TeaQL beans and a JDBC-backed `TeaQLDatabase`. |
+| `teaql-micronaut` | Micronaut default TeaQL beans and a JDBC-backed `TeaQLDatabase`. |
+| `teaql-sql-portable` | Portable SQL repository through the `TeaQLDatabase` abstraction. It is currently designed mainly for Android, but does not depend on the Android SDK. |
+| `teaql-sqlite` | SQLite repository support and single-connection wrapping for SQLite JDBC URLs. |
+| `teaql-mysql`, `teaql-mssql`, `teaql-oracle`, `teaql-db2`, `teaql-hana`, `teaql-duck`, `teaql-snowflake` | Database-specific SQL repository modules. |
+| `teaql-memory` | In-memory repository support. |
+| `teaql-graphql` | GraphQL integration. |
 
-## Quick Start
+## Requirements
 
-### With Spring Boot
+- Java 17+
+- Maven 3.8+
+
+## Dependency Examples
+
+Spring Boot applications should depend on the starter artifact:
 
 ```xml
 <dependency>
     <groupId>io.teaql</groupId>
-    <artifactId>teaql-starter</artifactId>
+    <artifactId>teaql-spring-boot-starter</artifactId>
+    <version>1.198-RELEASE</version>
 </dependency>
 ```
 
-### Without Spring Boot
+Quarkus applications can use the Quarkus integration module:
+
+```xml
+<dependency>
+    <groupId>io.teaql</groupId>
+    <artifactId>teaql-quarkus</artifactId>
+    <version>1.198-RELEASE</version>
+</dependency>
+```
+
+Micronaut applications can use the Micronaut integration module:
+
+```xml
+<dependency>
+    <groupId>io.teaql</groupId>
+    <artifactId>teaql-micronaut</artifactId>
+    <version>1.198-RELEASE</version>
+</dependency>
+```
+
+Android applications should use `teaql-sql-portable` and provide a platform-specific
+`TeaQLDatabase` implementation.
+
+## Runtime Model
+
+TeaQL request objects are executable only after the request carries enough
+intent for policy and audit checks. A typical generated request flow looks like:
 
 ```java
-UserContext ctx = new UserContext();
-ctx.setRequestPolicy(new PurposeRequestPolicy());
-ctx.setLogManager(new LogManager());
-
 Q.tasks()
     .comment("Load tasks")
     .purpose("Display kanban board")
-    .executeForList(ctx);
+    .executeForList(userContext);
 ```
 
-## Key Features
+The default `PurposeRequestPolicy` enforces this style by requiring a purpose
+before execution. Applications can replace `RequestPolicy`, `LogManager`,
+`DataStore`, `LockService`, `Translator`, and `EntityMetaFactory` beans in their
+framework integration layer.
 
-- **JPMS module boundaries**: internal packages sealed, only public API exported.
-- **Compile-time query enforcement**: `purpose()` returns `ExecutableRequest`.
-- **RequestPolicy**: pluggable operation-level policies (aligned with Rust).
-- **Dual-layer audit logging**: runtime env vars + app-level customizable sinks.
-- **Android support**: `teaql-android` module with `TeaQLDatabase` abstraction.
+## Framework Integration
 
-## SQLite
+### Spring Boot
+
+`teaql-autoconfigure` provides the default Spring Boot runtime beans, while the
+starter artifact pulls the auto-configuration into an application.
+
+SQLite applications can use normal Spring datasource properties:
 
 ```properties
 spring.datasource.url=jdbc:sqlite:./data/app.db
 spring.datasource.driver-class-name=org.sqlite.JDBC
 ```
 
-`teaql-sqlite` automatically wraps pooled data sources as `SingleConnectionDataSource`.
+When the SQLite module sees a `jdbc:sqlite:` URL, it wraps the datasource with a
+single-connection datasource to avoid common SQLite multi-connection lock
+contention.
+
+### Quarkus
+
+`teaql-quarkus` contributes CDI producer methods for the default TeaQL runtime
+beans. It expects a standard `javax.sql.DataSource` bean from the application.
+
+The provided `QuarkusDatabase` uses JDBC directly and keeps all operations inside
+`executeInTransaction` on the same connection for the current thread.
+
+### Micronaut
+
+`teaql-micronaut` contributes a Micronaut `@Factory` for the default TeaQL
+runtime beans. It expects a standard `javax.sql.DataSource` bean from the
+application.
+
+The provided `MicronautDatabase` mirrors the Quarkus JDBC behavior and keeps
+transactional operations on a thread-bound connection.
+
+### Android
+
+`teaql-sql-portable` removes the `spring-jdbc` dependency from the repository
+path. The module is not an Android SDK module, but its main use case today is
+Android: application code supplies an Android-backed `TeaQLDatabase`
+implementation, and the repository executes positional SQL through that
+abstraction.
 
 ## Development
 
+Compile all modules:
+
 ```bash
 mvn clean compile
+```
+
+Run tests where present:
+
+```bash
+mvn test
+```
+
+Scan for Chinese comments or strings:
+
+```bash
+node scan-chinese.js
 ```
