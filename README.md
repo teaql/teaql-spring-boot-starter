@@ -2,8 +2,7 @@
 
 TeaQL Java is the Java runtime for TeaQL domain applications. It provides the
 core entity/request/repository model, SQL repository support, database-specific
-dialects, and integration modules for Spring Boot, Quarkus, Micronaut, and
-Android.
+dialects, and integration modules for Spring Boot and Android.
 
 The project was renamed from `teaql-spring-boot-starter` to `teaql-java` as the
 runtime moved from a Spring-only package to a modular Java runtime. The Spring
@@ -18,8 +17,6 @@ Boot starter artifact remains `teaql-spring-boot-starter` for compatibility.
 | `teaql-sql` | SQL repository implementation based on `spring-jdbc`. |
 | `teaql-autoconfigure` | Spring Boot auto-configuration for TeaQL runtime beans. |
 | `teaql-starter` | Module directory for the compatibility starter artifact `teaql-spring-boot-starter`. |
-| `teaql-quarkus` | Quarkus/CDI default TeaQL beans and a JDBC-backed `TeaQLDatabase`. |
-| `teaql-micronaut` | Micronaut default TeaQL beans and a JDBC-backed `TeaQLDatabase`. |
 | `teaql-sql-portable` | Portable SQL repository through the `TeaQLDatabase` abstraction. It is currently designed mainly for Android, but does not depend on the Android SDK. |
 | `teaql-sqlite` | SQLite repository support and single-connection wrapping for SQLite JDBC URLs. |
 | `teaql-mysql`, `teaql-mssql`, `teaql-oracle`, `teaql-db2`, `teaql-hana`, `teaql-duck`, `teaql-snowflake` | Database-specific SQL repository modules. |
@@ -39,26 +36,6 @@ Spring Boot applications should depend on the starter artifact:
 <dependency>
     <groupId>io.teaql</groupId>
     <artifactId>teaql-spring-boot-starter</artifactId>
-    <version>1.198-RELEASE</version>
-</dependency>
-```
-
-Quarkus applications can use the Quarkus integration module:
-
-```xml
-<dependency>
-    <groupId>io.teaql</groupId>
-    <artifactId>teaql-quarkus</artifactId>
-    <version>1.198-RELEASE</version>
-</dependency>
-```
-
-Micronaut applications can use the Micronaut integration module:
-
-```xml
-<dependency>
-    <groupId>io.teaql</groupId>
-    <artifactId>teaql-micronaut</artifactId>
     <version>1.198-RELEASE</version>
 </dependency>
 ```
@@ -100,23 +77,6 @@ spring.datasource.driver-class-name=org.sqlite.JDBC
 When the SQLite module sees a `jdbc:sqlite:` URL, it wraps the datasource with a
 single-connection datasource to avoid common SQLite multi-connection lock
 contention.
-
-### Quarkus
-
-`teaql-quarkus` contributes CDI producer methods for the default TeaQL runtime
-beans. It expects a standard `javax.sql.DataSource` bean from the application.
-
-The provided `QuarkusDatabase` uses JDBC directly and keeps all operations inside
-`executeInTransaction` on the same connection for the current thread.
-
-### Micronaut
-
-`teaql-micronaut` contributes a Micronaut `@Factory` for the default TeaQL
-runtime beans. It expects a standard `javax.sql.DataSource` bean from the
-application.
-
-The provided `MicronautDatabase` mirrors the Quarkus JDBC behavior and keeps
-transactional operations on a thread-bound connection.
 
 ### Android
 

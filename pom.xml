@@ -34,8 +34,6 @@
         <module>teaql-graphql</module>
         <module>teaql-memory</module>
         <module>teaql-duck</module>
-        <module>teaql-quarkus</module>
-        <module>teaql-micronaut</module>
         <module>teaql-autoconfigure</module>
         <module>teaql-starter</module>
     </modules>
@@ -117,16 +115,6 @@
             <dependency>
                 <groupId>io.teaql</groupId>
                 <artifactId>teaql-duck</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.teaql</groupId>
-                <artifactId>teaql-quarkus</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.teaql</groupId>
-                <artifactId>teaql-micronaut</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

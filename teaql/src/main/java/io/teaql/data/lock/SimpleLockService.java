@@ -8,7 +8,7 @@ import io.teaql.data.UserContext;
 
 /**
  * Simple local lock service implementation. No Spring dependency.
- * For Quarkus / Micronaut / plain Java environments.
+ * For plain Java environments.
  */
 public class SimpleLockService implements LockService {
 
