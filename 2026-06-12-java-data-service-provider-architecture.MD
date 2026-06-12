@@ -6,9 +6,11 @@ Date: 2026-06-12
 
 TeaQL Java should align conceptually with the Rust `teaql-data-service` model.
 
-The Java runtime should not be centered on Spring beans, Spring annotations, JDBC, or SQL repositories. It should route query, aggregation, mutation, schema, and transaction operations through a Data Service provider architecture.
+The Java runtime should not be centered on Spring beans, Spring annotations, JDBC, or SQL repositories. It should be centered on `UserContext`, with query, aggregation, mutation, schema, and transaction operations routed through a Data Service provider architecture.
 
-Spring, JDBC, Android SQLite, memory, Meilisearch, and future remote/search/vector backends are provider implementations or provider adapters. They are not the runtime center.
+`teaql-core` should be the contract center: it defines the TeaQL world model and the contracts for operating on that world. `teaql-runtime` should provide the basic default runtime capabilities that implement those contracts.
+
+Spring, JDBC, Android SQLite, memory, Meilisearch, and future remote/search/vector backends are providers, execution adapters, or backend resources. They are not the runtime center.
 
 ## Problem
 
@@ -24,7 +26,7 @@ Rust already has a broader abstraction: `teaql-data-service`. It can support SQL
 
 ## Design Principle
 
-The Java runtime should be provider-oriented:
+The Java runtime should be `UserContext`-centered and provider-oriented:
 
 ```text
 Generated Q / Entity / Request API
@@ -51,6 +53,215 @@ JDBC is one SQL execution adapter, not the portable runtime model.
 
 Spring is one framework adapter, not the runtime model.
 
+## Core and Runtime
+
+TeaQL Java should separate the contract center from the default runtime implementation.
+
+```text
+teaql-core
+  defines the TeaQL world and the contracts for operating on that world
+
+teaql-runtime
+  provides the basic default way to operate that world
+```
+
+`teaql-core` is not a utility module. It is the contract center. It should contain stable world-model concepts and runtime contracts.
+
+Core world-model concepts:
+
+```text
+Bean
+  a TeaQL-described object unit; this is a TeaQL concept, not a Spring bean
+
+Entity
+  a persistable, queryable, mutable, relatable Bean
+
+EntityProperty
+  the structural unit used to describe an Entity property
+
+Relation
+  an EntityProperty that connects one Entity to another Entity or Entity collection
+
+Metadata
+  EntityDescriptor, PropertyDescriptor, Relation, EntityMetaFactory,
+  PropertyType, and related descriptor contracts
+```
+
+Core request-model concepts:
+
+```text
+SearchRequest
+MutationRequest
+AggregationRequest
+Criteria
+Expression
+Projection
+OrderBy
+Slice
+FacetRequest
+```
+
+Core runtime contracts:
+
+```text
+UserContext
+DataServiceRegistry
+DataServiceExecutor
+QueryExecutor
+MutationExecutor
+TransactionExecutor
+SchemaExecutor
+DataServiceCapabilities
+ExecutionMetadata
+RequestPolicy
+InternalIdGenerationService
+ExecutionLogSink
+TransactionCallback
+```
+
+`UserContext` is the central core object. Generated code should enter TeaQL through `UserContext`; environment integration should construct or adapt `UserContext`; backend access should route from `UserContext` to Data Services.
+
+`teaql-runtime` provides the basic implementation of the core contracts:
+
+```text
+DefaultUserContext
+TeaQLRuntime
+TeaQLRuntimeBuilder
+DefaultDataServiceRegistry
+Default request execution orchestration
+Default request policy handling
+Default internal Long ID generation
+Default execution logging
+Default transaction coordination
+Runtime-scoped attributes
+Legacy compatibility adapters
+```
+
+`teaql-runtime` must not bind to Spring, JDBC, SQL dialects, Android SQLite, GraphQL, or web rendering. Those belong to provider, adapter, or integration modules.
+
+The distinction is:
+
+```text
+teaql-core explains what TeaQL is.
+teaql-runtime provides the default way to run TeaQL.
+```
+
+## Bottom Layer Model
+
+The bottom layers should use four distinct concepts:
+
+```text
+Data Service
+  -> Provider
+    -> Execution Adapter
+      -> Backend Resource
+```
+
+### Data Service
+
+Data Service is the TeaQL semantic boundary visible to the runtime.
+
+It accepts and returns TeaQL concepts:
+
+```text
+QueryRequest
+MutationRequest
+AggregationRequest
+SchemaRequest
+TransactionCallback
+ExecutionMetadata
+DataServiceCapabilities
+```
+
+Responsibilities:
+
+- Receive TeaQL query, mutation, aggregation, schema, and transaction requests.
+- Declare capabilities such as query, mutation, transaction, full-text search, schema, and returning support.
+- Act as the routing target selected from entity metadata, for example `Order -> sql` and `ProductSearch -> meilisearch`.
+- Expose unified executor contracts such as `DataServiceExecutor`, `QueryExecutor`, `MutationExecutor`, and `TransactionExecutor`.
+
+It must not expose JDBC, Spring, HTTP clients, Android SQLite APIs, or SQL dialect details.
+
+### Provider
+
+Provider is the semantic implementation for a backend family.
+
+Examples:
+
+```text
+SQL Provider
+Memory Provider
+Meilisearch Provider
+Remote API Provider
+```
+
+Responsibilities:
+
+- Interpret TeaQL requests for a backend family.
+- Compile or translate TeaQL operations into provider-native operations.
+- Own provider capabilities and unsupported-operation errors.
+
+Examples:
+
+```text
+SQL Provider
+  compiles QueryRequest into SQL, bind parameters, and mapping instructions
+
+Meilisearch Provider
+  compiles SearchRequest into search payloads, filters, facets, and index operations
+
+Memory Provider
+  evaluates requests against in-memory predicates and stores
+```
+
+SQL is a Provider. Meilisearch is a Provider. Memory is a Provider. JDBC is not a Provider; it is one execution adapter for the SQL Provider.
+
+### Execution Adapter
+
+Execution Adapter binds a Provider to a concrete technology stack.
+
+Examples:
+
+```text
+JdbcExecutionAdapter
+SpringJdbcExecutionAdapter
+AndroidSQLiteExecutionAdapter
+MeilisearchHttpAdapter
+InMemoryStoreAdapter
+```
+
+Responsibilities:
+
+- Manage concrete clients, connections, sessions, or handles.
+- Execute provider-native operations.
+- Implement transaction mechanics when supported.
+- Handle resource lifecycle, exception translation, timeout behavior, and framework integration.
+
+Execution adapters may depend on Spring, JDBC, Android, HTTP SDKs, or local storage APIs. Those dependencies must not leak into `teaql-core`.
+
+### Backend Resource
+
+Backend Resource is the real external or local data system.
+
+Examples:
+
+```text
+PostgreSQL
+MySQL
+SQLite
+Meilisearch server
+Java collections
+Remote HTTP service
+```
+
+Responsibilities:
+
+- Store or serve data.
+- Execute the actual query, search, mutation, or transaction.
+- Provide the real consistency and transaction guarantees, or explicitly provide none.
+
+Backend Resource is not a TeaQL module or TeaQL contract. Only an Execution Adapter should touch it directly.
+
 ## Rust Alignment
 
 Java should mirror the core Rust concepts:
@@ -70,7 +281,7 @@ Java does not need to copy Rust syntax, but it should preserve the same architec
 
 ## Core Interfaces
 
-The top-level Data Service contracts belong in a Spring-free module.
+The top-level Data Service contracts belong in `teaql-core`.
 
 ```java
 public interface DataServiceExecutor {
@@ -102,7 +313,7 @@ Provider-specific implementations may implement only the interfaces they support
 
 For example:
 
-- SQL JDBC provider: query, mutation, aggregation, schema, transaction.
+- SQL provider with a JDBC execution adapter: query, mutation, aggregation, schema, transaction.
 - Memory provider: query, mutation, aggregation, transaction by snapshot or no-op.
 - Meilisearch provider: query/search and document mutation, but no relational transaction.
 - Remote API provider: capability depends on the remote service.
@@ -231,7 +442,7 @@ public interface DataServiceRegistry {
 }
 ```
 
-The non-Spring runtime should use explicit registration:
+The default non-Spring runtime should use explicit registration:
 
 ```java
 TeaQLRuntime runtime = TeaQLRuntime.builder()
@@ -242,14 +453,14 @@ TeaQLRuntime runtime = TeaQLRuntime.builder()
     .logManager(new LogManager())
     .build();
 
-UserContext ctx = new UserContext(runtime);
+UserContext ctx = new DefaultUserContext(runtime);
 ```
 
-Spring Boot can adapt this through beans, but the explicit runtime builder is the main architecture path.
+Spring Boot can adapt this through beans, but the explicit runtime builder remains the main architecture path.
 
 ## Transaction Model
 
-Transactions are a provider capability.
+Transactions are a Data Service capability implemented through Provider and Execution Adapter layers.
 
 The runtime must not pretend that all providers support ACID transactions.
 
@@ -273,6 +484,23 @@ Remote providers
   depend on remote backend semantics
 ```
 
+Transaction responsibility follows the bottom layer model:
+
+```text
+Data Service
+  exposes transaction capability and transaction entry points
+
+Provider
+  decides whether the backend family has meaningful transaction semantics
+
+Execution Adapter
+  implements concrete mechanics such as Spring transaction joining,
+  JDBC commit/rollback, or Android SQLite transaction calls
+
+Backend Resource
+  enforces the real guarantee, or provides no transaction guarantee
+```
+
 Default nested transaction semantics should be `REQUIRED`:
 
 ```text
@@ -288,14 +516,25 @@ Cross-provider mutation should be treated as eventual consistency, outbox, compe
 
 ## SQL Provider Stack
 
-SQL is still important, but it should be a provider stack:
+SQL is still important, but it should be expressed through the four bottom layers:
 
 ```text
-SqlDataServiceExecutor
-  -> SQL query compiler
-  -> SQL mutation compiler
-  -> SQL schema support
-  -> SQL execution adapter
+Data Service
+  SqlDataServiceExecutor
+
+Provider
+  SQL query compiler
+  SQL mutation compiler
+  SQL schema support
+  SQL mapping
+
+Execution Adapter
+  SpringJdbcSqlExecutor
+  JdbcSqlExecutor
+  AndroidSQLiteSqlExecutor
+
+Backend Resource
+  PostgreSQL, MySQL, SQLite, Oracle, DB2, Snowflake, DuckDB, ...
 ```
 
 Execution adapters:
@@ -315,7 +554,7 @@ AndroidSQLiteSqlExecutor
   -> Android SQLite transaction
 ```
 
-`TeaQLDatabase` should be downgraded to a low-level SQL execution interface used inside the SQL provider. It is not the runtime-level Data Service abstraction.
+`TeaQLDatabase` should be treated as a low-level SQL execution adapter interface, or be replaced by more explicit adapter contracts. It is not the runtime-level Data Service abstraction.
 
 ## Meilisearch Provider Shape
 
@@ -326,8 +565,9 @@ Q.products()
   -> SearchRequest
   -> descriptor.dataService = "meilisearch"
   -> MeilisearchDataServiceExecutor
-  -> compile criteria to Meilisearch filter/search payload
-  -> HTTP request
+  -> Meilisearch Provider compiles criteria to filter/search payload
+  -> Meilisearch HTTP Execution Adapter sends request
+  -> Meilisearch server
   -> map hits to Records / entities
 ```
 
@@ -356,41 +596,62 @@ Use the SQL data service for graph mutation, or publish search documents through
 Target module layout:
 
 ```text
+teaql-core
+  TeaQL world model and runtime contracts.
+  Includes Bean, Entity, EntityProperty, Relation, metadata descriptors,
+  request models, UserContext, RequestPolicy, Data Service contracts,
+  InternalIdGenerationService, transaction contracts, and execution log contracts.
+  No Spring, JDBC, SQL dialect, Android, GraphQL, web rendering, or concrete backend implementation.
+
+teaql-runtime
+  Basic default implementation of teaql-core contracts.
+  Includes DefaultUserContext, TeaQLRuntime, runtime builder,
+  DefaultDataServiceRegistry, default policy handling, default internal Long ID generation,
+  default execution logging, transaction coordination, and compatibility adapters.
+  No Spring, JDBC, SQL dialect, Android, GraphQL, or web rendering dependency.
+
 teaql
-  Entity, SearchRequest, UserContext, RequestPolicy, base runtime contracts
+  Compatibility or aggregation artifact during migration.
+  It can depend on teaql-core and teaql-runtime while legacy code is moved out.
 
-teaql-data-service
-  DataServiceExecutor, QueryExecutor, MutationExecutor,
-  TransactionExecutor, SchemaExecutor,
-  DataServiceCapabilities, ExecutionMetadata, DataServiceRegistry
-
-teaql-id-generation
-  InternalIdGenerationService and built-in internal Long ID generation strategies
-
-teaql-data-service-sql
-  SQL compiler, SQL metadata mapping, SQL Data Service executor
+teaql-sql
+  SQL Provider.
+  Includes SQL compiler, SQL metadata mapping, SQL Data Service executor,
+  SQL schema support, and repository compatibility facade.
   no Spring dependency
 
-teaql-provider-jdbc
-  Direct JDBC execution and transaction adapter
+teaql-sql-portable
+  Portable SQL Execution Adapter.
+  Supports no-Spring SQL execution for lightweight JVM, embedded, and Android-oriented use cases.
+  Should not depend on Spring JDBC.
 
-teaql-provider-spring-jdbc
-  Spring transaction-aware SQL execution adapter
+teaql-sqlite / teaql-mysql / teaql-oracle / teaql-hana /
+teaql-db2 / teaql-mssql / teaql-snowflake / teaql-duck
+  SQL dialect modules.
+  Handle dialect-specific SQL, type mapping, pagination, DDL, functions, and database differences.
 
-teaql-provider-memory
-  Memory Data Service executor
+teaql-memory
+  Memory Provider.
+  Implements Data Service contracts using in-memory storage and evaluation.
 
-teaql-provider-meilisearch
-  Future Java Meilisearch provider
+teaql-graphql
+  GraphQL integration.
+  Adapts TeaQL request and metadata concepts to GraphQL APIs.
 
-teaql-provider-android-sqlite
-  Optional Android SQLite execution adapter if the project decides to ship Android SDK integration
+teaql-meilisearch
+  Future Meilisearch Provider.
+  Implements search-oriented Data Service capabilities using Meilisearch.
 
 teaql-autoconfigure
-  Spring Boot wiring adapter only
+  Spring Boot integration.
+  Wires UserContext, TeaQLRuntime, Data Services, SQL Provider,
+  Spring transaction-aware execution adapters, metadata, policy, and logging.
+
+teaql-starter
+  Spring Boot starter aggregation artifact.
 ```
 
-The existing `teaql-sql` can remain as a compatibility module during migration, but internally it should move toward `teaql-data-service-sql` plus `teaql-provider-spring-jdbc`.
+The existing `teaql` artifact can remain as a compatibility artifact during migration, but the clean target is `teaql-core` for contracts and `teaql-runtime` for the default implementation.
 
 ## Relationship to Spring
 
@@ -398,11 +659,12 @@ Spring remains supported, but only as an adapter.
 
 Spring Boot responsibilities:
 
+- Create or adapt `UserContext`.
+- Create or adapt `TeaQLRuntime`.
 - Discover or create Data Service executors.
 - Register them into `DataServiceRegistry`.
-- Create `UserContext` through `UserContextFactory`.
 - Attach servlet or reactive request data.
-- Adapt Spring transactions for the Spring JDBC provider.
+- Adapt Spring transactions for SQL execution adapters.
 
 Spring should not define the core runtime shape.
 
@@ -415,11 +677,13 @@ Generator targets should be explicit:
 ```text
 java-runtime
   entities, requests, Q, E, checkers, metadata, no Spring annotations
+  depends on teaql-core
 
 java-spring-boot
   Spring controllers, @TQLContext integration, Spring configuration
+  depends on teaql-core and teaql-runtime
 
-java-data-service-sql
+java-sql
   SQL metadata and wiring hints for SQL providers
 ```
 
@@ -437,13 +701,13 @@ The runtime decides which Data Service handles `Order`.
 
 ## Migration Plan
 
-1. Add `teaql-data-service` with Rust-aligned contracts.
-2. Add `DataServiceCapabilities`, `ExecutionMetadata`, and `DataServiceOperation`.
-3. Add `DataServiceRegistry` and explicit `TeaQLRuntime` builder.
+1. Add `teaql-core` with world-model concepts and runtime contracts.
+2. Add `teaql-runtime` with `DefaultUserContext`, `TeaQLRuntime`, runtime builder, default registry, default policy handling, default internal Long ID generation, and default execution logging.
+3. Add Data Service contracts to `teaql-core`: `DataServiceExecutor`, `QueryExecutor`, `MutationExecutor`, `TransactionExecutor`, `SchemaExecutor`, `DataServiceCapabilities`, `ExecutionMetadata`, and `DataServiceRegistry`.
 4. Add `dataService` to Java entity metadata, defaulting to `sql`.
 5. Add an independent `InternalIdGenerationService` path and keep internal Long ID generation outside Data Service capabilities.
-6. Route query, aggregation, mutation, and schema through Data Service executors.
-7. Split SQL compilation from Spring JDBC execution.
+6. Route query, aggregation, mutation, and schema through `UserContext -> TeaQLRuntime -> DataServiceRegistry -> DataServiceExecutor`.
+7. Split SQL Provider semantics from SQL Execution Adapter mechanics.
 8. Rebuild current Spring SQL path as `SqlDataServiceExecutor + SpringJdbcSqlExecutor`.
 9. Rebuild portable SQL path as `SqlDataServiceExecutor + JdbcSqlExecutor` or Android SQLite adapter.
 10. Keep current repository APIs as compatibility facades while they delegate to Data Service.
@@ -464,12 +728,13 @@ This design does not require shipping an Android SDK module immediately.
 
 ## Final Target
 
-TeaQL Java should have the same conceptual center as TeaQL Rust:
+TeaQL Java should align with TeaQL Rust's Data Service direction while keeping Java's own center clear:
 
 ```text
-Data Service provider architecture
+UserContext-centered core contracts
+  + Data Service provider architecture
 ```
 
-The runtime routes generated business requests to named Data Services based on entity metadata and provider capabilities.
+Generated business requests enter through `UserContext`. The runtime routes those requests to named Data Services based on entity metadata and provider capabilities.
 
 SQL, Spring JDBC, direct JDBC, Android SQLite, memory, Meilisearch, and future backends are implementation choices behind that boundary.
