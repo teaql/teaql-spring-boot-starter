@@ -146,6 +146,239 @@ teaql-core explains what TeaQL is.
 teaql-runtime provides the default way to run TeaQL.
 ```
 
+## teaql-core Class Boundary
+
+`teaql-core` may contain stable concepts, request and metadata models, `UserContext`-centered runtime contracts, and tiny convenience methods that delegate to those contracts. It must not contain environment binding, backend implementation, repository implementation, SQL/JDBC/Spring/Web/GraphQL logic, or default runtime behavior.
+
+### World Model
+
+These classes and concepts define the TeaQL world and belong in `teaql-core`:
+
+```text
+Bean
+Entity
+BaseEntity
+EntityStatus
+EntityAction
+EntityActionException
+ConcurrentModifyException
+```
+
+Metadata classes and concepts:
+
+```text
+EntityDescriptor
+EntityMetaFactory
+PropertyDescriptor
+EntityProperty
+PropertyType
+Relation
+MetaConstants
+```
+
+They belong in core because they define what exists in the TeaQL world.
+
+### Request Model
+
+These classes express operations against the TeaQL world and belong in `teaql-core`:
+
+```text
+SearchRequest
+BaseRequest
+ExecutableRequest
+FacetRequest
+AggregationItem
+AggregationResult
+Aggregations
+SimpleAggregation
+Slice
+OrderBy
+OrderBys
+```
+
+Criteria and expression classes also belong in core when they are provider-neutral:
+
+```text
+SearchCriteria
+TypeCriteria
+SubQuerySearchCriteria
+Expression
+PropertyAware
+PropertyReference
+PropertyFunction
+FunctionApply
+Constant
+Parameter
+AggrExpression
+AggrFunction
+SimpleNamedExpression
+```
+
+Provider-neutral criteria implementations:
+
+```text
+AND
+OR
+NOT
+EQ
+GT
+GTE
+LT
+LTE
+IN
+NotIn
+Between
+Contain
+NotContain
+BeginWith
+EndWith
+IsNull
+IsNotNull
+VersionSearchCriteria
+```
+
+SQL-specific request constructs should be moved out of core over time:
+
+```text
+RawSql
+```
+
+`RawSql` leaks SQL into the provider-neutral request model. It should become a SQL Provider extension or be represented through a provider-specific extension mechanism.
+
+### SearchRequest Boundary
+
+`SearchRequest` is the provider-neutral read intent model of TeaQL.
+
+It may expose execution convenience methods in `teaql-core`:
+
+```text
+SearchRequest.executeForList(ctx)
+SearchRequest.executeForOne(ctx)
+SearchRequest.executeForStream(ctx)
+SearchRequest.aggregation(ctx)
+ExecutableRequest.executeForList(ctx)
+ExecutableRequest.executeForOne(ctx)
+ExecutableRequest.executeForStream(ctx)
+ExecutableRequest.aggregation(ctx)
+```
+
+These methods must remain very small. They are allowed only as core-level API ergonomics and must delegate to `UserContext`.
+
+Allowed shape:
+
+```java
+default SmartList<T> executeForList(UserContext ctx) {
+    if (ctx == null) {
+        throw new TQLException("UserContext is required");
+    }
+    return ctx.executeForList(this);
+}
+```
+
+Not allowed in `SearchRequest`, `BaseRequest`, or `ExecutableRequest`:
+
+```text
+Repository lookup
+Data Service selection
+Provider selection
+SQL compilation
+Transaction management
+Relation loading implementation
+Execution logging implementation
+Policy enforcement implementation
+Backend-specific planning
+```
+
+The real execution path must remain:
+
+```text
+SearchRequest.executeForList(ctx)
+  -> UserContext.executeForList(request)
+    -> TeaQLRuntime
+      -> DataServiceRegistry
+        -> DataServiceExecutor
+          -> Provider
+            -> Execution Adapter
+              -> Backend Resource
+```
+
+This keeps the generated API ergonomic without moving execution behavior into the request model.
+
+### Runtime Contracts
+
+These interfaces and contracts belong in `teaql-core`:
+
+```text
+UserContext
+RequestPolicy
+InternalIdGenerationService
+DataServiceRegistry
+DataServiceExecutor
+QueryExecutor
+MutationExecutor
+TransactionExecutor
+SchemaExecutor
+DataServiceCapabilities
+ExecutionMetadata
+TransactionCallback
+ExecutionLogSink
+```
+
+The contract belongs in core; concrete implementations belong in `teaql-runtime`, provider modules, adapter modules, or integration modules.
+
+For internal ID generation, the core contract is:
+
+```text
+InternalIdGenerationService
+```
+
+Concrete internal Long ID strategies belong in `teaql-runtime` or a dedicated implementation module, not in `teaql-core`.
+
+### Base Results and Exceptions
+
+These base result and exception concepts belong in `teaql-core`:
+
+```text
+TQLException
+RepositoryException
+DataServiceException
+SmartList
+QueryResult
+MutationResult
+AggregationResult
+```
+
+`RepositoryException` may remain in core for compatibility. Conceptually, future Data Service code should prefer `TQLException` or `DataServiceException`.
+
+### Not Core
+
+These classes or concepts should not be part of `teaql-core`:
+
+```text
+Repository
+AbstractRepository
+RepositoryAdaptor
+TeaQLDatabase
+TQLResolver
+GLobalResolver
+DataStore
+GraphQLService
+BaseService
+DynamicSearchHelper
+PurposeRequestPolicy implementation
+SimpleLockService
+LogManager implementation
+SqlLogEntry
+WebResponse
+ViewRender
+ServiceRequestUtil
+UserContextInitializer
+Language translator implementations
+BaseInternalRemoteIdGenerator
+```
+
+Some of them may depend on `teaql-core`, but they are runtime, provider, adapter, integration, or compatibility concerns.
+
 ## Bottom Layer Model
 
 The bottom layers should use four distinct concepts:
