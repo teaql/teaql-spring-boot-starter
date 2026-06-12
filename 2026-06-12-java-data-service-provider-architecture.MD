@@ -62,12 +62,11 @@ Java should mirror the core Rust concepts:
 | `MutationExecutor` | `MutationExecutor` | Execute insert, update, delete, recover, batch |
 | `TransactionExecutor` | `TransactionExecutor` | Begin provider-owned transaction |
 | `SchemaExecutor` | `SchemaExecutor` | Ensure or inspect provider schema |
-| `IdGeneratorExecutor` | `IdGeneratorExecutor` | Generate provider-backed IDs |
 | `DataServiceCapabilities` | `DataServiceCapabilities` | Declare supported backend behavior |
 | `ExecutionMetadata` | `ExecutionMetadata` | Record backend, operation, timing, trace, debug query |
 | `EntityDescriptor.data_service` | `EntityDescriptor.dataService` | Route entity operations to a named provider |
 
-Java does not need to copy Rust syntax, but it should preserve the same architectural boundaries.
+Java does not need to copy Rust syntax, but it should preserve the same architectural boundaries. One deliberate Java boundary is that TeaQL internal ID generation remains a separate runtime capability, not part of the Data Service executor contract.
 
 ## Core Interfaces
 
@@ -103,7 +102,7 @@ Provider-specific implementations may implement only the interfaces they support
 
 For example:
 
-- SQL JDBC provider: query, mutation, aggregation, schema, transaction, ID generation.
+- SQL JDBC provider: query, mutation, aggregation, schema, transaction.
 - Memory provider: query, mutation, aggregation, transaction by snapshot or no-op.
 - Meilisearch provider: query/search and document mutation, but no relational transaction.
 - Remote API provider: capability depends on the remote service.
@@ -121,7 +120,6 @@ public final class DataServiceCapabilities {
     private boolean aggregation;
     private boolean transaction;
     private boolean schema;
-    private boolean idGeneration;
     private boolean relationLoad;
     private boolean relationMutation;
     private boolean fullTextSearch;
@@ -184,6 +182,38 @@ SearchRequest
 ```
 
 No application code should need to know whether a request is backed by Spring JDBC, plain JDBC, Android SQLite, memory, or Meilisearch.
+
+## Internal ID Generation Boundary
+
+Internal ID generation is not a Data Service capability.
+
+The Data Service layer executes query, aggregation, mutation, schema, and provider-specific data operations. TeaQL internal ID generation is a separate runtime service whose job is narrow: generate the internal `Long` ID used by TeaQL entities.
+
+The Java runtime should keep a dedicated contract:
+
+```java
+public interface InternalIdGenerationService {
+    Long generateId(UserContext ctx, Entity entity);
+}
+```
+
+The existing `InternalIdGenerator` can evolve into, or be adapted by, this service.
+
+SQL providers may use database-generated values when a mutation explicitly asks for returning/generated values, but that is not the same as owning TeaQL internal ID generation. Provider returning support remains a mutation capability; internal ID generation policy remains runtime-level.
+
+Other identifier concepts, such as common IDs, business numbers, external IDs, remote sequence tokens, or provider-native document IDs, are out of scope for this design and should be handled separately later.
+
+The target flow is:
+
+```text
+Entity needs ID
+  -> UserContext / TeaQLRuntime
+  -> InternalIdGenerationService
+  -> internal Long ID attached to entity or mutation command
+  -> DataServiceExecutor.mutate(...)
+```
+
+This keeps TeaQL internal ID strategy independent from data storage backend selection.
 
 ## Registry
 
@@ -331,8 +361,11 @@ teaql
 
 teaql-data-service
   DataServiceExecutor, QueryExecutor, MutationExecutor,
-  TransactionExecutor, SchemaExecutor, IdGeneratorExecutor,
+  TransactionExecutor, SchemaExecutor,
   DataServiceCapabilities, ExecutionMetadata, DataServiceRegistry
+
+teaql-id-generation
+  InternalIdGenerationService and built-in internal Long ID generation strategies
 
 teaql-data-service-sql
   SQL compiler, SQL metadata mapping, SQL Data Service executor
@@ -408,13 +441,14 @@ The runtime decides which Data Service handles `Order`.
 2. Add `DataServiceCapabilities`, `ExecutionMetadata`, and `DataServiceOperation`.
 3. Add `DataServiceRegistry` and explicit `TeaQLRuntime` builder.
 4. Add `dataService` to Java entity metadata, defaulting to `sql`.
-5. Route query, aggregation, mutation, schema, and ID generation through Data Service executors.
-6. Split SQL compilation from Spring JDBC execution.
-7. Rebuild current Spring SQL path as `SqlDataServiceExecutor + SpringJdbcSqlExecutor`.
-8. Rebuild portable SQL path as `SqlDataServiceExecutor + JdbcSqlExecutor` or Android SQLite adapter.
-9. Keep current repository APIs as compatibility facades while they delegate to Data Service.
-10. Add a no-Spring smoke test and a memory provider smoke test.
-11. Add a future Meilisearch provider design or prototype after the routing model is stable.
+5. Add an independent `InternalIdGenerationService` path and keep internal Long ID generation outside Data Service capabilities.
+6. Route query, aggregation, mutation, and schema through Data Service executors.
+7. Split SQL compilation from Spring JDBC execution.
+8. Rebuild current Spring SQL path as `SqlDataServiceExecutor + SpringJdbcSqlExecutor`.
+9. Rebuild portable SQL path as `SqlDataServiceExecutor + JdbcSqlExecutor` or Android SQLite adapter.
+10. Keep current repository APIs as compatibility facades while they delegate to Data Service.
+11. Add a no-Spring smoke test and a memory provider smoke test.
+12. Add a future Meilisearch provider design or prototype after the routing model is stable.
 
 ## Non-Goals
 
@@ -439,4 +473,3 @@ Data Service provider architecture
 The runtime routes generated business requests to named Data Services based on entity metadata and provider capabilities.
 
 SQL, Spring JDBC, direct JDBC, Android SQLite, memory, Meilisearch, and future backends are implementation choices behind that boundary.
-
